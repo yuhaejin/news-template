@@ -4,9 +4,7 @@
     <bookmark url="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/service/AbstractService.java" line="27" mnemonic="9" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8293525-984c-422d-b467-6e92d1aa1ec8" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/news-template.iws" beforeDir="false" afterPath="$PROJECT_DIR$/news-template.iws" afterDir="false" />
-    </list>
+    <list default="true" id="a8293525-984c-422d-b467-6e92d1aa1ec8" name="Default Changelist" comment="" />
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -61,8 +59,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="230">
-              <caret line="128" column="9" selection-start-line="128" selection-start-column="9" selection-end-line="128" selection-end-column="9" />
+            <state relative-caret-position="166">
+              <caret line="124" column="56" lean-forward="true" selection-start-line="124" selection-start-column="56" selection-end-line="124" selection-end-column="56" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -313,6 +311,16 @@
               <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
               <item name="news-template" type="462c0819:PsiDirectoryNode" />
             </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="news-template" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="news-template" type="462c0819:PsiDirectoryNode" />
+              <item name="target" type="462c0819:PsiDirectoryNode" />
+            </path>
           </expand>
           <select />
         </subPane>
@@ -461,7 +469,7 @@
       <workItem from="1559094051858" duration="62000" />
       <workItem from="1559094138272" duration="13639000" />
       <workItem from="1559196165043" duration="40489000" />
-      <workItem from="1559539121286" duration="218000" />
+      <workItem from="1559539121286" duration="542000" />
     </task>
     <task id="LOCAL-00001" summary="처음 반영">
       <created>1558514277020</created>
@@ -477,14 +485,22 @@
       <option name="project" value="LOCAL" />
       <updated>1559538463493</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="처음 반영">
+      <created>1559539358061</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1559539358061</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="218354000" />
+    <option name="totallyTimeSpent" value="218678000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1014" extended-state="6" />
+    <editor active="true" />
     <layout>
       <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49913645" visible="true" weight="0.29904053" />
       <window_info id="Structure" order="1" sideWeight="0.50086355" side_tool="true" weight="0.25746268" />
@@ -1045,8 +1061,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="230">
-          <caret line="128" column="9" selection-start-line="128" selection-start-column="9" selection-end-line="128" selection-end-column="9" />
+        <state relative-caret-position="166">
+          <caret line="124" column="56" lean-forward="true" selection-start-line="124" selection-start-column="56" selection-end-line="124" selection-end-column="56" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
