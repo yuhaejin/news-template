@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tachyon.news.camel.repository.TemplateMapper">
+
+    <select id="findKongsiHalder2" resultType="map" parameterType="string">
+        select a.doc_nm, a.doc_url, a.isu_cd, a.acpt_no, a.rpt_nm, a.tns_dt
+        from kongsiholder a
+        where a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+    </select>
+    <insert id="insertStockHolder" parameterType="map">
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price,birth_day)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price},#{birth_day})
+    </insert>
+
+    <select id="findKongsiHalder" resultType="map" parameterType="string">
+        select a.doc_nm,a.doc_url,a.isu_cd,a.acpt_no from kongsiholder a where a.doc_no = #{doc_no}
+    </select>
+<!--    <select id="findKongsiHalder2" resultType="map" parameterType="string">-->
+<!--        select a.doc_nm,a.doc_url,a.isu_cd,a.acpt_no,a.rpt_nm,a.tns_dt from kongsiholder a where a.doc_no = #{doc_no} and a.isu_cd = #{isu_cd} and a.acpt_no = #{acpt_no}-->
+<!--    </select>-->
+
+    <select id="findStockChangeHistory" resultType="int" parameterType="string">
+        select count(doc_no) from stockchangehistory where doc_no = #{doc_no}
+    </select>
+
+    <insert id="insertStockChangeHistory" parameterType="map">
+        INSERT INTO stockchangehistory (doc_no, history_dt)
+        VALUES (#{doc_no}, #{history_dt})
+    </insert>
+    <select id="findStockHolder" resultType="int" parameterType="map">
+        select count(doc_no) from stockholder where isu_cd = #{code} and owner_name = #{owner_name} and birth_day = #{birth_day} and before_amt = #{before_amt} and after_amt = #{after_amt} and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </select>
+
+    <update id="updateStockHolder" parameterType="map">
+        update stockholder
+        set unit_price = #{unit_price}
+        where isu_cd = #{code} and owner_name = #{owner_name} and birth_day = #{birth_day} and before_amt = #{before_amt} and after_amt = #{after_amt} and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </update>
+
+
+    <insert id="insertKongsiHoder" parameterType="map">
+        INSERT INTO kongsiholder (isu_cd,doc_no, doc_nm, doc_url, doc_type, tns_dt, acpt_no, rpt_nm,acpt_dt)
+        VALUES ( #{isu_cd},#{doc_no}, #{doc_nm}, #{doc_url}, #{doc_type}, #{tns_dt}, #{acpt_no}, #{rpt_nm},#{acpt_dt});
+    </insert>
+
+    <select id="findKongsiHolder" parameterType="string" resultType="int">
+        select count(doc_no) from kongsiholder where isu_cd = #{isuCd} and doc_no = #{docNo} and acpt_no = #{acptNo}
+    </select>
+    <update id="updateKongsiHoder" parameterType="map">
+        update kongsiholder
+        set doc_nm = #{doc_nm}, tns_dt = #{tns_dt}, acpt_no = #{acpt_no}, rpt_nm = #{rpt_nm},acpt_dt = #{acpt_dt}
+        where isu_cd = #{isu_cd} and doc_no = #{doc_no}
+    </update>
+    <select id="findBeforeKongsi" resultType="map" parameterType="string">
+        select a.doc_nm,a.doc_no from kongsiholder a where a.acpt_no = #{acptNo} and a.isu_cd = #{isuCd}
+    </select>
+
+    <delete id="deleteBeforeStockHolder" parameterType="map">
+        delete from stockholder where isu_cd = #{isuCd} and doc_no = #{docNo}
+    </delete>
+
+    <select id="findStockHolderPrice" resultType="map" parameterType="map">
+        select unit_price from stockholder where isu_cd = #{code} and owner_name = #{owner_name} and birth_day = #{birth_day} and before_amt = #{before_amt} and after_amt = #{after_amt} and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </select>
+
+    <select id="findCode" parameterType="string" resultType="string">
+        select isu_cd from isu where isu_nm = #{isu_nm}
+    </select>
+    <select id="findName" parameterType="string" resultType="string">
+        select isu_nm from isu where isu_cd = #{isu_cd}
+    </select>
+
+    <select id="findStockData" parameterType="map" resultType="int">
+        select count(*) from stock_data where code = #{code} and DATE_FORMAT(date, '%Y%m%d') = #{date}
+    </select>
+
+    <insert id="insertStockData" parameterType="map">
+        INSERT INTO stock_data (code,date, open, high, low, close, adjratio)
+        VALUES ( #{code},#{date}, #{open}, #{high}, #{low}, #{close}, #{adjratio})
+    </insert>
+
+
+    <select id="findFullCode" resultType="map">
+        select isu_cd,isu_full_cd,isu_nm from isu
+    </select>
+    <select id="findKongsiHalders" resultType="string" parameterType="string">
+        select a.doc_no from kongsiholder a where  a.isu_cd = #{isuCd}
+    </select>
+    <select id="findCode2" parameterType="string" resultType="string">
+        select isu_cd from isudet where isu_nm = #{isu_nm}
+    </select>
+    <insert id="insertIsuHolder" parameterType="string">
+        INSERT INTO isudet (isu_cd,isu_nm)
+        VALUES ( #{isuCd},#{isuName})
+    </insert>
+
+    <insert id="insertStaffHolder" parameterType="map">
+        INSERT INTO staffholder (kongsi_day,name,gender,birth_day,spot,regi_officer_yn,full_time_yn,responsibilities,major_career,voting_stock,no_voting_stock,service_duration,expiration_date,isu_cd,doc_no,doc_url,acpt_no)
+        VALUES (#{kongsi_day},#{name},#{gender},#{birth_day},#{spot},#{regi_officer_yn},#{full_time_yn},#{responsibilities},#{major_career},#{voting_stock},#{no_voting_stock},#{service_duration},#{expiration_date},#{isu_cd},#{doc_no},#{doc_url},#{acpt_no} )
+    </insert>
+
+
+    <select id="findStaffHolderCount" parameterType="map" resultType="int">
+        select count(*) from staffholder where kongsi_day = #{kongsi_day} and name = #{name} and birth_day = #{birth_day} and isu_cd = #{isu_cd}
+    </select>
+    <select id="findSimpleStaffHolder" parameterType="map" resultType="map">
+        select doc_no,doc_url,acpt_no from staffholder where kongsi_day = #{kongsi_day} and name = #{name} and birth_day = #{birth_day} and isu_cd = #{isu_cd}
+    </select>
+    <update id="updateStaffHolder" parameterType="map">
+        update staffholder set voting_stock=#{voting_stock}, no_voting_stock=#{no_voting_stock},service_duration=#{service_duration}  where kongsi_day = #{kongsi_day} and name = #{name} and birth_day = #{birth_day} and isu_cd = #{isu_cd}
+    </update>
+    <delete id="deleteBeforeStaffHolder" parameterType="map">
+        delete from staffholder where  isu_cd = #{isu_cd} and doc_no = #{doc_no}
+    </delete>
+
+    <insert id="insertAccessHolder" parameterType="map">
+        INSERT INTO accessholder (id,type, regdate, param1, param2)
+        VALUES ( #{id},#{type}, #{regdate}, #{param1}, #{param2})
+    </insert>
+
+    <update id="updateKongsiHoderCode" parameterType="map">
+        update kongsiholder
+        set isu_cd = #{isu_cd}
+        where isu_cd = 'A-' and doc_no = #{doc_no}
+    </update>
+
+    <select id="findDbBasicKongsiCount" parameterType="string" resultType="int">
+        select count(*) count
+        from (select acpt_no
+              from kongsiholder
+              where acpt_dt = #{acpt_dt}
+              group by acpt_no) a;
+    </select>
+    <select id="findDailyBasicKongsi" parameterType="string" resultType="int">
+        select count(*) count
+        from  dailybasickongsi where date = #{date}
+    </select>
+
+    <update id="updateDailyBasicKongsi" parameterType="map">
+        update dailybasickongsi set is_ok = #{result} ,updatedAt = #{updatedAt} where date = #{date}
+    </update>
+
+    <insert id="insertDailyBasicKongsi" parameterType="map">
+        INSERT INTO dailybasickongsi (date,kind_count, file_count, db_count)
+        VALUES ( #{date},#{kind_count}, #{file_count}, #{db_count})
+    </insert>
+    <select id="findKongsiHalderByAcptNo" parameterType="map" resultType="map">
+        select isu_cd,doc_no from kongsiholder where acpt_dt = #{acpt_dt} and acpt_no = #{acpt_no}
+    </select>
+
+    <select id="findKongsiHalderByDocNo" resultType="map" parameterType="string">
+        select a.doc_nm,a.doc_url,a.isu_cd,a.acpt_no,a.rpt_nm,a.tns_dt from kongsiholder a where  a.doc_no = #{doc_no}
+    </select>
+
+    <insert id="insertCompany" parameterType="map">
+        INSERT INTO isu (isu_cd, isu_nm, isu_type, isu_full_cd,kospi_200_yn) VALUES (#{isu_cd}, #{isu_nm}, #{isu_type},#{isu_full_cd},#{kospi_200_yn})
+    </insert>
+    <select id="findCode3" parameterType="map" resultType="string">
+        select isu_cd from kongsiholder where doc_no = #{doc_no} and acpt_dt = #{acpt_dt}
+    </select>
+    <select id="findStockHolderCountByCodeNo" parameterType="map" resultType="int">
+        select count(*) from stockholder where isu_cd = #{isu_cd} and doc_no = #{doc_no}
+    </select>
+    <select id="findStaffHolderCountByCodeNo" parameterType="map" resultType="int">
+        select count(*) from staffholder where doc_no = #{doc_no} and isu_cd = #{isu_cd}
+    </select>
+
+
+
+    <select id="findKongsiHalder3" resultType="map" parameterType="string">
+        select a.doc_nm,a.doc_url,a.isu_cd,a.acpt_no,a.rpt_nm,a.tns_dt from kongsiholder a where a.doc_no = #{doc_no} and a.isu_cd = #{isu_cd}
+    </select>
+    <select id="findPurposeHolder" parameterType="string" resultType="int">
+        select count(*) count
+        from purposeholder
+        where isu_cd = #{isu_cd}
+          and open_date = #{open_date}
+          and type = #{type}
+    </select>
+    <insert id="insertPurposeHolder1" parameterType="map">
+        INSERT INTO purposeholder (isu_cd,open_date, type, purpose,reason,doc_url)
+        VALUES ( #{isu_cd},#{open_date}, #{type}, #{purpose},#{reason},#{doc_url})
+    </insert>
+    <insert id="insertPurposeHolder2" parameterType="map">
+        INSERT INTO purposeholder (isu_cd,open_date, type, reason,doc_url,before_purp,after_purp)
+        VALUES ( #{isu_cd},#{open_date}, #{type}, #{reason},#{doc_url},#{before_purp},#{after_purp})
+    </insert>
+
+    <insert id="saveError" parameterType="map">
+        INSERT INTO errorholder (from_queue,body, error)
+        VALUES ( #{from_queue},#{body}, #{error})
+    </insert>
+
+
+</mapper>
+
