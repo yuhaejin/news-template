@@ -1,6 +1,5 @@
 package com.tachyon.news.template.config;
 
-import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.NewsConstants;
 import com.tachyon.news.template.model.Keyword;
@@ -53,8 +52,11 @@ public class MyContext {
     @Autowired
     private TemplateMapper templateMapper;
 
+    private List<String> telegramKeywordList = new ArrayList<>();
+
     private Map<String, User> telegramMap = new LinkedHashMap<>();
 
+    private Map<String, Integer> QUEUE_MAP = new HashMap<>();
 
     public void addGatewayCalling() {
         gatewayCount.incrementAndGet();
@@ -64,32 +66,40 @@ public class MyContext {
         return gatewayCount.get();
     }
 
-
     @PostConstruct
     public void init() {
         setupTemplates();
-        setupTelegramMap();
+        refreshTelegramKeywordList();
+        refreshTelegramUserInfo();
     }
 
-    public void setupTelegramMap() {
+    public void refreshTelegramKeywordList() {
         List<Map<String,Object>> maps = templateMapper.findKeywords();
 
-        List<User> users = covert(maps);
-        synchronized (telegramMap) {
-            telegramMap.clear();
-            for (User user : users) {
-                telegramMap.put(user.getUserid(), user);
+        synchronized (telegramKeywordList) {
+            telegramKeywordList.clear();
+            for (Map<String,Object> map : maps) {
+                String keyword = Maps.getValue(map,"keyword");
+                telegramKeywordList.add(keyword);
             }
         }
-        for (String key : telegramMap.keySet()) {
-            log.info("<<< "+key + " " + telegramMap.get(key));
+        for (String key : telegramKeywordList) {
+            log.info("속보키워드 <<< "+key);
         }
     }
-
     public Map<String, User> getTelegramMap() {
         return telegramMap;
     }
+//
+    public List<String> getTelegramKeywordList() {
+        return telegramKeywordList;
+    }
 
+    /**
+     * //TODO 종목 데이터도 함께 처리가 가능해야 함..
+     * @param maps
+     * @return
+     */
     private List<User> covert(List<Map<String, Object>> maps) {
         Map<String, List<Map<String, Object>>> map = new HashMap<>();
         for (Map<String, Object> _map : maps) {
@@ -107,13 +117,13 @@ public class MyContext {
         List<User> users = new ArrayList<>();
         for (String userId : map.keySet()) {
             List<Map<String, Object>> mapList = map.get(userId);
-            log.info(userId+" ");
             int chatId = findChatId(mapList.get(0));
             if (chatId == 0) {
-                log.info("SkIP "+userId);
                 continue;
             }
-            users.add(convertToUser(mapList, userId));
+            User user = convertToUser(mapList, userId);
+            log.info("속보사용자 <<< "+user);
+            users.add(user);
         }
 
         Collections.sort(users, new Comparator<User>() {
@@ -134,9 +144,7 @@ public class MyContext {
         List<Keyword> keywords = new ArrayList<>();
         for (Map<String, Object> map : maps) {
             String keyword = Maps.getValue(map, "keyword");
-            int order = Maps.getIntValue(map, "_order");
-
-            keywords.add(new Keyword(keyword, order));
+            keywords.add(new Keyword(keyword, 1));
         }
 
         Collections.sort(keywords, new Comparator<Keyword>() {
@@ -155,7 +163,6 @@ public class MyContext {
     }
 
     private int findGrade(Map<String, Object> map) {
-
         return Maps.getIntValue(map, "grade");
     }
     private void setupTemplates() {
@@ -281,11 +288,68 @@ public class MyContext {
         }
     }
 
-//    public boolean findMetaKongsi(Exchange exchange) {
-//        return (boolean)exchange.getIn().getHeader("META_KONGSI");
-//    }
-//
-//    public boolean findKongsiFile(Exchange exchange) {
-//        return (boolean)exchange.getIn().getHeader("KONGSI_FILE");
-//    }
+    public void refreshTelegramUserInfo() {
+        List<Map<String,Object>> maps = templateMapper.findUsers();
+        List<User> users = covert(maps);
+        List<Map<String,Object>> memberCodes = templateMapper.findMemberCode();
+        Map<String, List<String>> memberCodeMap = toMap(memberCodes);
+        for (User user : users) {
+            if (memberCodeMap.containsKey(user.getUserid())) {
+                List<String> strings = memberCodeMap.get(user.getUserid());
+                for (String code : strings) {
+                    user.addCode(code);
+                }
+            }
+        }
+        synchronized (telegramMap) {
+            telegramMap.clear();
+            for (User user : users) {
+                telegramMap.put(user.getUserid(), user);
+            }
+        }
+    }
+
+    private Map<String, List<String>> toMap(List<Map<String,Object>> memberCodes) {
+        Map<String, List<String>> map = new HashMap<>();
+        for (Map<String, Object> code : memberCodes) {
+            String userId = Maps.getValue(code, "userid");
+            String isuCd = Maps.getValue(code, "isu_cd");
+            if (isEmpty(isuCd)) {
+                continue;
+            }
+            if (map.containsKey(userId)) {
+                List<String> list = map.get(userId);
+                list.add(isuCd);
+            } else {
+                List<String> list = new ArrayList<>();
+                list.add(isuCd);
+                map.put(userId, list);
+            }
+        }
+
+        return map;
+    }
+
+    public boolean check(String queueName, Integer newCount) {
+        boolean result = false;
+        if (QUEUE_MAP.containsKey(queueName)) {
+            int oldCount = QUEUE_MAP.get(queueName);
+            if (oldCount == 0) {
+                result =  true;
+            } else {
+                if (newCount - oldCount == 0) {
+                    result =  false;
+                } else {
+                    result =  true;
+                }
+            }
+        } else {
+            // OK
+            result =  true;
+        }
+
+        QUEUE_MAP.put(queueName, newCount);
+        return result;
+    }
+
 }

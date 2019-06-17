@@ -70,9 +70,9 @@ public class RabbitMqRouteConfig {
     Queue _TELEGRAM() {
         return QueueBuilder.durable("_TELEGRAM").build();
     }
-
-    private String findRabbitMqFrom(String queueName) {
-        return myContext.findFromRabbitMq(queueName);
+    @Bean
+    Queue _ROMOR_HOLDER() {
+        return QueueBuilder.durable("_ROMOR_HOLDER").build();
     }
 
 }

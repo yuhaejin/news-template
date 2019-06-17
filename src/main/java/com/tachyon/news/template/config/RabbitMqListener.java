@@ -35,7 +35,8 @@ public class RabbitMqListener {
     public void META_KONGSI(Message message) {
         execute(message,"META_KONGSI");
     }
-    @RabbitListener(queues = {"_STOCK_HOLDER","_ELASTICSEARCH_INDEX","_STAFF_HOLDER","_PURPOSE_HOLDER","_KEYWORD_NOTIFICATION","_ACCESS_HOLDER","_TELEGRAM"})
+    @RabbitListener(queues = {"_STOCK_HOLDER","_ELASTICSEARCH_INDEX","_STAFF_HOLDER"
+            ,"_PURPOSE_HOLDER","_KEYWORD_NOTIFICATION","_ACCESS_HOLDER","_TELEGRAM","_ROMOR_HOLDER"})
     public void TEMPLATE(Message message) {
         execute(message,"TEMPLATE");
     }

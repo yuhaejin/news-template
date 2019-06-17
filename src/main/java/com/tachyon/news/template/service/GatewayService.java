@@ -166,7 +166,6 @@ public class GatewayService extends AbstractService {
     }
 
     private void requestCollectMetaKongsi(String key, Map<String, Object> headers) {
-
         requestBodyAndHeaders2(rabbitTemplate,"KONGSI_CHECK", key,headers);
     }
 

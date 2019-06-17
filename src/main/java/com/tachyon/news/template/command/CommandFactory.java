@@ -18,6 +18,9 @@ public class CommandFactory implements ApplicationContextAware {
         return applicationContext.getBean(commandClass);
     }
 
+    public Object findBean(Class aClass) {
+        return applicationContext.getBean(aClass);
+    }
     @Override
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         this.applicationContext = applicationContext;
@@ -36,8 +39,10 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(AccessHolderCommand.class);
         }else if ("_KEYWORD_NOTIFICATION".equalsIgnoreCase(routingKey)) {
             return findCommand(KeywordKongsiCollectorCommand.class);
-        } else if ("_TELEGRAM".equalsIgnoreCase(routingKey)) {
-            return findCommand(TelegramCommand.class);
+//        } else if ("_TELEGRAM".equalsIgnoreCase(routingKey)) {
+//            return findCommand(TelegramCommand.class);
+        } else if("_ROMOR_HOLDER".equalsIgnoreCase(routingKey)){
+            return findCommand(RumorHolderCommand.class);
         } else {
             return findCommand(DummyCommand.class);
         }

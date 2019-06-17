@@ -5,9 +5,9 @@
             <Pattern>%d{yyyy-MM-dd HH:mm:ss}  %-5p %-10.10X{camel.exchangeId} %-40.40logger{40} - %msg %n</Pattern>
         </layout>
     </appender>
-    <logger name="com.tachyon.template.mapper" level="warn">
-        <appender-ref ref="STDOUT" />
-    </logger>
+<!--    <logger name="com.tachyon.news.template.repository" level="debug">-->
+<!--        <appender-ref ref="STDOUT" />-->
+<!--    </logger>-->
     <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
