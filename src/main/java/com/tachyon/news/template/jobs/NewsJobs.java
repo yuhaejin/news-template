@@ -10,6 +10,7 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import com.tachyon.news.template.telegram.TachyonMonitoringBot;
 import com.tachyon.news.template.telegram.TelegramHelper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -52,7 +53,7 @@ public class NewsJobs {
         if (isWorkingHour(new Date())==false) {
             return;
         }
-
+        InfixToPostfixParens infix = new InfixToPostfixParens();
         String time = DateUtils.toDTType();
 
         List<Map<String,Object>> maps = templateMapper.findTelegramHolder();
@@ -72,7 +73,7 @@ public class NewsJobs {
                     if ("admin".equalsIgnoreCase(user.getUserid())) {
                         continue;
                     }
-                    findKeyword(user, admin, holders, telegramBeans);
+                    findKeyword(user, admin, holders, telegramBeans,infix);
                 }
             }
 
@@ -113,7 +114,7 @@ public class NewsJobs {
      * @param holders
      * @param telegramBeans
      */
-    private void findKeyword(User user,User admin,List<TelegramHolder> holders,List<TelegramBean> telegramBeans) {
+    private void findKeyword(User user,User admin,List<TelegramHolder> holders,List<TelegramBean> telegramBeans,InfixToPostfixParens infix) {
         String userId = user.getUserid();
         for (TelegramHolder holder : holders) {
             // 사용자별 속보 키워드가 모두 동일하므로 아래 처러 admin으로 처리함.
@@ -130,6 +131,8 @@ public class NewsJobs {
             }
         }
     }
+
+
 
     private List<TelegramHolder> toTelegramHolder(List<Map<String, Object>> maps) {
         List<TelegramHolder> holders = new ArrayList<>();

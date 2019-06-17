@@ -3,18 +3,19 @@ package com.tachyon.news.template.command;
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
 import com.tachyon.news.template.config.MyContext;
+import com.tachyon.news.template.jobs.InfixToPostfixParens;
+import com.tachyon.news.template.jobs.StackNode;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 중요한 키워드를 가진 공시를 노티하기 위해 공시텍스트를 확인하고 해당 공시를 DB에 저장함.
@@ -27,6 +28,8 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
     @Autowired
     private TemplateMapper templateMapper;
+    private static final String RESULT_PRIFIX = "R:::";
+    private InfixToPostfixParens converter = new InfixToPostfixParens();
 
     @PostConstruct
     private void init() {
@@ -91,14 +94,77 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         log.info("done " + key);
     }
 
-    private String findKeyword(String c, List<String> telegramList) {
+    private String findKeyword(String c, List<String> telegramList) throws Exception {
         for (String keyword : telegramList) {
-            if (c.indexOf(keyword) >= 0) {
+//            if (c.indexOf(keyword) >= 0) {
+            if (hasKeyword(c,keyword)) {
                 return keyword;
             }
-
         }
         return null;
+    }
+    private boolean hasKeyword(String c, String keyword) throws Exception{
+        String conv = converter.convert(keyword);
+        Stack<StackNode> evalStack = new Stack();
+        Scanner scanner = new Scanner(conv);
+        while (scanner.hasNext()) {
+            String token = scanner.next();
+            if (token.equals("+")) {
+                String secondOperand = evalStack.pop().getData();
+                boolean _second = executeCheck(c,secondOperand);
+                String firstOperand = evalStack.pop().getData();
+                boolean _first = executeCheck(c,firstOperand);
+                String result = RESULT_PRIFIX+(_first || _second);
+                evalStack.push(new StackNode(result));
+            } else if (token.equals("!")) {
+                String secondOperand = evalStack.pop().getData();
+                boolean _second = executeCheck(c,secondOperand);
+                String result = RESULT_PRIFIX+(!_second);
+                evalStack.push(new StackNode(result));
+            } else if (token.equals("*")) {
+                String secondOperand = evalStack.pop().getData();
+                boolean _second = executeCheck(c,secondOperand);
+                String firstOperand = evalStack.pop().getData();
+                boolean _first = executeCheck(c,firstOperand);
+                String result = RESULT_PRIFIX+(_second && _first);
+                evalStack.push(new StackNode(result));
+            } else {
+                boolean _second = executeCheck(c,token);
+                String result = RESULT_PRIFIX+(_second);
+                evalStack.push(new StackNode(result));
+            }
+        }
+        boolean queryString = checkResult(evalStack.pop().getData());
+        return queryString;
+    }
+
+    private boolean executeCheck(String c, String operand) {
+        boolean result = false;
+        if (isResult(operand)) {
+            result = checkResult(operand);
+        } else {
+            result = execute(c,operand);
+        }
+
+        return result;
+    }
+
+    private boolean checkResult(String operand) {
+        operand = StringUtils.remove(operand, RESULT_PRIFIX);
+        return Boolean.valueOf(operand);
+    }
+
+    private boolean execute(String c, String operand) {
+        return StringUtils.contains(c,operand);
+    }
+
+
+    private static boolean isResult(String value) {
+        if (value.startsWith(RESULT_PRIFIX)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
 

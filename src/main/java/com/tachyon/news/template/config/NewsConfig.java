@@ -46,13 +46,13 @@ public class NewsConfig {
 
     @PostConstruct
     public void init() {
-        try {
-            ApiContextInitializer.init();
-            TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
-            telegramBotsApi.registerBot(tachyonNewsFlashBot());
-        } catch (TelegramApiRequestException e) {
-            log.error(e.getMessage(),e);
-        }
+//        try {
+//            ApiContextInitializer.init();
+//            TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+//            telegramBotsApi.registerBot(tachyonNewsFlashBot());
+//        } catch (TelegramApiRequestException e) {
+//            log.error(e.getMessage(),e);
+//        }
     }
 
 //    @Bean

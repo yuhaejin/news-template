@@ -11,6 +11,9 @@ import org.telegram.telegrambots.meta.api.objects.Update;
 public class TachyonNewsFlashBot extends TelegramLongPollingBot {
     private TemplateMapper templateMapper;
 
+    public TachyonNewsFlashBot() {
+    }
+
     public TachyonNewsFlashBot(TemplateMapper templateMapper) {
         this.templateMapper = templateMapper;
     }

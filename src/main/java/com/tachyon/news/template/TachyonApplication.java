@@ -6,8 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 @MapperScan("com.tachyon.news.template.repository")
-public class TachyonCamelApplication {
+public class TachyonApplication {
     public static void main(String[] args) {
-        SpringApplication.run(TachyonCamelApplication.class, args);
+        SpringApplication.run(TachyonApplication.class, args);
     }
 }
