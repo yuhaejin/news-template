@@ -5,18 +5,13 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a8293525-984c-422d-b467-6e92d1aa1ec8" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/InfixToPostfixParens.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/StackNode.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/news-template.iws" beforeDir="false" afterPath="$PROJECT_DIR$/news-template.iws" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/message1.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/data/message2.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/TachyonCamelApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/TachyonApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/application.properties" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/MonitoringBotTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/MonitoringBotTest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -48,8 +43,36 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="337">
-              <caret line="155" column="9" lean-forward="true" selection-start-line="155" selection-start-column="9" selection-end-line="155" selection-end-column="9" />
+            <state relative-caret-position="417">
+              <caret line="205" column="32" lean-forward="true" selection-start-line="205" selection-start-column="32" selection-end-line="205" selection-end-column="32" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#3696#3697#0" expanded="true" />
+                <element signature="e#3775#3776#0" expanded="true" />
+                <element signature="e#3920#3921#0" expanded="true" />
+                <element signature="e#4016#4017#0" expanded="true" />
+                <element signature="e#2748#2749#0" expanded="true" />
+                <element signature="e#2791#2792#0" expanded="true" />
+                <element signature="e#2866#2867#0" expanded="true" />
+                <element signature="e#2909#2910#0" expanded="true" />
+                <element signature="e#3959#3960#0" expanded="true" />
+                <element signature="e#4004#4005#0" expanded="true" />
+                <element signature="e#3990#3991#0" expanded="true" />
+                <element signature="e#4033#4034#0" expanded="true" />
+                <element signature="e#4216#4217#0" expanded="true" />
+                <element signature="e#4259#4260#0" expanded="true" />
+                <element signature="e#5668#5669#0" expanded="true" />
+                <element signature="e#5760#5761#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="192">
+              <caret line="35" column="16" selection-start-line="35" selection-start-column="16" selection-end-line="35" selection-end-column="16" />
               <folding>
                 <element signature="imports" expanded="true" />
               </folding>
@@ -58,28 +81,52 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/resources/application.properties">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="444">
-              <caret line="47" selection-start-line="47" selection-end-line="48" selection-end-column="46" />
+            <state relative-caret-position="316">
+              <caret line="35" lean-forward="true" selection-start-line="35" selection-end-line="35" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonMonitoringBot.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="80">
-              <caret line="9" column="50" lean-forward="true" selection-start-line="9" selection-start-column="50" selection-end-line="9" selection-end-column="50" />
+            <state relative-caret-position="192">
+              <caret line="18" selection-start-line="18" selection-end-line="18" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots/4.3.1/telegrambots-4.3.1.jar!/org/telegram/telegrambots/bots/TelegramLongPollingBot.class">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="32">
-              <caret line="5" column="33" lean-forward="true" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="33" />
+            <state relative-caret-position="388">
+              <caret line="61" lean-forward="true" selection-start-line="61" selection-end-line="61" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="197">
+              <caret line="186" lean-forward="true" selection-start-line="186" selection-end-line="186" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramHolder.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="309">
+              <caret line="89" column="49" selection-start-line="89" selection-start-column="49" selection-end-line="89" selection-end-column="49" />
+              <folding>
+                <element signature="imports" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -87,64 +134,33 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="385">
-              <caret line="95" lean-forward="true" selection-start-line="95" selection-end-line="95" />
+            <state relative-caret-position="1716">
+              <caret line="198" column="5" lean-forward="true" selection-start-line="198" selection-start-column="5" selection-end-line="198" selection-end-column="5" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#7229#7230#0" expanded="true" />
+                <element signature="e#7281#7282#0" expanded="true" />
+                <element signature="e#7349#7350#0" expanded="true" />
+                <element signature="e#7403#7404#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkProcessor.java">
+        <entry file="jar://C:/Program Files/Java/jdk1.8.0_161/src.zip!/java/util/concurrent/ExecutorService.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="193">
-              <caret line="213" lean-forward="true" selection-start-line="213" selection-end-line="213" />
-              <folding>
-                <element signature="imports" expanded="true" />
-                <element signature="e#12330#12331#0" expanded="true" />
-                <element signature="e#12371#12372#0" expanded="true" />
-              </folding>
+            <state relative-caret-position="16">
+              <caret line="136" column="17" selection-start-line="136" selection-start-column="17" selection-end-line="136" selection-end-column="17" />
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkRequestHandler.java">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/StackNode.java">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="128">
-              <caret line="34" column="39" lean-forward="true" selection-start-line="34" selection-start-column="39" selection-end-line="34" selection-end-column="39" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/threadpool/Scheduler.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="304">
-              <caret line="46" lean-forward="true" selection-start-line="46" selection-end-line="46" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkRequest.java">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="177">
-              <caret line="69" column="13" selection-start-line="69" selection-start-column="13" selection-end-line="69" selection-end-column="13" />
-              <folding>
-                <element signature="imports" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pom.xml">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="199">
-              <caret line="16" column="54" selection-start-line="16" selection-start-column="54" selection-end-line="16" selection-end-column="54" />
+              <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
             </state>
           </provider>
         </entry>
@@ -161,7 +177,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>message.getMessageProperties()</find>
       <find>removeNewLine</find>
       <find>rabbitTemplate</find>
       <find>&gt;&gt;&gt;</find>
@@ -177,7 +192,6 @@
       <find>getItemUrl</find>
       <find>completeTelegramHolder</find>
       <find>SendMessage</find>
-      <find>findTelegramHolder</find>
       <find>findKeywords</find>
       <find>telegramBot</find>
       <find>telegramMap</find>
@@ -191,6 +205,8 @@
       <find>tomca</find>
       <find>thread pool</find>
       <find>thread</find>
+      <find>findTelegramHolder</find>
+      <find>completeNoGroupTelegramHolder</find>
     </findStrings>
     <dirStrings>
       <dir>F:\dev\tachyon\mycamel\src\main</dir>
@@ -238,12 +254,8 @@
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/TelegramCommand.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/CommandFactory.java" />
         <option value="$PROJECT_DIR$/src/main/resources/logback.xml" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramHolder.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/TelegramListener.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/TelegramHelper.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java" />
@@ -253,14 +265,18 @@
         <option value="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/RabbitmqTests.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/StackNode.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/InfixToPostfixParens.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/TachyonApplication.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java" />
         <option value="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/MonitoringBotTest.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/SchedulerConfig.java" />
         <option value="$PROJECT_DIR$/src/main/resources/application.properties" />
+        <option value="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" />
       </list>
     </option>
   </component>
@@ -302,8 +318,6 @@
       <foldersAlwaysOnTop value="true" />
     </navigator>
     <panes>
-      <pane id="Scope" />
-      <pane id="PackagesPane" />
       <pane id="ProjectPane">
         <subPane>
           <expand>
@@ -409,6 +423,14 @@
               <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
               <item name="news-template" type="462c0819:PsiDirectoryNode" />
               <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="repository" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="news-template" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="test" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
@@ -429,6 +451,66 @@
             <path>
               <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
               <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="netflix" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="client" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="config" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="http" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="ssl" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="util" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="External Libraries" type="cb654da1:ExternalLibrariesNode" />
+              <item name="Maven: com.netflix.ribbon:ribbon-core:2.2.2" type="70bed36:NamedLibraryElementNode" />
+              <item name="ribbon-core-2.2.2.jar" type="462c0819:PsiDirectoryNode" />
+              <item name="utils" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
@@ -459,6 +541,8 @@
           <select />
         </subPane>
       </pane>
+      <pane id="Scope" />
+      <pane id="PackagesPane" />
       <pane id="CatdeaLogs" />
     </panes>
   </component>
@@ -619,8 +703,8 @@
     <list>
       <item itemvalue="JUnit.MonitoringBotTest.testMonitoring" />
       <item itemvalue="JUnit.RabbitmqTests.purgeQueue" />
-      <item itemvalue="Spring Boot.TachyonApplication" />
       <item itemvalue="JUnit.MonitoringBotTest.testSending" />
+      <item itemvalue="Spring Boot.TachyonApplication" />
     </list>
     <recent_temporary>
       <list>
@@ -676,7 +760,8 @@
       <workItem from="1560302358739" duration="6115000" />
       <workItem from="1560318974636" duration="11039000" />
       <workItem from="1560735370733" duration="4394000" />
-      <workItem from="1560747316199" duration="13381000" />
+      <workItem from="1560747316199" duration="13647000" />
+      <workItem from="1560820615310" duration="10671000" />
     </task>
     <task id="LOCAL-00001" summary="처음 반영">
       <created>1558514277020</created>
@@ -713,7 +798,14 @@
       <option name="project" value="LOCAL" />
       <updated>1560748681007</updated>
     </task>
-    <option name="localTasksCounter" value="6" />
+    <task id="LOCAL-00006" summary="키워드 and or not 추가">
+      <created>1560765478818</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1560765478818</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -743,12 +835,12 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="288675000" />
+    <option name="totallyTimeSpent" value="299612000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1014" extended-state="6" />
     <layout>
-      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49913645" visible="true" weight="0.33315566" />
+      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49913645" visible="true" weight="0.336887" />
       <window_info id="Structure" order="1" sideWeight="0.50086355" side_tool="true" weight="0.25746268" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -758,7 +850,7 @@
       <window_info id="Learn" order="7" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3291714" />
-      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33938706" />
+      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.33938706" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39937758" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -834,7 +926,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="처음 반영" />
-    <option name="LAST_COMMIT_MESSAGE" value="처음 반영" />
+    <MESSAGE value="키워드 and or not 추가" />
+    <option name="LAST_COMMIT_MESSAGE" value="키워드 and or not 추가" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -863,16 +956,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/BaseObject.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="179">
-          <caret line="15" column="25" selection-start-line="15" selection-start-column="25" selection-end-line="15" selection-end-column="25" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/TelegramCommand.java" />
     <entry file="jar://$MAVEN_REPOSITORY$/com/github/pengrad/java-telegram-bot-api/4.2.0/java-telegram-bot-api-4.2.0.jar!/com/pengrad/telegrambot/request/SendMessage.class">
       <provider selected="true" editor-type-id="text-editor">
@@ -919,27 +1002,10 @@
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/TelegramListener.java" />
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="80">
-          <caret line="5" column="30" selection-start-line="5" selection-start-column="30" selection-end-line="5" selection-end-column="30" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/RabbitMqRouteConfig.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="80">
           <caret line="9" column="13" selection-start-line="9" selection-start-column="13" selection-end-line="9" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramHolder.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="80">
-          <caret line="11" column="24" selection-start-line="11" selection-start-column="24" selection-end-line="11" selection-end-column="24" />
           <folding>
             <element signature="imports" expanded="true" />
           </folding>
@@ -980,13 +1046,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2064">
-          <caret line="129" selection-start-line="129" selection-end-line="129" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/service/MetaKongsiCollector.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="2480">
@@ -1001,16 +1060,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="112">
           <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="481">
-          <caret line="46" column="9" selection-start-line="46" selection-start-column="9" selection-end-line="46" selection-end-column="9" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1053,26 +1102,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/RabbitMqListener.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="176">
-          <caret line="21" column="41" lean-forward="true" selection-start-line="21" selection-start-column="41" selection-end-line="21" selection-end-column="41" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="4176">
-          <caret line="328" selection-start-line="328" selection-end-line="328" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/springframework/amqp/spring-amqp/2.1.6.RELEASE/spring-amqp-2.1.6.RELEASE.jar!/org/springframework/amqp/core/AmqpAdmin.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="480">
@@ -1108,24 +1137,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/StackNode.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="384">
-          <caret line="33" selection-start-line="33" selection-end-line="33" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/InfixToPostfixParens.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="16">
           <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="245">
-          <caret line="65" column="19" selection-start-line="65" selection-start-column="19" selection-end-line="65" selection-end-column="19" />
         </state>
       </provider>
     </entry>
@@ -1169,16 +1184,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
-          <caret line="105" lean-forward="true" selection-start-line="105" selection-end-line="105" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/src/test/java/com/tachyon/news/template/MonitoringBotTest.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="192">
@@ -1189,47 +1194,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonMonitoringBot.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="80">
-          <caret line="9" column="50" lean-forward="true" selection-start-line="9" selection-start-column="50" selection-end-line="9" selection-end-column="50" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="199">
-          <caret line="16" column="54" selection-start-line="16" selection-start-column="54" selection-end-line="16" selection-end-column="54" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/SchedulerConfig.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="240">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="337">
-          <caret line="155" column="9" lean-forward="true" selection-start-line="155" selection-start-column="9" selection-end-line="155" selection-end-column="9" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/application.properties">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="444">
-          <caret line="47" selection-start-line="47" selection-end-line="48" selection-end-column="46" />
-        </state>
-      </provider>
-    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/SchedulerConfig.java" />
     <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/threadpool/ThreadPool.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="224">
@@ -1237,34 +1202,31 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/threadpool/Scheduler.java">
+    <entry file="file://$PROJECT_DIR$/src/main/resources/application.properties">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="304">
-          <caret line="46" lean-forward="true" selection-start-line="46" selection-end-line="46" />
+        <state relative-caret-position="752">
+          <caret line="47" selection-start-line="47" selection-end-line="48" selection-end-column="46" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkRequest.java">
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonMonitoringBot.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="177">
-          <caret line="69" column="13" selection-start-line="69" selection-start-column="13" selection-end-line="69" selection-end-column="13" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
+        <state relative-caret-position="80">
+          <caret line="9" column="50" selection-start-line="9" selection-start-column="50" selection-end-line="9" selection-end-column="50" />
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkRequestHandler.java">
+    <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots/4.3.1/telegrambots-4.3.1.jar!/org/telegram/telegrambots/bots/TelegramLongPollingBot.class">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="128">
-          <caret line="34" column="39" lean-forward="true" selection-start-line="34" selection-start-column="39" selection-end-line="34" selection-end-column="39" />
+        <state relative-caret-position="32">
+          <caret line="5" column="33" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="33" />
         </state>
       </provider>
     </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkProcessor.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="193">
-          <caret line="213" lean-forward="true" selection-start-line="213" selection-end-line="213" />
+        <state relative-caret-position="2800">
+          <caret line="213" selection-start-line="213" selection-end-line="213" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#12330#12331#0" expanded="true" />
@@ -1273,19 +1235,158 @@
         </state>
       </provider>
     </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots/4.3.1/telegrambots-4.3.1.jar!/org/telegram/telegrambots/bots/TelegramLongPollingBot.class">
+    <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkRequestHandler.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="32">
-          <caret line="5" column="33" lean-forward="true" selection-start-line="5" selection-start-column="8" selection-end-line="5" selection-end-column="33" />
+        <state relative-caret-position="128">
+          <caret line="34" column="39" selection-start-line="34" selection-start-column="39" selection-end-line="34" selection-end-column="39" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/threadpool/Scheduler.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="304">
+          <caret line="46" selection-start-line="46" selection-end-line="46" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/elasticsearch/elasticsearch/6.6.0/elasticsearch-6.6.0-sources.jar!/org/elasticsearch/action/bulk/BulkRequest.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="208">
+          <caret line="69" column="13" selection-start-line="69" selection-start-column="13" selection-end-line="69" selection-end-column="13" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/pom.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="256">
+          <caret line="16" column="54" selection-start-line="16" selection-start-column="54" selection-end-line="16" selection-end-column="54" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="335">
+          <caret line="330" column="5" selection-start-line="330" selection-start-column="5" selection-end-line="330" selection-end-column="5" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/RabbitMqListener.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="176">
+          <caret line="21" column="41" selection-start-line="21" selection-start-column="41" selection-end-line="21" selection-end-column="41" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramHolder.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="309">
+          <caret line="89" column="49" selection-start-line="89" selection-start-column="49" selection-end-line="89" selection-end-column="49" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="18" selection-start-line="18" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="316">
+          <caret line="35" lean-forward="true" selection-start-line="35" selection-end-line="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="388">
+          <caret line="61" lean-forward="true" selection-start-line="61" selection-end-line="61" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="197">
+          <caret line="186" lean-forward="true" selection-start-line="186" selection-end-line="186" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/StackNode.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="128">
+          <caret line="8" column="13" selection-start-line="8" selection-start-column="13" selection-end-line="8" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://C:/Program Files/Java/jdk1.8.0_161/src.zip!/java/util/concurrent/ExecutorService.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16">
+          <caret line="136" column="17" selection-start-line="136" selection-start-column="17" selection-end-line="136" selection-end-column="17" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="192">
+          <caret line="35" column="16" selection-start-line="35" selection-start-column="16" selection-end-line="35" selection-end-column="16" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="417">
+          <caret line="205" column="32" lean-forward="true" selection-start-line="205" selection-start-column="32" selection-end-line="205" selection-end-column="32" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#3696#3697#0" expanded="true" />
+            <element signature="e#3775#3776#0" expanded="true" />
+            <element signature="e#3920#3921#0" expanded="true" />
+            <element signature="e#4016#4017#0" expanded="true" />
+            <element signature="e#2748#2749#0" expanded="true" />
+            <element signature="e#2791#2792#0" expanded="true" />
+            <element signature="e#2866#2867#0" expanded="true" />
+            <element signature="e#2909#2910#0" expanded="true" />
+            <element signature="e#3959#3960#0" expanded="true" />
+            <element signature="e#4004#4005#0" expanded="true" />
+            <element signature="e#3990#3991#0" expanded="true" />
+            <element signature="e#4033#4034#0" expanded="true" />
+            <element signature="e#4216#4217#0" expanded="true" />
+            <element signature="e#4259#4260#0" expanded="true" />
+            <element signature="e#5668#5669#0" expanded="true" />
+            <element signature="e#5760#5761#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="385">
-          <caret line="95" lean-forward="true" selection-start-line="95" selection-end-line="95" />
+        <state relative-caret-position="1716">
+          <caret line="198" column="5" lean-forward="true" selection-start-line="198" selection-start-column="5" selection-end-line="198" selection-end-column="5" />
           <folding>
             <element signature="imports" expanded="true" />
+            <element signature="e#7229#7230#0" expanded="true" />
+            <element signature="e#7281#7282#0" expanded="true" />
+            <element signature="e#7349#7350#0" expanded="true" />
+            <element signature="e#7403#7404#0" expanded="true" />
           </folding>
         </state>
       </provider>

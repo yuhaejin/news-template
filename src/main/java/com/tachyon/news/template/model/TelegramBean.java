@@ -7,7 +7,7 @@ import java.io.Serializable;
  */
 public class TelegramBean implements Serializable {
     private String userId;
-    private int chatId;
+    private long chatId;
     private TelegramHolder telegramHolder;
 
     public String getUserId() {
@@ -26,15 +26,15 @@ public class TelegramBean implements Serializable {
         this.userId = userId;
     }
 
-    public int getChatId() {
+    public long getChatId() {
         return chatId;
     }
 
-    public void setChatId(int chatId) {
+    public void setChatId(long chatId) {
         this.chatId = chatId;
     }
 
-    public TelegramBean(String userId, int chatId, TelegramHolder telegramHolder) {
+    public TelegramBean(String userId, long chatId, TelegramHolder telegramHolder) {
         this.userId = userId;
         this.chatId = chatId;
         this.telegramHolder = telegramHolder;

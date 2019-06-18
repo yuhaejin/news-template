@@ -53,9 +53,12 @@ public interface TemplateMapper {
     void insertTelegramHolder(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
 
     List<Map<String, Object>> findUsers();
-    List<Map<String, Object>> findTelegramHolder();
+    List<Map<String, Object>> findNoGroupTelegramHolder();
+    List<Map<String, Object>> findGroupTelegramHolder();
 
-    void completeTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
+    void completeNoGroupTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
 
     List<Map<String, Object>> findMemberCode();
+
+    void completeGroupTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
 }

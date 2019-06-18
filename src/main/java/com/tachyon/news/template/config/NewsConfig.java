@@ -27,14 +27,13 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.telegram.telegrambots.ApiContextInitializer;
-import org.telegram.telegrambots.meta.TelegramBotsApi;
-import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import javax.annotation.PostConstruct;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Slf4j
 @Configuration
@@ -176,43 +175,6 @@ public class NewsConfig {
         return servers;
     }
 
-//    @Bean
-//    public TelegramBot telegramBot() {
-//        TelegramBot telegramBot = new TelegramBot.Builder("894631413:AAEWNVFIYEs7uN34Q-zlqGIK3rU3vNhtcJ4").okHttpClient(new OkHttpClient()).build();
-////        telegramBot.setUpdatesListener(new UpdatesListener() {
-////            @Override
-////            public int process(List<Update> list) {
-////                log.info("<<< "+list.size());
-////                for (Update update : list) {
-////                    Message message = update.message();
-////                    long chatid = message.chat().id();
-////                    try {
-////                        log.info("<<< "+chatid);
-////                        if(message.text()==null){
-////                            log.info("SKIP NO TEXT <<< "+chatid);
-////                            continue;
-////                        }
-////                        String user = message.text().trim();
-////                        log.info("<<< " + chatid + " " + user);
-////                        int count = templateMapper.findUser(user);
-////                        if (count > 0) {
-////                            log.info("update chatId " + chatid + " user=" + user);
-////                            templateMapper.updateChatId(user, chatid);
-////                        } else {
-////                            log.error("can't find user " + user);
-////                        }
-////                    } catch (Exception e) {
-////                        log.error(e.getMessage() +" "+chatid);
-////                    }
-////
-////                }
-////
-////                return UpdatesListener.CONFIRMED_UPDATES_ALL;
-////            }
-////        }, new GetUpdates());
-//        return telegramBot;
-//    }
-
     @Bean
     public TachyonNewsFlashBot tachyonNewsFlashBot() {
         return new TachyonNewsFlashBot(templateMapper);
@@ -234,5 +196,16 @@ public class NewsConfig {
                         "기초공시명: <a href=\"{{acptUrl}}\">{{acptNm}}</a>";
         Mustache mustache = mf.compile(new StringReader(c), "example");
         return mustache;
+    }
+
+
+    @Bean(destroyMethod = "shutdown")
+    public ExecutorService groupThreadPool() {
+        return Executors.newFixedThreadPool(2);
+    }
+
+    @Bean(destroyMethod = "shutdown")
+    public ExecutorService noGroupThreadPool() {
+        return Executors.newFixedThreadPool(5);
     }
 }

@@ -152,12 +152,12 @@
           and acpt_no = #{acpt_no}
     </select>
     <insert id="insertTelegramHolder" parameterType="map">
-        INSERT INTO telegramholder (doc_no, keyword, isu_cd, acpt_no, created_at, updated_at, processed_yn)
-        VALUES (#{doc_no}, #{keyword}, #{isu_cd}, #{acpt_no}, now(), now(), 'N')
+        INSERT INTO telegramholder (doc_no, keyword, isu_cd, acpt_no, created_at, processed_yn)
+        VALUES (#{doc_no}, #{keyword}, #{isu_cd}, #{acpt_no}, now(), 'N')
     </insert>
 
 
-    <select id="findTelegramHolder" resultType="map">
+    <select id="findNoGroupTelegramHolder" resultType="map">
         select a.doc_no,
                a.keyword,
                a.isu_cd,
@@ -175,9 +175,10 @@
 
     </select>
 
-    <update id="completeTelegramHolder" parameterType="map">
+    <update id="completeNoGroupTelegramHolder" parameterType="map">
         update telegramholder
-        set processed_yn = 'Y'
+        set processed_yn = 'Y',
+            updated_at = now()
         where doc_no = #{doc_no}
           and acpt_no = #{acpt_no}
           and keyword = #{keyword}
@@ -190,5 +191,32 @@
         from member a
                  left join member_code b on a.userid = b.userid and b.use_yn = 'Y'
     </select>
+
+    <select id="findGroupTelegramHolder" resultType="map">
+        select a.doc_no,
+               a.keyword,
+               a.isu_cd,
+               a.acpt_no,
+               b.doc_nm,
+               b.doc_url,
+               b.rpt_nm,
+               b.tns_dt
+        from telegramholder a,
+             kongsiholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.group_processed_yn = 'N'
+
+    </select>
+
+    <update id="completeGroupTelegramHolder" parameterType="map">
+        update telegramholder
+        set group_processed_yn = 'Y',
+            group_updated_at = now()
+        where doc_no = #{doc_no}
+          and acpt_no = #{acpt_no}
+          and keyword = #{keyword}
+    </update>
 </mapper>
 

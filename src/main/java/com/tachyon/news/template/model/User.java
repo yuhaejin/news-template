@@ -11,13 +11,13 @@ public class User implements Serializable {
     private List<Keyword> keywords;
     private List<String> codes = new ArrayList<>();
     private int grade;
-    private int chatId;
+    private long chatId;
 
-    public int getChatId() {
+    public long getChatId() {
         return chatId;
     }
 
-    public void setChatId(int chatId) {
+    public void setChatId(long chatId) {
         this.chatId = chatId;
     }
 
