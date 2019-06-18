@@ -1,6 +1,7 @@
 package com.tachyon.news.template.jobs;
 
 import com.tachyon.crawl.kind.util.DateUtils;
+import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.TelegramBean;
@@ -15,6 +16,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -41,6 +43,10 @@ public class NewsJobs {
 
     private int workingStartHour = 7;
     private int workingEndHour = 20;
+
+    // 그룹텔레그램 처리시 주기별 처리 갯수.. (분당20개, 30초당10개, 10개보다 작은 9개)
+    private int countPerProcessing = 9;
+
 
     @Scheduled(cron = "0 0 7-20 ? * MON-FRI")
     public void setupTelegramInfo() {
@@ -102,6 +108,7 @@ public class NewsJobs {
      */
     @Scheduled(fixedDelay = 30000)
     public void handleGroupTelegramHolder() {
+
         TelegramHandler groupTelegramHandler = new TelegramHandler() {
             @Override
             public boolean isChargedChatId(long chatId) {
@@ -114,9 +121,32 @@ public class NewsJobs {
 
             @Override
             public List<Map<String, Object>> findTelegramHodler(TemplateMapper templateMapper) {
-                //TODO 9개만 처리할 수 있도록 해야 함.
-                // 날짜로 정렬하여 9개만 반환하게 하면 됨.
-                return templateMapper.findGroupTelegramHolder();
+                List<Map<String, Object>> maps = templateMapper.findGroupTelegramHolder();
+                if (maps == null || maps.size() == 0) {
+                    return maps;
+                }
+
+                Collections.sort(maps, new Comparator<Map<String, Object>>() {
+                    @Override
+                    public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                        Timestamp timestamp1 = (Timestamp)o1.get("created_at");
+                        Timestamp timestamp2 = (Timestamp)o2.get("created_at");
+                        return timestamp1.compareTo(timestamp2);
+                    }
+                });
+
+                if (maps.size() > countPerProcessing) {
+                    List<Map<String, Object>> mapList = new ArrayList<>();
+                    for (int i = 0; i < countPerProcessing; i++) {
+                        for (Map<String, Object> map : maps) {
+                            mapList.add(map);
+                        }
+                    }
+
+                    return mapList;
+                } else {
+                    return maps;
+                }
             }
 
             @Override
@@ -180,13 +210,13 @@ public class NewsJobs {
             long start = System.nanoTime();
             ExecutorService threadPoll = telegramHandler.findThreadPool();
             for (TelegramBean telegramBean : telegramBeans) {
-                futures.add(threadPoll.submit(new Runnable() {
-                    @Override
-                    public void run() {
-                        handleTelegram(telegramBean, telegramHelper,telegramHandler.findName());
-                    }
-                }));
-
+//                futures.add(threadPoll.submit(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        handleTelegram(telegramBean, telegramHelper,telegramHandler.findName());
+//                    }
+//                }));
+                handleTelegram(telegramBean, telegramHelper,telegramHandler.findName());
             }
 
             if (futures.size() > 0) {
