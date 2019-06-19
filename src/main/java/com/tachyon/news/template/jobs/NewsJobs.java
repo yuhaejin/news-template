@@ -1,11 +1,10 @@
 package com.tachyon.news.template.jobs;
 
+import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
-import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.TelegramBean;
-import com.tachyon.news.template.model.TelegramHolder;
 import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
 import com.tachyon.news.template.telegram.TelegramHelper;
@@ -85,13 +84,21 @@ public class NewsJobs {
             }
 
             @Override
-            public ExecutorService findThreadPool() {
-                return noGroupThreadPool;
+            public String findName() {
+                return "NoGroup";
             }
 
             @Override
-            public String findName() {
-                return "NoGroup";
+            public void execute(List<Future> futures, TelegramBean telegramBean) {
+
+                TelegramHelper telegramHelper = (TelegramHelper) commandFactory.findBean(TelegramHelper.class);
+                futures.add(noGroupThreadPool.submit(new Runnable() {
+                    @Override
+                    public void run() {
+                        handleTelegram(telegramBean, telegramHelper, findName());
+                    }
+                }));
+
             }
         };
 
@@ -129,8 +136,8 @@ public class NewsJobs {
                 Collections.sort(maps, new Comparator<Map<String, Object>>() {
                     @Override
                     public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                        Timestamp timestamp1 = (Timestamp)o1.get("created_at");
-                        Timestamp timestamp2 = (Timestamp)o2.get("created_at");
+                        Timestamp timestamp1 = (Timestamp) o1.get("created_at");
+                        Timestamp timestamp2 = (Timestamp) o2.get("created_at");
                         return timestamp1.compareTo(timestamp2);
                     }
                 });
@@ -138,9 +145,8 @@ public class NewsJobs {
                 if (maps.size() > countPerProcessing) {
                     List<Map<String, Object>> mapList = new ArrayList<>();
                     for (int i = 0; i < countPerProcessing; i++) {
-                        for (Map<String, Object> map : maps) {
-                            mapList.add(map);
-                        }
+                        Map<String, Object> map = maps.get(i);
+                        mapList.add(map);
                     }
 
                     return mapList;
@@ -155,13 +161,14 @@ public class NewsJobs {
             }
 
             @Override
-            public ExecutorService findThreadPool() {
-                return groupThreadPool;
+            public String findName() {
+                return "Group";
             }
 
             @Override
-            public String findName() {
-                return "Group";
+            public void execute(List<Future> futures, TelegramBean telegramBean) {
+                TelegramHelper telegramHelper = (TelegramHelper) commandFactory.findBean(TelegramHelper.class);
+                handleTelegram(telegramBean, telegramHelper, findName());
             }
         };
 
@@ -184,7 +191,7 @@ public class NewsJobs {
             return;
         } else {
             List<TelegramHolder> holders = toTelegramHolder(maps);
-            log.info(telegramHandler.findName()+" 텔레그램 속보 갯수 " + holders.size());
+            log.info(telegramHandler.findName() + " 텔레그램 속보 갯수 " + holders.size());
             Map<String, User> telegramMap = myContext.getTelegramMap();
             // 결과저장.
             List<TelegramBean> telegramBeans = new ArrayList<>();
@@ -205,18 +212,11 @@ public class NewsJobs {
             }
 
             List<Future> futures = new ArrayList<>();
-            TelegramHelper telegramHelper = (TelegramHelper) commandFactory.findBean(TelegramHelper.class);
+
             // 텔레그램 전송...
             long start = System.nanoTime();
-            ExecutorService threadPoll = telegramHandler.findThreadPool();
             for (TelegramBean telegramBean : telegramBeans) {
-//                futures.add(threadPoll.submit(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        handleTelegram(telegramBean, telegramHelper,telegramHandler.findName());
-//                    }
-//                }));
-                handleTelegram(telegramBean, telegramHelper,telegramHandler.findName());
+                telegramHandler.execute(futures, telegramBean);
             }
 
             if (futures.size() > 0) {
@@ -231,7 +231,7 @@ public class NewsJobs {
                     }
                 }
             }
-            log.info(telegramHandler.findName()+" ALL ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
+            log.info(telegramHandler.findName() + " ALL ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS)+" "+telegramBeans.size());
 
             // TelegramHolder 처리
             for (TelegramHolder holder : holders) {
@@ -239,6 +239,7 @@ public class NewsJobs {
             }
         }
     }
+
     private boolean allDone(List<Future> list) {
         for (Future future : list) {
             if (future.isDone() == false) {
@@ -248,15 +249,52 @@ public class NewsJobs {
 
         return true;
     }
+
+    /**
+     * 텔레그램 그룹,비그룹 처리를 구분하기 위한 인터페이스.
+     */
     private interface TelegramHandler {
+        /**
+         * chatId가 0보다 크면 그룹용
+         * 0보다 작으면 비그룹용
+         *
+         * @param chatId
+         * @return
+         */
         boolean isChargedChatId(long chatId);
 
+        /**
+         * 처리 데이터 수집.
+         *
+         * @param templateMapper
+         * @return
+         */
         List<Map<String, Object>> findTelegramHodler(TemplateMapper templateMapper);
 
+        /**
+         * 처리후 결과 처리.
+         *
+         * @param templateMapper
+         * @param docNo
+         * @param acptNo
+         * @param keyword
+         */
         void completeTelegramHolder(TemplateMapper templateMapper, String docNo, String acptNo, String keyword);
 
-        ExecutorService findThreadPool();
+        /**
+         * 이름 반환
+         *
+         * @return
+         */
         String findName();
+
+        /**
+         * 처리를 리니어하게 할 지... 쓰레드풀로 처리할 지 구현할 수 있다.
+         *
+         * @param futures
+         * @param telegramBean
+         */
+        void execute(List<Future> futures, TelegramBean telegramBean);
     }
 
     /**
@@ -311,10 +349,10 @@ public class NewsJobs {
         return holders;
     }
 
-    private void handleTelegram(TelegramBean telegramBean, TelegramHelper telegramHelper,String name) {
+    private void handleTelegram(TelegramBean telegramBean, TelegramHelper telegramHelper, String name) {
         long start = System.nanoTime();
         telegramHelper.sendToTelegram(telegramBean.getUserId(), telegramBean.getChatId(), telegramBean.getTelegramHolder());
-        log.info(name+" ONE ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
+        log.info(name + " ONE ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
     }
 
     @Scheduled(fixedDelay = 60000)

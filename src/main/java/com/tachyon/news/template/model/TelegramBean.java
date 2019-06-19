@@ -1,5 +1,7 @@
 package com.tachyon.news.template.model;
 
+import com.tachyon.crawl.kind.model.TelegramHolder;
+
 import java.io.Serializable;
 
 /**

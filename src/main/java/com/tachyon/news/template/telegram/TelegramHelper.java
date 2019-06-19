@@ -1,12 +1,14 @@
 package com.tachyon.news.template.telegram;
 
 import com.github.mustachejava.Mustache;
+import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
+import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.news.template.config.MyContext;
-import com.tachyon.news.template.model.TelegramHolder;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -32,9 +34,12 @@ public class TelegramHelper {
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
+    @Autowired
+    private LoadBalancerCommandHelper loadBalancerCommandHelper;
+    @Autowired
+    private CloseableHttpAsyncClient asyncClient;
 
     public void sendToTelegram(String userId, long chatId, TelegramHolder telegramHolder) {
-        String _message = "";
         try {
             String keyword = telegramHolder.getKeyword();
             String acptNm = telegramHolder.getAcptNm();
@@ -43,27 +48,47 @@ public class TelegramHelper {
             String docNm = telegramHolder.getDocNm();
             String docUrl = telegramHolder.getDocUrl();
             String tndDt = telegramHolder.getTndDt();
-            _message = makeMessage(keyword, acptNm, getItemUrl(acptNo), name, docNm, docUrl,tndDt);
+            String _message = makeMessage(keyword, acptNm, getItemUrl(acptNo), name, docNm, docUrl, tndDt);
+//            String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
+//            SendMessage sendMessage = new SendMessage();
+//            sendMessage.setChatId(chatId);
+//            sendMessage.enableHtml(true);
+//            sendMessage.setText(_message);
+//            sendMessage.setReplyMarkup(new ReplyKeyboardRemove());
+            loadBalancerCommandHelper.executeAsync(telegramHolder, tachyonNewsFlashBot.getBotToken(),chatId+"", userId, _message, asyncClient);
 
-            SendMessage sendMessage = new SendMessage();
-            sendMessage.setChatId(chatId);
-            sendMessage.enableHtml(true);
-            sendMessage.setText(_message);
-            sendMessage.setReplyMarkup(new ReplyKeyboardRemove());
-            tachyonNewsFlashBot.execute(sendMessage);
-            log.info("OK >>> "+userId+" "+chatId+" " + removeNewLine(_message));
+
+
+//            tachyonNewsFlashBot.executeAsync(sendMessage, new SentCallback<Message>() {
+//                @Override
+//                public void onResult(BotApiMethod<Message> botApiMethod, Message message) {
+//                    log.info(key + " OK >>> " + userId + " " + chatId + " " + removeNewLine(_message));
+//                }
+//
+//                @Override
+//                public void onError(BotApiMethod<Message> botApiMethod, TelegramApiRequestException e) {
+//                    log.info(key + " FAIL >>> " + userId + " " + chatId + " " + removeNewLine(_message));
+//                }
+//
+//                @Override
+//                public void onException(BotApiMethod<Message> botApiMethod, Exception e) {
+//                    log.info(key + " FAIL >>> " + userId + " " + chatId + " " + removeNewLine(_message));
+//                }
+//            });
+
         } catch (Exception e) {
             log.error(e.getMessage());
-            log.info("FAIL >>> "+userId+" "+chatId+" " + removeNewLine(_message));
+
         }
 
     }
 
-    private String makeMessage(String keyword, String rptNm, String acptUrl, String name, String docNm, String docUlr,String tnsDt) {
+    private String makeMessage(String keyword, String rptNm, String acptUrl, String name, String docNm, String docUlr, String tnsDt) {
         StringWriter message = new StringWriter();
         mustache.execute(message, scopes(tnsDt, keyword, name, docUlr, docNm, acptUrl, rptNm));
         return message.toString();
     }
+
     private Map<String, Object> scopes(String time, String keyword, String company, String docUrl, String docNm, String acptUrl, String acptNm) {
         Map<String, Object> scopes = new HashMap<String, Object>();
         scopes.put("time", time);
@@ -75,6 +100,7 @@ public class TelegramHelper {
         scopes.put("acptNm", acptNm);
         return scopes;
     }
+
     private String removeNewLine(String value) {
         return StringUtils.remove(value, "\n");
     }
@@ -87,7 +113,7 @@ public class TelegramHelper {
         String name = myContext.findComName(code);
         if (isEmpty(name)) {
             name = templateMapper.findName(code);
-            if (isEmpty(name)==false) {
+            if (isEmpty(name) == false) {
                 myContext.putCompany(code, name);
             }
         }
@@ -112,7 +138,7 @@ public class TelegramHelper {
             sendMessage.setReplyMarkup(new ReplyKeyboardRemove());
             tachyonMonitoringBot.execute(sendMessage);
         } catch (TelegramApiException e) {
-             log.error(e.getMessage()+" MONITORING.. ");
+            log.error(e.getMessage() + " MONITORING.. ");
         }
     }
 

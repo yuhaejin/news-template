@@ -2,6 +2,7 @@ package com.tachyon.news.template.command;
 
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
+import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.jobs.InfixToPostfixParens;
 import com.tachyon.news.template.jobs.StackNode;
@@ -54,19 +55,52 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             return;
         }
 
-        String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
-        if (isEmpty(txtFilePath)) {
-            log.info("텍스트파일 경로를 알 수 없음... " + key);
+        // 정정공시중에 원공시 정보는 SKIP
+        if (isOldAtCorrectedKongsi(kongsiHodler)) {
+            log.info("SKIP 정정공시중의 이전 공시임. " + key);
             return;
         }
 
-        File f = new File(txtFilePath);
-        if (f.exists() == false) {
-            log.info("텍스트파일이 존재하지 않음.... " + txtFilePath);
-            return;
+        String c = null;
+
+        if (isCorrectedKongsi(kongsiHodler)) {
+            //정정공시인 경우에는 변경된 데이터에서 처리한다.
+            String htmlFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "htm");
+            if (isEmpty(htmlFilePath)) {
+                log.info("Html파일 경로를 알 수 없음... " + key);
+                return;
+            }
+
+            File f = new File(htmlFilePath);
+            if (f.exists() == false) {
+                log.info("Html파일이 존재하지 않음.... " + htmlFilePath);
+                return;
+            }
+            c = FileUtils.readFileToString(f, "UTF-8");
+            int index = StringUtils.indexOf(c, "COVER-TITLE");
+            if (index >= 0) {
+                c = BizUtils.extractText(c.substring(0, index));
+            } else {
+                log.info("정정공시 정정사항 파트가 존재하지 않음.... " + htmlFilePath);
+                return;
+            }
+
+        } else {
+            String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
+            if (isEmpty(txtFilePath)) {
+                log.info("텍스트파일 경로를 알 수 없음... " + key);
+                return;
+            }
+
+            File f = new File(txtFilePath);
+            if (f.exists() == false) {
+                log.info("텍스트파일이 존재하지 않음.... " + txtFilePath);
+                return;
+            }
+
+            c = FileUtils.readFileToString(f, "UTF-8");
         }
 
-        String c = FileUtils.readFileToString(f, "UTF-8");
         c = BizUtils.removeBlank(c);
 
         String docUrl = (String)kongsiHodler.get("doc_url");
@@ -92,6 +126,22 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
 
         log.info("done " + key);
+    }
+
+    private boolean isCorrectedKongsi(Map<String, Object> kongsiHodler) {
+        String docNm = Maps.getValue(kongsiHodler, "doc_nm");
+        return StringUtils.contains(docNm, "정정");
+    }
+
+    private boolean isOldAtCorrectedKongsi(Map<String, Object> kongsiHodler) {
+        String rptNm = Maps.getValue(kongsiHodler, "rpt_nm");
+        String docNm = Maps.getValue(kongsiHodler, "doc_nm");
+        if (StringUtils.contains(rptNm,"정정")) {
+            if (StringUtils.contains(docNm, "정정") == false) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private String findKeyword(String c, List<String> telegramList) throws Exception {
