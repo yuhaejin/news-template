@@ -14,7 +14,6 @@ import com.tachyon.crawl.kind.util.ProxyHelper;
 import com.tachyon.news.template.repository.TemplateMapper;
 import com.tachyon.news.template.telegram.TachyonMonitoringBot;
 import com.tachyon.news.template.telegram.TachyonNewsFlashBot;
-import com.tachyon.news.template.telegram.TachyonNewsSendingBot;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
@@ -35,18 +34,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.telegram.telegrambots.ApiContextInitializer;
-import org.telegram.telegrambots.bots.DefaultBotOptions;
-import org.telegram.telegrambots.bots.TelegramLongPollingBot;
-import org.telegram.telegrambots.meta.ApiContext;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
 
 import javax.annotation.PostConstruct;
 import java.io.StringReader;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -60,14 +54,14 @@ public class NewsConfig {
 
     @PostConstruct
     public void init() {
-        try {
-            ApiContextInitializer.init();
-            TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
-            telegramBotsApi.registerBot(tachyonNewsFlashBot());
-            log.info("initialized ... TelegramBotsApi");
-        } catch (TelegramApiRequestException e) {
-            log.error(e.getMessage(),e);
-        }
+//        try {
+//            ApiContextInitializer.init();
+//            TelegramBotsApi telegramBotsApi = new TelegramBotsApi();
+//            telegramBotsApi.registerBot(tachyonNewsFlashBot());
+//            log.info("initialized ... TelegramBotsApi");
+//        } catch (TelegramApiRequestException e) {
+//            log.error(e.getMessage(),e);
+//        }
     }
 
 //    @Bean
@@ -191,22 +185,6 @@ public class NewsConfig {
         return servers;
     }
 
-//    @Bean
-//    public Map<String, TelegramLongPollingBot> sendBotMap() {
-//        Map<String, TelegramLongPollingBot> map = new HashMap<>();
-//        List<Server> servers = serverList();
-//        for (Server server : servers) {
-//            String key = server.getHost() + "_" + server.getPort();
-//            DefaultBotOptions botOptions = ApiContext.getInstance(DefaultBotOptions.class);
-//            botOptions.setProxyHost(server.getHost());
-//            botOptions.setProxyPort(server.getPort());
-//            botOptions.setProxyType(DefaultBotOptions.ProxyType.HTTP);
-//            log.info(key+" "+botOptions);
-//            map.put(key, new TachyonNewsSendingBot(botOptions));
-//        }
-//
-//        return map;
-//    }
 
     @Bean(destroyMethod = "close")
     public CloseableHttpAsyncClient asyncClient() {

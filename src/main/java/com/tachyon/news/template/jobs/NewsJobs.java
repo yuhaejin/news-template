@@ -330,7 +330,7 @@ public class NewsJobs {
             if (user.hasCode(holder.getIsuCd())) {
                 // 자신의 종목코드에 해당할 때.. (grade가 0이면 모두 받기)
                 if (admin.hasKeyword(holder.getKeyword())) {
-                    telegramBeans.add(new TelegramBean(userId, user.getChatId(), holder));
+                    telegramBeans.add(new TelegramBean(user,holder));
                 } else {
 
                 }
@@ -351,7 +351,7 @@ public class NewsJobs {
 
     private void handleTelegram(TelegramBean telegramBean, TelegramHelper telegramHelper, String name) {
         long start = System.nanoTime();
-        telegramHelper.sendToTelegram(telegramBean.getUserId(), telegramBean.getChatId(), telegramBean.getTelegramHolder());
+        telegramHelper.sendToTelegram(telegramBean.getUser(),telegramBean.getTelegramHolder());
         log.info(name + " ONE ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
     }
 

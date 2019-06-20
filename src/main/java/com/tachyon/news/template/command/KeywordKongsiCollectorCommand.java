@@ -55,9 +55,10 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             return;
         }
 
+        String docUrl = Maps.getValue(kongsiHodler, "doc_url");
         // 정정공시중에 원공시 정보는 SKIP
         if (isOldAtCorrectedKongsi(kongsiHodler)) {
-            log.info("SKIP 정정공시중의 이전 공시임. " + key);
+            log.info("SKIP 정정공시중의 이전 공시임. " + key+" "+docUrl);
             return;
         }
 
@@ -76,12 +77,13 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 log.info("Html파일이 존재하지 않음.... " + htmlFilePath);
                 return;
             }
+
             c = FileUtils.readFileToString(f, "UTF-8");
-            int index = StringUtils.indexOf(c, "COVER-TITLE");
+            int index = StringUtils.indexOfAny(c, "COVER-TITLE","SECTION-1","xforms_title");
             if (index >= 0) {
                 c = BizUtils.extractText(c.substring(0, index));
             } else {
-                log.info("정정공시 정정사항 파트가 존재하지 않음.... " + htmlFilePath);
+                log.info("정정공시 정정사항 파트가 존재하지 않음.... " + htmlFilePath+" "+docUrl);
                 return;
             }
 
@@ -103,7 +105,6 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
         c = BizUtils.removeBlank(c);
 
-        String docUrl = (String)kongsiHodler.get("doc_url");
         // 속보 키워드 목록 가져옴..
         // TODO 사용자별로 키워드를 가지면 아래 로직 변경해야 함.
         // (현재는 모두 동일하므로 아래처럼 하나의 키워드가 존재할 수 있지만 사용자마다 키워드가 다르면 모든 키워드를 대상으로 확인해 봐야 함.)

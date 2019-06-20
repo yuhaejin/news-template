@@ -110,7 +110,8 @@
         select a.userid,
                ifnull(b.keyword, '') as keyword,
                ifnull(a.grade, 10)   as grade,
-               ifnull(c.chat_id, 0)  as chat_id
+               ifnull(c.chat_id, 0)  as chat_id,
+               ifnull(c.bot_seq,-1) as bot_seq
         from member a
                  left join keywordholder b on a.userid = b.userid and b.useYn = 'Y'
                  left join telegram c on a.userid = c.userid and c.userYn = 'Y'
@@ -220,5 +221,14 @@
           and acpt_no = #{acpt_no}
           and keyword = #{keyword}
     </update>
+
+    <select id="findBots" resultType="map">
+        select a.seq,
+               a.name,
+               a.token
+        from telegrambot a
+        where use_yn = 'Y'
+    </select>
+
 </mapper>
 

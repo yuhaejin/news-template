@@ -61,4 +61,6 @@ public interface TemplateMapper {
     List<Map<String, Object>> findMemberCode();
 
     void completeGroupTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
+
+    List<Map<String, Object>> findBots();
 }

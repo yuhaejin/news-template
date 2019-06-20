@@ -4,10 +4,16 @@ import com.github.mustachejava.Mustache;
 import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
+import com.tachyon.crawl.kind.util.TelegramSender;
 import com.tachyon.news.template.config.MyContext;
+import com.tachyon.news.template.model.Bot;
+import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.concurrent.FutureCallback;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -16,6 +22,7 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRem
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.StringWriter;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,8 +31,6 @@ import java.util.Map;
 @Slf4j
 @Component
 public class TelegramHelper {
-    @Autowired
-    private TachyonNewsFlashBot tachyonNewsFlashBot;
     @Autowired
     private TachyonMonitoringBot tachyonMonitoringBot;
     @Autowired
@@ -39,7 +44,7 @@ public class TelegramHelper {
     @Autowired
     private CloseableHttpAsyncClient asyncClient;
 
-    public void sendToTelegram(String userId, long chatId, TelegramHolder telegramHolder) {
+    public void sendToTelegram(User user, TelegramHolder telegramHolder) {
         try {
             String keyword = telegramHolder.getKeyword();
             String acptNm = telegramHolder.getAcptNm();
@@ -49,38 +54,44 @@ public class TelegramHelper {
             String docUrl = telegramHolder.getDocUrl();
             String tndDt = telegramHolder.getTndDt();
             String _message = makeMessage(keyword, acptNm, getItemUrl(acptNo), name, docNm, docUrl, tndDt);
-//            String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
-//            SendMessage sendMessage = new SendMessage();
-//            sendMessage.setChatId(chatId);
-//            sendMessage.enableHtml(true);
-//            sendMessage.setText(_message);
-//            sendMessage.setReplyMarkup(new ReplyKeyboardRemove());
-            loadBalancerCommandHelper.executeAsync(telegramHolder, tachyonNewsFlashBot.getBotToken(),chatId+"", userId, _message, asyncClient);
-
-
-
-//            tachyonNewsFlashBot.executeAsync(sendMessage, new SentCallback<Message>() {
-//                @Override
-//                public void onResult(BotApiMethod<Message> botApiMethod, Message message) {
-//                    log.info(key + " OK >>> " + userId + " " + chatId + " " + removeNewLine(_message));
-//                }
-//
-//                @Override
-//                public void onError(BotApiMethod<Message> botApiMethod, TelegramApiRequestException e) {
-//                    log.info(key + " FAIL >>> " + userId + " " + chatId + " " + removeNewLine(_message));
-//                }
-//
-//                @Override
-//                public void onException(BotApiMethod<Message> botApiMethod, Exception e) {
-//                    log.info(key + " FAIL >>> " + userId + " " + chatId + " " + removeNewLine(_message));
-//                }
-//            });
+            String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
+            String _chatId = user.getChatId() + "";
+            if (loadBalancerCommandHelper != null) {
+                loadBalancerCommandHelper.executeAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
+            } else {
+                TelegramSender.sendAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
+            }
 
         } catch (Exception e) {
-            log.error(e.getMessage());
-
+            log.error(e.getMessage(),e);
         }
 
+    }
+
+    private FutureCallback<HttpResponse> makeCallback(String key, String userId, String chatId, String _message) {
+        return new FutureCallback<HttpResponse>() {
+            public void completed(final HttpResponse response2) {
+                log.info(key + " OK >>> " + userId + " " + chatId + " " + removeNewLine(_message));
+            }
+
+            public void failed(final Exception ex) {
+                log.info(key + " FAIL >>> " +ex.getMessage()+" "+ userId + " " + chatId + " " + removeNewLine(_message));
+            }
+
+            public void cancelled() {
+                log.info(key + " CANCEL >>> " + userId + " " + chatId + " " + removeNewLine(_message));
+            }
+        };
+    }
+
+    private String makeUrl(String token, String chatId, String message) throws URISyntaxException {
+        URIBuilder ub = new URIBuilder("https://api.telegram.org/bot" + token + "/sendMessage");
+        ub.addParameter("chat_id", chatId);
+        ub.addParameter("text", message);
+        ub.addParameter("parse_mode", "HTML");
+        // 아래는 삭제해야 함..
+//        ub.addParameter("reply_markup", "ReplyKeyboardRemove");
+        return ub.toString();
     }
 
     private String makeMessage(String keyword, String rptNm, String acptUrl, String name, String docNm, String docUlr, String tnsDt) {

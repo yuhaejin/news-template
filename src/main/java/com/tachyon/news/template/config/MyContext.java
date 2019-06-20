@@ -2,6 +2,7 @@ package com.tachyon.news.template.config;
 
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.NewsConstants;
+import com.tachyon.news.template.model.Bot;
 import com.tachyon.news.template.model.Keyword;
 import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
@@ -100,7 +101,7 @@ public class MyContext {
      * @param maps
      * @return
      */
-    private List<User> covert(List<Map<String, Object>> maps) {
+    private List<User> covert(List<Map<String, Object>> maps,List<Map<String, Object>> bots) {
         Map<String, List<Map<String, Object>>> map = new HashMap<>();
         for (Map<String, Object> _map : maps) {
             String userId = Maps.getValue(_map,"userid");
@@ -113,7 +114,7 @@ public class MyContext {
                 map.put(userId, mapList);
             }
         }
-
+        Map<String,Bot> botMap = convertToBot(bots);
         List<User> users = new ArrayList<>();
         for (String userId : map.keySet()) {
             List<Map<String, Object>> mapList = map.get(userId);
@@ -122,6 +123,7 @@ public class MyContext {
                 continue;
             }
             User user = convertToUser(mapList, userId);
+            setupBot(user, botMap);
             log.info("속보사용자 <<< "+user);
             users.add(user);
         }
@@ -135,12 +137,32 @@ public class MyContext {
         return users;
     }
 
+    private void setupBot(User user, Map<String, Bot> botMap) {
+        String seq = user.getBotSeq() + "";
+        if (botMap.containsKey(seq)) {
+            Bot bot = botMap.get(seq);
+            user.setBot(bot);
+        }
+    }
+
+    private Map<String, Bot> convertToBot(List<Map<String, Object>> bots) {
+        Map<String, Bot> map = new HashMap<>();
+        for (Map<String, Object> bot : bots) {
+            String seq = Maps.getValue(bot, "seq");
+            String name = Maps.getValue(bot, "name");
+            String token = Maps.getValue(bot, "token");
+            map.put(seq, new Bot(seq, name, token));
+        }
+
+        return map;
+
+    }
     private User convertToUser(List<Map<String, Object>> maps,String userId) {
         User user = new User();
         user.setUserid(userId);
         user.setGrade(findGrade(maps.get(0)));
         user.setChatId(findChatId(maps.get(0)));
-
+        user.setBotSeq(findBotSeq(maps.get(0)));
         List<Keyword> keywords = new ArrayList<>();
         for (Map<String, Object> map : maps) {
             String keyword = Maps.getValue(map, "keyword");
@@ -156,6 +178,10 @@ public class MyContext {
         user.setKeywords(keywords);
 
         return user;
+    }
+
+    private long findBotSeq(Map<String, Object> map) {
+        return Maps.getLongValue(map, "bot_seq");
     }
 
     private int findChatId(Map<String, Object> map) {
@@ -290,7 +316,8 @@ public class MyContext {
 
     public void refreshTelegramUserInfo() {
         List<Map<String,Object>> maps = templateMapper.findUsers();
-        List<User> users = covert(maps);
+        List<Map<String,Object>> bots = templateMapper.findBots();
+        List<User> users = covert(maps,bots);
         List<Map<String,Object>> memberCodes = templateMapper.findMemberCode();
         Map<String, List<String>> memberCodeMap = toMap(memberCodes);
         for (User user : users) {

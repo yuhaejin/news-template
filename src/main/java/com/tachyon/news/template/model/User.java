@@ -10,8 +10,27 @@ public class User implements Serializable {
     private String userid;
     private List<Keyword> keywords;
     private List<String> codes = new ArrayList<>();
+    // grade가 낮은 사용자부터 처리함. grade 99이면 모든 종목 처리함.
     private int grade;
     private long chatId;
+    private long botSeq;
+    private Bot bot;
+
+    public Bot getBot() {
+        return bot;
+    }
+
+    public void setBot(Bot bot) {
+        this.bot = bot;
+    }
+
+    public long getBotSeq() {
+        return botSeq;
+    }
+
+    public void setBotSeq(long botSeq) {
+        this.botSeq = botSeq;
+    }
 
     public long getChatId() {
         return chatId;
@@ -60,6 +79,8 @@ public class User implements Serializable {
                 .append("codes", codes)
                 .append("grade", grade)
                 .append("chatId", chatId)
+                .append("botSeq", botSeq)
+                .append("bot", bot)
                 .toString();
     }
 

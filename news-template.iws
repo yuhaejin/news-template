@@ -1,19 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" line="27" mnemonic="9" />
+    <bookmark url="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" line="46" mnemonic="9" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a8293525-984c-422d-b467-6e92d1aa1ec8" name="Default Changelist" comment="쓰레드풀 적용 번복">
-      <change afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsSendingBot.java" afterDir="false" />
+    <list default="true" id="a8293525-984c-422d-b467-6e92d1aa1ec8" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/Bot.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/news-template.iws" beforeDir="false" afterPath="$PROJECT_DIR$/news-template.iws" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramHolder.java" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsSendingBot.java" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" afterDir="false" />
     </list>
     <ignored path="$PROJECT_DIR$/out/" />
     <ignored path="$PROJECT_DIR$/target/" />
@@ -45,10 +48,12 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-911">
-              <caret line="41" selection-start-line="41" selection-end-line="41" />
+            <state relative-caret-position="-2757">
+              <caret line="125" column="17" selection-start-line="125" selection-start-column="17" selection-end-line="125" selection-end-column="17" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#3269#3270#0" expanded="true" />
+                <element signature="e#3373#3374#0" expanded="true" />
                 <element signature="e#5375#5376#0" expanded="true" />
                 <element signature="e#5473#5474#0" expanded="true" />
                 <element signature="e#5535#5536#0" expanded="true" />
@@ -58,25 +63,42 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="63" column="42" lean-forward="true" selection-start-line="63" selection-start-column="42" selection-end-line="63" selection-end-column="42" />
+            <state relative-caret-position="251">
+              <caret line="49" column="55" lean-forward="true" selection-start-line="49" selection-start-column="55" selection-end-line="49" selection-end-column="55" />
               <folding>
                 <element signature="imports" expanded="true" />
-                <element signature="e#3233#3234#0" expanded="true" />
-                <element signature="e#3287#3288#0" expanded="true" />
+                <element signature="e#3162#3163#0" expanded="true" />
+                <element signature="e#3276#3277#0" expanded="true" />
+                <element signature="e#3330#3331#0" expanded="true" />
+                <element signature="e#3466#3467#0" expanded="true" />
+                <element signature="e#3505#3506#0" expanded="true" />
+                <element signature="e#3623#3624#0" expanded="true" />
+                <element signature="e#4981#4982#0" expanded="true" />
+                <element signature="e#5035#5036#0" expanded="true" />
+                <element signature="e#5083#5084#0" expanded="true" />
+                <element signature="e#5183#5184#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/pom.xml">
+        <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/TelegramSender.class">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="288">
-              <caret line="18" selection-start-line="18" selection-end-line="18" />
+            <state relative-caret-position="352">
+              <caret line="34" selection-start-line="34" selection-end-line="34" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/LoadBalancerCommandHelper.class">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="252">
+              <caret line="188" column="18" selection-start-line="188" selection-start-column="18" selection-end-line="188" selection-end-column="18" />
             </state>
           </provider>
         </entry>
@@ -84,20 +106,76 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="108">
-              <caret line="12" column="16" selection-start-line="12" selection-start-column="16" selection-end-line="12" selection-end-column="16" />
+            <state relative-caret-position="244">
+              <caret line="21" selection-start-line="21" selection-end-line="21" />
               <folding>
                 <element signature="imports" expanded="true" />
+                <element signature="e#456#457#0" expanded="true" />
+                <element signature="e#483#484#0" expanded="true" />
+                <element signature="e#521#522#0" expanded="true" />
+                <element signature="e#553#554#0" expanded="true" />
               </folding>
             </state>
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="96">
+              <caret line="74" column="18" selection-start-line="74" selection-start-column="18" selection-end-line="74" selection-end-column="18" />
+              <folding>
+                <element signature="e#459#460#0" expanded="true" />
+                <element signature="e#485#486#0" expanded="true" />
+                <element signature="e#520#521#0" expanded="true" />
+                <element signature="e#550#551#0" expanded="true" />
+                <element signature="e#442#443#0" expanded="true" />
+                <element signature="e#471#472#0" expanded="true" />
+                <element signature="e#513#514#0" expanded="true" />
+                <element signature="e#549#550#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/Bot.java">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="322">
+              <caret line="44" column="35" selection-start-line="44" selection-start-column="35" selection-end-line="44" selection-end-column="35" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#214#215#0" expanded="true" />
+                <element signature="e#240#241#0" expanded="true" />
+                <element signature="e#276#277#0" expanded="true" />
+                <element signature="e#306#307#0" expanded="true" />
+                <element signature="e#337#338#0" expanded="true" />
+                <element signature="e#364#365#0" expanded="true" />
+                <element signature="e#404#405#0" expanded="true" />
+                <element signature="e#436#437#0" expanded="true" />
+                <element signature="e#468#469#0" expanded="true" />
+                <element signature="e#496#497#0" expanded="true" />
+                <element signature="e#538#539#0" expanded="true" />
+                <element signature="e#572#573#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="323">
+              <caret line="226" column="22" selection-start-line="226" selection-start-column="22" selection-end-line="226" selection-end-column="22" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="53">
-              <caret line="193" selection-start-line="193" selection-start-column="2" selection-end-line="208" selection-end-column="7" />
+            <state relative-caret-position="181">
+              <caret line="53" selection-start-line="53" selection-end-line="53" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#6426#6427#0" expanded="true" />
@@ -108,46 +186,15 @@
         </entry>
       </file>
       <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/apache/httpcomponents/httpcore-nio/4.4.11/httpcore-nio-4.4.11.jar!/org/apache/http/impl/nio/reactor/DefaultConnectingIOReactor.class">
+        <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="168">
-              <caret line="42" column="11" selection-start-line="42" selection-start-column="11" selection-end-line="42" selection-end-column="11" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/LoadBalancerCommandHelper.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="248">
-              <caret line="194" column="34" selection-start-line="194" selection-start-column="34" selection-end-line="194" selection-end-column="34" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/TelegramSender.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="384">
-              <caret line="27" selection-start-line="27" selection-end-line="27" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots/4.3.1/telegrambots-4.3.1.jar!/org/telegram/telegrambots/bots/TelegramLongPollingBot.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="96">
-              <caret line="12" column="63" selection-start-line="12" selection-start-column="63" selection-end-line="12" selection-end-column="63" />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots/4.3.1/telegrambots-4.3.1.jar!/org/telegram/telegrambots/bots/DefaultAbsSender.class">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="218">
-              <caret line="836" selection-start-line="836" selection-end-line="836" />
+            <state relative-caret-position="561">
+              <caret line="343" column="33" selection-start-line="343" selection-start-column="33" selection-end-line="343" selection-end-column="33" />
+              <folding>
+                <element signature="imports" expanded="true" />
+                <element signature="e#5262#5263#0" expanded="true" />
+                <element signature="e#5286#5287#0" expanded="true" />
+              </folding>
             </state>
           </provider>
         </entry>
@@ -164,8 +211,6 @@
   </component>
   <component name="FindInProjectRecents">
     <findStrings>
-      <find>tableSelector</find>
-      <find>SPLI</find>
       <find>findKongsiHalder</find>
       <find>updateChatId</find>
       <find>findKongsiHalder2</find>
@@ -178,7 +223,6 @@
       <find>telegramBot</find>
       <find>telegramMap</find>
       <find>grade</find>
-      <find>findUsers</find>
       <find>tele</find>
       <find>execute</find>
       <find>amqp</find>
@@ -193,6 +237,9 @@
       <find>DefaultBotOptions</find>
       <find>telegr</find>
       <find>httpclient</find>
+      <find>sendBotMap</find>
+      <find>TachyonNewsSendingBot</find>
+      <find>findUsers</find>
       <find>loadBalancerCommandHelper</find>
     </findStrings>
     <dirStrings>
@@ -213,7 +260,6 @@
   <component name="IdeDocumentHistory">
     <option name="CHANGED_PATHS">
       <list>
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/camel/service/GatewayService.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/TachyonCamelApplication.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/service/DefaultService.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/service/NewsService.java" />
@@ -244,7 +290,6 @@
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/TelegramListener.java" />
         <option value="$PROJECT_DIR$/pom.xml" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/TelegramHelper.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonTelegramPollingBot.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonMonitoringBot.java" />
         <option value="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/RabbitmqTests.java" />
@@ -254,16 +299,18 @@
         <option value="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/MonitoringBotTest.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/SchedulerConfig.java" />
         <option value="$PROJECT_DIR$/src/main/resources/application.properties" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" />
-        <option value="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsSendingBot.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" />
+        <option value="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/Bot.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java" />
-        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java" />
         <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java" />
+        <option value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java" />
       </list>
     </option>
   </component>
@@ -406,6 +453,14 @@
               <item name="src" type="462c0819:PsiDirectoryNode" />
               <item name="main" type="462c0819:PsiDirectoryNode" />
               <item name="resources" type="462c0819:PsiDirectoryNode" />
+            </path>
+            <path>
+              <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
+              <item name="news-template" type="462c0819:PsiDirectoryNode" />
+              <item name="src" type="462c0819:PsiDirectoryNode" />
+              <item name="main" type="462c0819:PsiDirectoryNode" />
+              <item name="resources" type="462c0819:PsiDirectoryNode" />
+              <item name="repository" type="462c0819:PsiDirectoryNode" />
             </path>
             <path>
               <item name="news-template" type="b2602c69:ProjectViewProjectNode" />
@@ -681,7 +736,7 @@
       <workItem from="1560735370733" duration="4394000" />
       <workItem from="1560747316199" duration="13647000" />
       <workItem from="1560820615310" duration="13548000" />
-      <workItem from="1560907650837" duration="18962000" />
+      <workItem from="1560907650837" duration="29079000" />
     </task>
     <task id="LOCAL-00001" summary="처음 반영">
       <created>1558514277020</created>
@@ -739,7 +794,14 @@
       <option name="project" value="LOCAL" />
       <updated>1560849609501</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="로드밸런서를 이용하여 텔레그램 메세지 전송하게 함.">
+      <created>1560938603514</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1560938603514</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="TestHistory">
@@ -769,13 +831,13 @@
     </history-entry>
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="321451000" />
+    <option name="totallyTimeSpent" value="331568000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1014" extended-state="6" />
     <editor active="true" />
     <layout>
-      <window_info active="true" content_ui="combo" id="Project" order="0" sideWeight="0.49913645" visible="true" weight="0.34061834" />
+      <window_info content_ui="combo" id="Project" order="0" sideWeight="0.49913645" visible="true" weight="0.34061834" />
       <window_info id="Structure" order="1" sideWeight="0.50086355" side_tool="true" weight="0.25746268" />
       <window_info id="Designer" order="2" />
       <window_info id="Image Layers" order="3" />
@@ -785,7 +847,7 @@
       <window_info id="Learn" order="7" />
       <window_info anchor="bottom" id="Message" order="0" />
       <window_info anchor="bottom" id="Find" order="1" weight="0.3291714" />
-      <window_info anchor="bottom" id="Run" order="2" visible="true" weight="0.33938706" />
+      <window_info active="true" anchor="bottom" id="Run" order="2" visible="true" weight="0.33938706" />
       <window_info anchor="bottom" id="Debug" order="3" weight="0.39937758" />
       <window_info anchor="bottom" id="Cvs" order="4" weight="0.25" />
       <window_info anchor="bottom" id="Inspection" order="5" weight="0.4" />
@@ -864,7 +926,8 @@
     <MESSAGE value="키워드 and or not 추가" />
     <MESSAGE value="텔레그램 그룹,비그룹 구분하여 처리&#10;쓰레드풀 적용" />
     <MESSAGE value="쓰레드풀 적용 번복" />
-    <option name="LAST_COMMIT_MESSAGE" value="쓰레드풀 적용 번복" />
+    <MESSAGE value="로드밸런서를 이용하여 텔레그램 메세지 전송하게 함." />
+    <option name="LAST_COMMIT_MESSAGE" value="로드밸런서를 이용하여 텔레그램 메세지 전송하게 함." />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -893,23 +956,6 @@
     <option name="FILTER_TARGETS" value="false" />
   </component>
   <component name="editorHistoryManager">
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/service/MetaKongsiCollector.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2480">
-          <caret line="157" selection-start-line="157" selection-end-line="157" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/service/NewsService.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="112">
-          <caret line="7" selection-start-line="7" selection-end-line="7" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/springframework/amqp/spring-rabbit/2.1.6.RELEASE/spring-rabbit-2.1.6.RELEASE.jar!/org/springframework/amqp/rabbit/core/RabbitTemplate.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="96">
@@ -981,13 +1027,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="224">
           <caret line="26" column="25" selection-start-line="26" selection-start-column="25" selection-end-line="26" selection-end-column="25" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/InfixToPostfixParens.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="16">
-          <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
         </state>
       </provider>
     </entry>
@@ -1079,30 +1118,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="192">
-          <caret line="18" selection-start-line="18" selection-end-line="18" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="832">
-          <caret line="56" column="53" selection-start-line="56" selection-start-column="30" selection-end-line="56" selection-end-column="53" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2624">
-          <caret line="164" column="28" selection-start-line="164" selection-start-column="28" selection-end-line="164" selection-end-column="28" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://C:/Program Files/Java/jdk1.8.0_161/src.zip!/java/util/concurrent/ExecutorService.java">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1632">
@@ -1143,35 +1158,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-426">
-          <caret line="302" column="9" lean-forward="true" selection-start-line="302" selection-start-column="9" selection-end-line="302" selection-end-column="9" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="358">
-          <caret line="226" lean-forward="true" selection-start-line="226" selection-end-line="226" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#5818#5819#0" expanded="true" />
-            <element signature="e#5872#5873#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonMonitoringBot.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="368">
-          <caret line="27" column="5" selection-start-line="27" selection-start-column="5" selection-end-line="27" selection-end-column="5" />
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots-meta/4.3.1/telegrambots-meta-4.3.1.jar!/org/telegram/telegrambots/meta/bots/AbsSender.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="160">
@@ -1196,29 +1182,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="273">
-          <caret line="22" selection-start-line="22" selection-end-line="22" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#585#586#0" expanded="true" />
-            <element signature="e#637#638#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsSendingBot.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="208">
-          <caret line="17" selection-start-line="17" selection-end-line="17" />
-          <folding>
-            <element signature="e#456#457#0" expanded="true" />
-            <element signature="e#488#489#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="jar://$MAVEN_REPOSITORY$/org/telegram/telegrambots-meta/4.3.1/telegrambots-meta-4.3.1.jar!/org/telegram/telegrambots/meta/ApiContext.class">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="201">
@@ -1227,30 +1190,6 @@
             <element signature="e#854#855#0" expanded="true" />
             <element signature="e#908#909#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="108">
-          <caret line="12" column="16" selection-start-line="12" selection-start-column="16" selection-end-line="12" selection-end-column="16" />
-          <folding>
-            <element signature="imports" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/TelegramSender.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="384">
-          <caret line="27" selection-start-line="27" selection-end-line="27" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/LoadBalancerCommandHelper.class">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="248">
-          <caret line="194" column="34" selection-start-line="194" selection-start-column="34" selection-end-line="194" selection-end-column="34" />
         </state>
       </provider>
     </entry>
@@ -1275,12 +1214,128 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java">
+    <entry file="file://$PROJECT_DIR$/pom.xml">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-911">
-          <caret line="41" selection-start-line="41" selection-end-line="41" />
+        <state relative-caret-position="288">
+          <caret line="18" selection-start-line="18" selection-end-line="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsSendingBot.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="112">
+          <caret line="11" column="11" selection-start-line="11" selection-start-column="11" selection-end-line="11" selection-end-column="11" />
+          <folding>
+            <element signature="e#455#456#0" expanded="true" />
+            <element signature="e#488#489#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/InfixToPostfixParens.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="16">
+          <caret line="14" column="13" selection-start-line="14" selection-start-column="13" selection-end-line="14" selection-end-column="13" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/org/apache/commons/commons-lang3/3.8.1/commons-lang3-3.8.1-sources.jar!/org/apache/commons/lang3/StringUtils.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="249">
+          <caret line="2127" column="22" lean-forward="true" selection-start-line="2127" selection-start-column="22" selection-end-line="2127" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/KeywordKongsiCollectorCommand.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="20">
+          <caret line="102" column="55" lean-forward="true" selection-start-line="102" selection-start-column="55" selection-end-line="102" selection-end-column="55" />
           <folding>
             <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonMonitoringBot.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="464">
+          <caret line="36" column="24" selection-start-line="36" selection-start-column="16" selection-end-line="36" selection-end-column="61" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TachyonNewsFlashBot.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="292">
+          <caret line="44" selection-start-line="44" selection-end-line="44" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="446">
+          <caret line="64" column="41" selection-start-line="64" selection-start-column="41" selection-end-line="64" selection-end-column="41" />
+          <folding>
+            <element signature="imports" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="226" column="22" selection-start-line="226" selection-start-column="22" selection-end-line="226" selection-end-column="22" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/MyContext.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="561">
+          <caret line="343" column="33" selection-start-line="343" selection-start-column="33" selection-end-line="343" selection-end-column="33" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#5262#5263#0" expanded="true" />
+            <element signature="e#5286#5287#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/TelegramBean.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="244">
+          <caret line="21" selection-start-line="21" selection-end-line="21" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#456#457#0" expanded="true" />
+            <element signature="e#483#484#0" expanded="true" />
+            <element signature="e#521#522#0" expanded="true" />
+            <element signature="e#553#554#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="181">
+          <caret line="53" selection-start-line="53" selection-end-line="53" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#6426#6427#0" expanded="true" />
+            <element signature="e#6488#6489#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs/NewsJobs.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="-2757">
+          <caret line="125" column="17" selection-start-line="125" selection-start-column="17" selection-end-line="125" selection-end-column="17" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#3269#3270#0" expanded="true" />
+            <element signature="e#3373#3374#0" expanded="true" />
             <element signature="e#5375#5376#0" expanded="true" />
             <element signature="e#5473#5474#0" expanded="true" />
             <element signature="e#5535#5536#0" expanded="true" />
@@ -1289,33 +1344,75 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/pom.xml">
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/User.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="288">
-          <caret line="18" selection-start-line="18" selection-end-line="18" />
+        <state relative-caret-position="96">
+          <caret line="74" column="18" selection-start-line="74" selection-start-column="18" selection-end-line="74" selection-end-column="18" />
+          <folding>
+            <element signature="e#459#460#0" expanded="true" />
+            <element signature="e#485#486#0" expanded="true" />
+            <element signature="e#520#521#0" expanded="true" />
+            <element signature="e#550#551#0" expanded="true" />
+            <element signature="e#442#443#0" expanded="true" />
+            <element signature="e#471#472#0" expanded="true" />
+            <element signature="e#513#514#0" expanded="true" />
+            <element signature="e#549#550#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/model/Bot.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="322">
+          <caret line="44" column="35" selection-start-line="44" selection-start-column="35" selection-end-line="44" selection-end-column="35" />
+          <folding>
+            <element signature="imports" expanded="true" />
+            <element signature="e#214#215#0" expanded="true" />
+            <element signature="e#240#241#0" expanded="true" />
+            <element signature="e#276#277#0" expanded="true" />
+            <element signature="e#306#307#0" expanded="true" />
+            <element signature="e#337#338#0" expanded="true" />
+            <element signature="e#364#365#0" expanded="true" />
+            <element signature="e#404#405#0" expanded="true" />
+            <element signature="e#436#437#0" expanded="true" />
+            <element signature="e#468#469#0" expanded="true" />
+            <element signature="e#496#497#0" expanded="true" />
+            <element signature="e#538#539#0" expanded="true" />
+            <element signature="e#572#573#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/LoadBalancerCommandHelper.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="252">
+          <caret line="188" column="18" selection-start-line="188" selection-start-column="18" selection-end-line="188" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="jar://$MAVEN_REPOSITORY$/jongsong/kim/sample/0.0.1-SNAPSHOT/sample-0.0.1-SNAPSHOT.jar!/com/tachyon/crawl/kind/util/TelegramSender.class">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="352">
+          <caret line="34" selection-start-line="34" selection-end-line="34" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/telegram/TelegramHelper.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="63" column="42" lean-forward="true" selection-start-line="63" selection-start-column="42" selection-end-line="63" selection-end-column="42" />
+        <state relative-caret-position="251">
+          <caret line="49" column="55" lean-forward="true" selection-start-line="49" selection-start-column="55" selection-end-line="49" selection-end-column="55" />
           <folding>
             <element signature="imports" expanded="true" />
-            <element signature="e#3233#3234#0" expanded="true" />
-            <element signature="e#3287#3288#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/main/java/com/tachyon/news/template/config/NewsConfig.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="53">
-          <caret line="193" selection-start-line="193" selection-start-column="2" selection-end-line="208" selection-end-column="7" />
-          <folding>
-            <element signature="imports" expanded="true" />
-            <element signature="e#6426#6427#0" expanded="true" />
-            <element signature="e#6488#6489#0" expanded="true" />
+            <element signature="e#3162#3163#0" expanded="true" />
+            <element signature="e#3276#3277#0" expanded="true" />
+            <element signature="e#3330#3331#0" expanded="true" />
+            <element signature="e#3466#3467#0" expanded="true" />
+            <element signature="e#3505#3506#0" expanded="true" />
+            <element signature="e#3623#3624#0" expanded="true" />
+            <element signature="e#4981#4982#0" expanded="true" />
+            <element signature="e#5035#5036#0" expanded="true" />
+            <element signature="e#5083#5084#0" expanded="true" />
+            <element signature="e#5183#5184#0" expanded="true" />
           </folding>
         </state>
       </provider>
