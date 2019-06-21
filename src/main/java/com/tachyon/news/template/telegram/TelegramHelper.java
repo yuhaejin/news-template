@@ -6,7 +6,7 @@ import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.TelegramSender;
 import com.tachyon.news.template.config.MyContext;
-import com.tachyon.news.template.model.Bot;
+import com.tachyon.news.template.model.Limit;
 import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +44,15 @@ public class TelegramHelper {
     @Autowired
     private CloseableHttpAsyncClient asyncClient;
 
+    private Map<String, Limit> limitMap = new HashMap<>();
+
     public void sendToTelegram(User user, TelegramHolder telegramHolder) {
         try {
+            if (user == null || telegramHolder == null) {
+                limitMap.clear();
+                return;
+            }
+
             String keyword = telegramHolder.getKeyword();
             String acptNm = telegramHolder.getAcptNm();
             String acptNo = telegramHolder.getAcptNo();
@@ -56,16 +63,60 @@ public class TelegramHelper {
             String _message = makeMessage(keyword, acptNm, getItemUrl(acptNo), name, docNm, docUrl, tndDt);
             String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
             String _chatId = user.getChatId() + "";
+            long start = System.currentTimeMillis();
             if (loadBalancerCommandHelper != null) {
                 loadBalancerCommandHelper.executeAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
             } else {
                 TelegramSender.sendAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
             }
 
+            long end = System.currentTimeMillis();
+            handleTelegramLimit(user.getBot().getToken(), end - start);
+            //
+
         } catch (Exception e) {
-            log.error(e.getMessage(),e);
+            log.error(e.getMessage(), e);
         }
 
+    }
+
+    /**
+     * token에 해당하는 봇의 Limit 처리..
+     * 초당 30건만 처리해야 함.
+     * 실제는 초당 29건만 처리가능하게 함.
+     * @param token
+     * @param time
+     * @throws InterruptedException
+     */
+    private void handleTelegramLimit(String token, long time) throws InterruptedException {
+        if (limitMap.containsKey(token)) {
+            Limit limit = limitMap.get(token);
+            long sleep = limit.doExecute(time);
+            if (sleep > 0) {
+                log.info("SLEEP " + token + " " + sleep);
+                plusTime(limitMap, token, sleep);
+            }
+
+        } else {
+            limitMap.put(token, new Limit(1, time));
+        }
+    }
+
+    /**
+     * 다른봇을 위해 잠시 멈춘 시간을 보정함..
+     * @param limitMap
+     * @param token
+     * @param sleep
+     */
+    private void plusTime(Map<String, Limit> limitMap, String token, long sleep) {
+        for (String key : limitMap.keySet()) {
+            if (key.equalsIgnoreCase(token)) {
+                continue;
+
+            }
+            Limit limit = limitMap.get(key);
+            limit.plusTime(sleep);
+        }
     }
 
     private FutureCallback<HttpResponse> makeCallback(String key, String userId, String chatId, String _message) {
@@ -75,7 +126,7 @@ public class TelegramHelper {
             }
 
             public void failed(final Exception ex) {
-                log.info(key + " FAIL >>> " +ex.getMessage()+" "+ userId + " " + chatId + " " + removeNewLine(_message));
+                log.info(key + " FAIL >>> " + ex.getMessage() + " " + userId + " " + chatId + " " + removeNewLine(_message));
             }
 
             public void cancelled() {

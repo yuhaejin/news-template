@@ -4,6 +4,7 @@ import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.config.MyContext;
+import com.tachyon.news.template.model.Limit;
 import com.tachyon.news.template.model.TelegramBean;
 import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
@@ -45,6 +46,7 @@ public class NewsJobs {
 
     // 그룹텔레그램 처리시 주기별 처리 갯수.. (분당20개, 30초당10개, 10개보다 작은 9개)
     private int countPerProcessing = 9;
+
 
 
     @Scheduled(cron = "0 0 7-20 ? * MON-FRI")
@@ -99,6 +101,11 @@ public class NewsJobs {
                     }
                 }));
 
+            }
+
+            @Override
+            public boolean isNoGroup() {
+                return true;
             }
         };
 
@@ -170,6 +177,11 @@ public class NewsJobs {
                 TelegramHelper telegramHelper = (TelegramHelper) commandFactory.findBean(TelegramHelper.class);
                 handleTelegram(telegramBean, telegramHelper, findName());
             }
+
+            @Override
+            public boolean isNoGroup() {
+                return false;
+            }
         };
 
         handleTelegram(groupTelegramHandler);
@@ -212,10 +224,14 @@ public class NewsJobs {
             }
 
             List<Future> futures = new ArrayList<>();
-
             // 텔레그램 전송...
             long start = System.nanoTime();
+            if (telegramBeans.size() != 0) {
+                // 맨 마지막이라는 걸 알려주는 객체 삽입..
+                telegramBeans.add(new TelegramBean(null, null));
+            }
             for (TelegramBean telegramBean : telegramBeans) {
+                //  봇당 30건에 마다 1초 지났는지 체크하고 지나지 않았으면 잠시 멈춤.
                 telegramHandler.execute(futures, telegramBean);
             }
 
@@ -295,6 +311,8 @@ public class NewsJobs {
          * @param telegramBean
          */
         void execute(List<Future> futures, TelegramBean telegramBean);
+
+        boolean isNoGroup();
     }
 
     /**
