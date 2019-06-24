@@ -1,15 +1,23 @@
 package com.tachyon.news.template.command;
 
+import com.google.common.collect.TreeBasedTable;
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
+import com.tachyon.crawl.kind.util.JSoupHelper;
+import com.tachyon.crawl.kind.util.JSoupTableException;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.jobs.InfixToPostfixParens;
 import com.tachyon.news.template.jobs.StackNode;
+import com.tachyon.news.template.model.CorrectBean;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -17,6 +25,9 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
+
+import static com.tachyon.crawl.BizUtils.findBodies;
+import static com.tachyon.crawl.BizUtils.findTitles;
 
 /**
  * 중요한 키워드를 가진 공시를 노티하기 위해 공시텍스트를 확인하고 해당 공시를 DB에 저장함.
@@ -58,11 +69,13 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         String docUrl = Maps.getValue(kongsiHodler, "doc_url");
         // 정정공시중에 원공시 정보는 SKIP
         if (isOldAtCorrectedKongsi(kongsiHodler)) {
-            log.info("SKIP 정정공시중의 이전 공시임. " + key+" "+docUrl);
+            log.info("SKIP 정정공시중의 이전 공시임. " + key + " " + docUrl);
             return;
         }
 
-        String c = null;
+//        String c = null;
+        String contents = "";
+        StringBuilder sb = new StringBuilder();
 
         if (isCorrectedKongsi(kongsiHodler)) {
             //정정공시인 경우에는 변경된 데이터에서 처리한다.
@@ -78,14 +91,19 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 return;
             }
 
-            c = FileUtils.readFileToString(f, "UTF-8");
-            int index = StringUtils.indexOfAny(c, "COVER-TITLE","SECTION-1","xforms_title");
+            String c = FileUtils.readFileToString(f, "UTF-8");
+            int index = StringUtils.indexOfAny(c, "COVER-TITLE", "SECTION-1", "xforms_title");
             if (index >= 0) {
-                c = BizUtils.extractText(c.substring(0, index));
+                c = c.substring(0, index);
             } else {
-                log.info("정정공시 정정사항 파트가 존재하지 않음.... " + htmlFilePath+" "+docUrl);
+                log.info("정정공시 정정사항 파트가 존재하지 않음.... " + htmlFilePath + " " + docUrl);
                 return;
             }
+
+            // 1. 테이블에서 정정후 데이터찾기
+            int corectIndex = findCorrectTable(c, sb, key);
+            // 2. 정정사항 테이블 이후 데이터 중에서 정정후 데이터만 찾기..
+            findEtcCorrect(c, sb, key, corectIndex);
 
         } else {
             String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
@@ -100,10 +118,11 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 return;
             }
 
-            c = FileUtils.readFileToString(f, "UTF-8");
+            String c = FileUtils.readFileToString(f, "UTF-8");
+            sb.append(c);
         }
 
-        c = BizUtils.removeBlank(c);
+        contents = BizUtils.removeBlank(sb.toString());
 
         // 속보 키워드 목록 가져옴..
         // TODO 사용자별로 키워드를 가지면 아래 로직 변경해야 함.
@@ -112,11 +131,11 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         // 여기에 이미 처리된 키워드를 보관함..
         List<String> keywords = new ArrayList<>();
         synchronized (telegramKeywordList) {
-            String keyword = findKeyword(c, telegramKeywordList);
+            String keyword = findKeyword(contents, telegramKeywordList);
             if (isEmpty(keyword)) {
                 log.info("속보 키워드가 없음.  " + key + " " + docUrl);
             } else {
-                log.info("속보키워드 <<< "+keyword+" "+key+" "+docUrl);
+                log.info("속보키워드 <<< " + keyword + " " + key + " " + docUrl);
                 keywords.add(keyword);
             }
         }
@@ -129,6 +148,167 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    /**
+     * 정정사항 테이블 이외 데이터에서 정정후 데이터만 추출
+     *
+     * @param c
+     * @param sb
+     * @param corectIndex
+     */
+    private void findEtcCorrect(String c, StringBuilder sb, String key, int corectIndex) {
+        if (corectIndex != -1) {
+            c = c.substring(corectIndex);
+        }
+
+        List<CorrectBean> beans = findCorrectInfo(c);
+        for (int i=0;i<beans.size();i++) {
+            CorrectBean bean = beans.get(i);
+            if ("AFTER".equalsIgnoreCase(bean.getType())) {
+                if (beans.size() - 1 >= i + 1) {
+                    CorrectBean _bean = beans.get(i + 1);
+                    if ("BEFORE".equalsIgnoreCase(_bean.getType())) {
+                        // 정정후 이후 정정전까지 데이터 추가.
+                        String s = c.substring(bean.getIndex(), _bean.getIndex());
+                        s = BizUtils.extractText(s);
+                        log.info("<<< " + s);
+                        sb.append(s).append(" ");
+                    }
+                } else {
+                    // 정정후 이후 끝까지..
+                    String s = c.substring(bean.getIndex());
+                    s = BizUtils.extractText(s);
+
+                    log.info("<<< " + s);
+                    sb.append(s).append(" ");
+                }
+            } else {
+
+            }
+        }
+
+    }
+
+    private List<CorrectBean> findCorrectInfo(String c) {
+        List<CorrectBean> beans = new ArrayList<>();
+        String[] lines = StringUtils.splitByWholeSeparator(c, "\n");
+        for (String line : lines) {
+            if (line.contains("</TH>")) {
+                continue;
+            }
+            String[] _lines = BizUtils.getPlainText(line);
+            if (findBeforeCorrectKeyword(_lines)) {
+                beans.add(new CorrectBean("BEFORE", c.indexOf(line)));
+            } else if (findAfterCorrectKeyword(_lines)) {
+                beans.add(new CorrectBean("AFTER", c.indexOf(line)));
+            } else {
+
+            }
+        }
+
+        return beans;
+
+    }
+    private boolean findBeforeCorrectKeyword(String[] lines) {
+        for (String line : lines) {
+            line = StringUtils.remove(line, " ").trim();
+            if (line.contains("정정전")) {
+                return true;
+            }
+        }
+        return false;
+    }
+    private boolean findAfterCorrectKeyword(String[] lines) {
+        for (String line : lines) {
+            line = StringUtils.remove(line, " ").trim();
+            if (line.contains("정정후")) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * 정정사항 테이블 찾아 정정후 데이터만 추가
+     *
+     * @param c
+     * @param sb
+     */
+    private int findCorrectTable(String c, StringBuilder sb, String key) throws JSoupTableException {
+        int index = findCorrectIndex(c);
+        if (index == -1) {
+            log.warn("정정사항 테이블이 없음. " + key);
+            return index;
+        }
+        String _c = c.substring(index);
+        Element tableElement = findCorrectTable(_c);
+        if (tableElement == null) {
+            return index;
+        }
+        com.google.common.collect.Table<Integer, Integer, String> gtable = TreeBasedTable.create();
+        findTitles(tableElement, gtable);
+        findBodies(tableElement, gtable);
+        List<List<String>> lists = JSoupHelper.convert(gtable);
+        if (lists.size() >= 2) {
+            List<String> titles = lists.get(0);
+            int correctIndex = findCorrectField(titles);
+            for (int i = 1; i < lists.size(); i++) {
+                List<String> bodies = lists.get(i);
+                if (bodies.size() - 1 >= correctIndex) {
+                    String cc = bodies.get(correctIndex);
+                    log.info("<< " + cc);
+                    sb.append(cc).append(" ");
+                }
+            }
+        }
+
+        return index;
+    }
+
+    private int findCorrectField(List<String> titles) {
+        for (int i = 0; i < titles.size(); i++) {
+            String line = titles.get(i);
+            line = BizUtils.removeBlank(line);
+            if (line.contains("정정후")) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private Element findCorrectTable(String _c) {
+        Document document = JSoupHelper.getDocumentByText(_c);
+        Elements tables = JSoupHelper.findElements(document, "TABLE");
+        if (tables != null && tables.size() != 0) {
+            Element table = tables.first();
+            return table;
+        } else {
+            return null;
+        }
+    }
+
+    private int findCorrectIndex(String c) {
+        String[] lines = StringUtils.splitByWholeSeparator(c, "\n");
+        for (String line : lines) {
+            String[] _lines = BizUtils.getPlainText(line);
+            if (hasCorrect(_lines)) {
+                return StringUtils.indexOf(c, line);
+            }
+        }
+
+        return -1;
+    }
+
+    private boolean hasCorrect(String[] lines) {
+        for (String line : lines) {
+            line = StringUtils.remove(line, " ").trim();
+            log.info("정정사항 ... "+line);
+            if (line.endsWith("정정사항")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private boolean isCorrectedKongsi(Map<String, Object> kongsiHodler) {
         String docNm = Maps.getValue(kongsiHodler, "doc_nm");
         return StringUtils.contains(docNm, "정정");
@@ -137,7 +317,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     private boolean isOldAtCorrectedKongsi(Map<String, Object> kongsiHodler) {
         String rptNm = Maps.getValue(kongsiHodler, "rpt_nm");
         String docNm = Maps.getValue(kongsiHodler, "doc_nm");
-        if (StringUtils.contains(rptNm,"정정")) {
+        if (StringUtils.contains(rptNm, "정정")) {
             if (StringUtils.contains(docNm, "정정") == false) {
                 return true;
             }
@@ -148,13 +328,14 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     private String findKeyword(String c, List<String> telegramList) throws Exception {
         for (String keyword : telegramList) {
 //            if (c.indexOf(keyword) >= 0) {
-            if (hasKeyword(c,keyword)) {
+            if (hasKeyword(c, keyword)) {
                 return keyword;
             }
         }
         return null;
     }
-    private boolean hasKeyword(String c, String keyword) throws Exception{
+
+    private boolean hasKeyword(String c, String keyword) throws Exception {
         String conv = converter.convert(keyword);
         Stack<StackNode> evalStack = new Stack();
         Scanner scanner = new Scanner(conv);
@@ -162,26 +343,26 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             String token = scanner.next();
             if (token.equals("+")) {
                 String secondOperand = evalStack.pop().getData();
-                boolean _second = executeCheck(c,secondOperand);
+                boolean _second = executeCheck(c, secondOperand);
                 String firstOperand = evalStack.pop().getData();
-                boolean _first = executeCheck(c,firstOperand);
-                String result = RESULT_PRIFIX+(_first || _second);
+                boolean _first = executeCheck(c, firstOperand);
+                String result = RESULT_PRIFIX + (_first || _second);
                 evalStack.push(new StackNode(result));
             } else if (token.equals("!")) {
                 String secondOperand = evalStack.pop().getData();
-                boolean _second = executeCheck(c,secondOperand);
-                String result = RESULT_PRIFIX+(!_second);
+                boolean _second = executeCheck(c, secondOperand);
+                String result = RESULT_PRIFIX + (!_second);
                 evalStack.push(new StackNode(result));
             } else if (token.equals("*")) {
                 String secondOperand = evalStack.pop().getData();
-                boolean _second = executeCheck(c,secondOperand);
+                boolean _second = executeCheck(c, secondOperand);
                 String firstOperand = evalStack.pop().getData();
-                boolean _first = executeCheck(c,firstOperand);
-                String result = RESULT_PRIFIX+(_second && _first);
+                boolean _first = executeCheck(c, firstOperand);
+                String result = RESULT_PRIFIX + (_second && _first);
                 evalStack.push(new StackNode(result));
             } else {
-                boolean _second = executeCheck(c,token);
-                String result = RESULT_PRIFIX+(_second);
+                boolean _second = executeCheck(c, token);
+                String result = RESULT_PRIFIX + (_second);
                 evalStack.push(new StackNode(result));
             }
         }
@@ -194,7 +375,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         if (isResult(operand)) {
             result = checkResult(operand);
         } else {
-            result = execute(c,operand);
+            result = execute(c, operand);
         }
 
         return result;
@@ -206,7 +387,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     }
 
     private boolean execute(String c, String operand) {
-        return StringUtils.contains(c,operand);
+        return StringUtils.contains(c, operand);
     }
 
 
