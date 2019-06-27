@@ -109,7 +109,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
     private String findUrl(String staticUrl, String docNo, String code) {
         if ("A-".equalsIgnoreCase(code)) {
-            code = "-";
+            code = "SPACE";
         }
         String _url = BizUtils.htmlFilePath("html", docNo, code, "htm");
         if (staticUrl.endsWith("/")) {
@@ -314,7 +314,6 @@ public abstract class BasicCommand extends BaseObject implements Command {
         } else {
             return findBasicJonsFile2(files, acptNo);
         }
-
     }
 
     private File findBasicJonsFile(Collection<File> files, String acptNo) {

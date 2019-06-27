@@ -13,7 +13,6 @@ import com.tachyon.news.template.model.CorrectBean;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -87,7 +86,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
             File f = new File(htmlFilePath);
             if (f.exists() == false) {
-                log.info("Html파일이 존재하지 않음.... " + htmlFilePath);
+                log.info("Html파일이 존재하지 않음.... " + htmlFilePath + " " + key);
                 return;
             }
 
@@ -95,9 +94,6 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             int index = StringUtils.indexOfAny(c, "COVER-TITLE", "SECTION-1", "xforms_title");
             if (index >= 0) {
                 c = c.substring(0, index);
-            } else {
-                log.info("정정공시 정정사항 파트가 존재하지 않음.... " + htmlFilePath + " " + docUrl);
-                return;
             }
 
             // 1. 테이블에서 정정후 데이터찾기
@@ -114,7 +110,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
             File f = new File(txtFilePath);
             if (f.exists() == false) {
-                log.info("텍스트파일이 존재하지 않음.... " + txtFilePath);
+                log.info("텍스트파일이 존재하지 않음.... " + txtFilePath + " " + key);
                 return;
             }
 
@@ -161,25 +157,26 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
 
         List<CorrectBean> beans = findCorrectInfo(c);
-        for (int i=0;i<beans.size();i++) {
+        for (int i = 0; i < beans.size(); i++) {
             CorrectBean bean = beans.get(i);
+            log.debug(bean.toString());
             if ("AFTER".equalsIgnoreCase(bean.getType())) {
-                if (beans.size() - 1 >= i + 1) {
+                if (i == beans.size() - 1) {
+                    // 정정후 이후 끝까지..
+                    String s = c.substring(bean.getIndex());
+                    s = BizUtils.extractText(s);
+                    log.debug("<<< " + s);
+                    sb.append(s).append(" ");
+                } else {
                     CorrectBean _bean = beans.get(i + 1);
+                    log.debug("\t"+_bean.toString());
                     if ("BEFORE".equalsIgnoreCase(_bean.getType())) {
                         // 정정후 이후 정정전까지 데이터 추가.
                         String s = c.substring(bean.getIndex(), _bean.getIndex());
                         s = BizUtils.extractText(s);
-                        log.info("<<< " + s);
+                        log.debug("<<< " + s);
                         sb.append(s).append(" ");
                     }
-                } else {
-                    // 정정후 이후 끝까지..
-                    String s = c.substring(bean.getIndex());
-                    s = BizUtils.extractText(s);
-
-                    log.info("<<< " + s);
-                    sb.append(s).append(" ");
                 }
             } else {
 
@@ -191,23 +188,71 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     private List<CorrectBean> findCorrectInfo(String c) {
         List<CorrectBean> beans = new ArrayList<>();
         String[] lines = StringUtils.splitByWholeSeparator(c, "\n");
+        String[] lastLines = null;
+        String lastLine = null;
         for (String line : lines) {
-            if (line.contains("</TH>")) {
-                continue;
-            }
+            line = line.trim();
             String[] _lines = BizUtils.getPlainText(line);
-            if (findBeforeCorrectKeyword(_lines)) {
-                beans.add(new CorrectBean("BEFORE", c.indexOf(line)));
+            // 먼저 라인에 정정전이나 정정후가 모두 있다고 하면..
+            if (findBeforeCorrectKeyword(_lines) && findAfterCorrectKeyword(_lines)) {
+
+                //
+            } else if (findBeforeCorrectKeyword(_lines)) {
+                if (isInTable(line)) {
+                    log.debug("SKIP ::: " + line);
+                    continue;
+                }
+                int correctIndex = StringUtils.indexOfAny(line, "정정 전", "정정전");
+                if (correctIndex > 5) {
+                    correctIndex = correctIndex - 5;
+                }
+
+                String subLine = line.substring(correctIndex);
+                log.debug("BEFORE::: " + subLine.trim());
+                beans.add(new CorrectBean("BEFORE", c.indexOf(subLine)));
+
             } else if (findAfterCorrectKeyword(_lines)) {
-                beans.add(new CorrectBean("AFTER", c.indexOf(line)));
+                if (isInTable(line)) {
+                    log.debug("SKIP ::: " + line);
+                    continue;
+                }
+                int correctIndex = StringUtils.indexOfAny(line, "정정 후", "정정후");
+                if (correctIndex > 5) {
+                    correctIndex = correctIndex - 5;
+                }
+                String subLine = line.substring(correctIndex);
+                log.debug("AFTER::: " + subLine.trim());
+                beans.add(new CorrectBean("AFTER", c.indexOf(subLine)));
             } else {
 
+            }
+        }
+        // 정정전과 정정후가 같은 라인에 있을 때...
+        if (beans.size() > 0) {
+            CorrectBean last = beans.get(beans.size() - 1);
+            if ("BEFORE".equalsIgnoreCase(last.getType())) {
+                if (findAfterCorrectKeyword(lastLines)) {
+                    log.debug("AFTER::: " + lastLine.trim());
+                    // 정정전과 정정후가 같은 라인에 있으므로 정정후 이후부터 처리하려고 아래 로직 삽입.
+                    int lastAfterCorrectIndex = StringUtils.indexOfAny(lastLine, "정정 후", "정정후");
+                    beans.add(new CorrectBean("AFTER", c.indexOf(lastLine.substring(lastAfterCorrectIndex))));
+                }
             }
         }
 
         return beans;
 
     }
+
+    private boolean isInTable(String line) {
+        if (line.contains("</TH>") || line.contains("</TD>")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+
     private boolean findBeforeCorrectKeyword(String[] lines) {
         for (String line : lines) {
             line = StringUtils.remove(line, " ").trim();
@@ -217,6 +262,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
         return false;
     }
+
     private boolean findAfterCorrectKeyword(String[] lines) {
         for (String line : lines) {
             line = StringUtils.remove(line, " ").trim();
@@ -226,6 +272,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
         return false;
     }
+
     /**
      * 정정사항 테이블 찾아 정정후 데이터만 추가
      *
@@ -300,7 +347,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     private boolean hasCorrect(String[] lines) {
         for (String line : lines) {
             line = StringUtils.remove(line, " ").trim();
-            log.info("정정사항 ... "+line);
+            log.debug("정정사항 ... " + line);
             if (line.endsWith("정정사항")) {
                 return true;
             }

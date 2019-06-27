@@ -3,6 +3,7 @@ package com.tachyon.news.template.repository;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import java.sql.Timestamp;
 import java.util.List;
 import java.util.Map;
 
@@ -63,4 +64,6 @@ public interface TemplateMapper {
     void completeGroupTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
 
     List<Map<String, Object>> findBots();
+
+    Integer findClose(@Param("code")String code,@Param("date")Timestamp date);
 }

@@ -230,5 +230,8 @@
         where use_yn = 'Y'
     </select>
 
+    <select id="findClose" resultType="int" parameterType="map">
+        select close from stock_data where code = #{code} and date = #{date}
+    </select>
 </mapper>
 

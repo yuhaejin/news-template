@@ -3,8 +3,12 @@ package com.tachyon.news.template.command;
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Change;
 import com.tachyon.crawl.kind.model.Table;
+import com.tachyon.crawl.kind.parser.MajorStockChangeParser;
+import com.tachyon.crawl.kind.parser.StaffBirthDayParser;
 import com.tachyon.crawl.kind.parser.TableParser;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern;
+import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern2;
+import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
@@ -15,6 +19,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -30,10 +35,11 @@ public class StockHolderCommand extends BasicCommand {
 
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
+
     @Override
     public void execute(Message message) throws Exception {
         String key = myContext.findInputValue(message);
-        log.info("<<< "+key);
+        log.info("<<< " + key);
 
         // 이미 처리된 공시인지 확인
         // 처리되지 않았으면 공시 수집
@@ -46,7 +52,6 @@ public class StockHolderCommand extends BasicCommand {
         String code = keys[1];
         String acptNo = keys[2];
 
-        TableParser stockChangeTableParser = new TableParser(new StockChangeSelectorByPattern());
         Map<String, Object> map = findKongsiHalder(myContext, message, templateMapper, docNo, code, acptNo);
         if (map != null) {
             List<Change> changes = new ArrayList<>();
@@ -58,9 +63,42 @@ public class StockHolderCommand extends BasicCommand {
             String rptNm = Maps.getValue(map, "rpt_nm");
             String tnsDt = findTnsDt(map);
             String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
-            Table table = (Table) stockChangeTableParser.parse(docRaw, docUrl);
+            // 일반문서처리.
+            Table table = null;
+            if (isStaffStockStatusKongsi(docNm)) {
+                //임원ㆍ주요주주특정증권등소유상황보고서
+                log.info("임원ㆍ주요주주특정증권등소유상황보고서 공시처리.. ");
+                StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
+                TableParser stockChangeTableParser = new TableParser(selector);
+                selector.setKeywords(new String[]{"특정", "증권", "소유", "상황"});
+                table = (Table) stockChangeTableParser.parse(docRaw, docUrl);
+                if (table != null) {
+                    String submitName = Maps.getValue(map, "submit_nm");
+                    //birthday가 없을 수도 있음
+                    String birthDay = findBirthDay(docRaw, docUrl);
+                    table.findStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, submitName, birthDay, FILTER);
+                }
+            } else if (isMajorStockChangeKongis(docNm)) {
+                log.info("최대주주등소유주식변동신고서 공시처리...");
+                TableParser stockChangeTableParser = new TableParser(new StockChangeSelectorByPattern2());
+                List<Table> tables = stockChangeTableParser.parseSome(docRaw, docUrl, new MajorStockChangeParser());
+                if (tables != null && tables.size() > 0) {
+                    for (Table _table : tables) {
+                        _table.findMajorStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, FILTER);
+                    }
+                } else {
+                    log.info("세부변동내역 테이블 없음. ");
+                }
+            } else {
+                // 일반 문서.
+                TableParser stockChangeTableParser = new TableParser(new StockChangeSelectorByPattern());
+                table = (Table) stockChangeTableParser.parse(docRaw, docUrl);
+                if (table != null) {
+                    table.findStock(docUrl, docNo, docNm, FILTER, tnsDt, rptNm, acptNo);
+                }
+            }
+
             if (table != null) {
-                table.findStock(docUrl, docNo, docNm, FILTER, tnsDt, rptNm,acptNo);
                 if (isChangeKongsi(rptNm)) {
                     if (table.getBodies() == null || table.getBodies().size() == 0) {
 
@@ -76,14 +114,13 @@ public class StockHolderCommand extends BasicCommand {
                             }
                         }
                     }
-
                 }
-            } else {
             }
 
 
             for (String _key : FILTER.keySet()) {
                 Change change = FILTER.get(_key);
+                log.debug(change.toString());
                 if (DELETE.containsKey(change.getDocNo()) == false) {
                     change.setAcptNo(acptNo);
                     change.setIsuCd(code);
@@ -96,12 +133,12 @@ public class StockHolderCommand extends BasicCommand {
             }
 
             setupName(changes);
+            setupPrice(changes);
             log.info("주식거래내역 ... " + changes.size());
             for (Change change : changes) {
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
                     log.info("거래내역에 이름이 없어 SKIP " + change);
                 } else {
-
                     // 유일한 값이라고 할만한 조회...
                     //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
                     if (findStockHolder(templateMapper, code, change)) {
@@ -109,18 +146,63 @@ public class StockHolderCommand extends BasicCommand {
                         log.info("ALREADY StockHodler " + change);
                     } else {
                         log.info("INSERT ... " + change);
-                        insertStockHolder(templateMapper, change.paramStockHolder(code,acptNo));
+                        insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
                     }
                 }
             }
 
         } else {
-            log.error("기초공시가 없음  docNo=" + docNo+" code="+code+" acptNo="+acptNo);
+            log.error("기초공시가 없음  docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
         }
 
 
         log.info("done " + key);
     }
+
+    private void setupPrice(List<Change> changes) {
+        for (Change change : changes) {
+            if (change.getPrice() == 0) {
+                log.debug("  "+change.getDate());
+                Integer price = templateMapper.findClose(change.getIsuCd(),new Timestamp(change.getDateTime()));
+                if (price == null || price == 0) {
+                    log.debug("no...");
+                } else {
+                    log.debug("0 ==>  " + price);
+                    change.setPrice(price);
+                    change.setupProfit();
+                }
+            }
+        }
+    }
+
+    private String toString(Timestamp date) {
+        return DateUtils.toString(date, "yyyy-MM-dd HH:mm:ss");
+    }
+    private boolean isMajorStockChangeKongis(String docNm) {
+        return docNm.contains("최대주주등소유주식변동신고서");
+    }
+
+    private boolean isStaffStockStatusKongsi(String docNm) {
+        if (docNm.contains("임원") && docNm.contains("주요주주") && docNm.contains("특정증권등") && docNm.contains("소유상황")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private String findBirthDay(String docRaw, String docUrl) throws Exception {
+        StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
+        selector.setKeywords(new String[]{"보고자", "관한", "사항"});
+        TableParser stockChangeTableParser = new TableParser(selector);
+        List<Table> tables = stockChangeTableParser.parseSome(docRaw, docUrl, new StaffBirthDayParser());
+        if (tables == null || tables.size() == 0) {
+            return "";
+        } else {
+            Table table = tables.get(0);
+            return table.findBirthDay();
+        }
+    }
+
     private void insertStockHolder(TemplateMapper templateMapper, Map<String, Object> map) {
         templateMapper.insertStockHolder(map);
     }
@@ -128,6 +210,7 @@ public class StockHolderCommand extends BasicCommand {
     private void deleteBeforeStockHolder(TemplateMapper templateMapper, String code, String _docNo) {
         templateMapper.deleteBeforeStockHolder(code, _docNo);
     }
+
     private boolean isNameTotal(String name) {
         String _name = StringUtils.remove(name, " ");
         if ("합계".equalsIgnoreCase(_name)) {
@@ -136,6 +219,7 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
     public boolean findStockHolder(TemplateMapper templateMapper, String code, Change change) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
         int count = templateMapper.findStockHolder(param);
@@ -146,6 +230,7 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
     private String findBeforeKongsi(TemplateMapper templateMapper, String code, String acptNo) {
         List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
         for (Map<String, Object> map : maps) {
