@@ -5,7 +5,7 @@
             <Pattern>%d{yyyy-MM-dd HH:mm:ss} %-5p %-10.10X{camel.exchangeId} %-40.40logger{40} - %msg %n</Pattern>
         </layout>
     </appender>
-    <root level="DEBUG">
+    <root level="INFO">
         <appender-ref ref="STDOUT"/>
     </root>
     <logger name="com.tachyon.crawl.kind" additivity="false">

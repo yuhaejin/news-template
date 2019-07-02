@@ -66,4 +66,8 @@ public interface TemplateMapper {
     List<Map<String, Object>> findBots();
 
     Integer findClose(@Param("code")String code,@Param("date")Timestamp date);
+
+    void insertExpiration(Map<String, Object> param);
+
+    int findExpirationCount(Map<String, Object> param);
 }

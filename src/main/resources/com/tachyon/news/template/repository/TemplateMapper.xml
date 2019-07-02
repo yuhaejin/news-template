@@ -233,5 +233,18 @@
     <select id="findClose" resultType="int" parameterType="map">
         select close from stock_data where code = #{code} and date = #{date}
     </select>
+
+    <insert id="insertExpiration" parameterType="map">
+        INSERT INTO expirationholder (name, birthday, isu_cd,changeday, doc_no,acpt_no,doc_url)
+        VALUES (#{name}, #{birthday}, #{isu_cd}, #{changeday},#{doc_no},#{acpt_no},#{doc_url})
+    </insert>
+    <select id="findExpirationCount" resultType="int" parameterType="map">
+        select count(*)
+        from expirationholder
+        where name = #{name}
+          and birthday = #{birthday}
+          and isu_cd = #{isu_cd}
+          and changeday = #{changeday}
+    </select>
 </mapper>
 

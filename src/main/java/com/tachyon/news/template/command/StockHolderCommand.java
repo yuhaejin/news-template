@@ -148,6 +148,12 @@ public class StockHolderCommand extends BasicCommand {
                         log.info("INSERT ... " + change);
                         insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
                     }
+
+                    if (hasExpiration(change)) {
+                        log.info("임기만료 ... "+change);
+                        handleExpiration(templateMapper, change.paramExpiration(DateUtils.toString(change.getDateType(),"yyyyMMdd")));
+                    }
+
                 }
             }
 
@@ -155,8 +161,22 @@ public class StockHolderCommand extends BasicCommand {
             log.error("기초공시가 없음  docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
         }
 
-
         log.info("done " + key);
+    }
+
+    private void handleExpiration(TemplateMapper templateMapper, Map<String, Object> param) {
+        int count = templateMapper.findExpirationCount(param);
+        if (count == 0) {
+            templateMapper.insertExpiration(param);
+        }
+    }
+    private boolean hasExpiration(Change change) {
+        String remarks = change.getRemarks();
+        if (StringUtils.contains(remarks, "만료")) {
+            return true;
+        } else {
+            return false;
+        }
     }
 
     private void setupPrice(List<Change> changes) {
