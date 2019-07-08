@@ -78,6 +78,7 @@ public abstract class AbstractService extends BaseObject implements NewsService 
     }
 
     protected void requestBodyAndHeaders2(RabbitTemplate rabbitTemplate, String uri, Object body,Map<String,Object> headers) {
+
         rabbitTemplate.convertAndSend(uri, body,convert(headers));
     }
 

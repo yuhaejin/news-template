@@ -71,7 +71,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             log.info("SKIP 정정공시중의 이전 공시임. " + key + " " + docUrl);
             return;
         }
-
+        log.info(key+" "+docUrl);
 //        String c = null;
         String contents = "";
         StringBuilder sb = new StringBuilder();
@@ -97,9 +97,10 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             }
 
             // 1. 테이블에서 정정후 데이터찾기
-            int corectIndex = findCorrectTable(c, sb, key);
+            findCorrectTable(c, sb, key);
+
             // 2. 정정사항 테이블 이후 데이터 중에서 정정후 데이터만 찾기..
-            findEtcCorrect(c, sb, key, corectIndex);
+            findEtcCorrect(c, sb, key, index);
 
         } else {
             String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
@@ -137,7 +138,10 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
         // 사용자별 키워드가 없으므로 아래는 최대 하나 키워드가 존재..
         for (String keyword : keywords) {
-            templateMapper.insertTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo(), keyword);
+            int count = templateMapper.findTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getAcptNo(), keyword);
+            if (count == 0) {
+                templateMapper.insertTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo(), keyword);
+            }
         }
 
 
@@ -157,6 +161,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
 
         List<CorrectBean> beans = findCorrectInfo(c);
+        log.debug("CorrectBean size "+beans.size());
         for (int i = 0; i < beans.size(); i++) {
             CorrectBean bean = beans.get(i);
             log.debug(bean.toString());
@@ -202,7 +207,11 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                     log.debug("SKIP ::: " + line);
                     continue;
                 }
-                int correctIndex = StringUtils.indexOfAny(line, "정정 전", "정정전");
+                int correctIndex = StringUtils.indexOfAny(line, "정정 전", "정정전","정 정 전");
+                if (correctIndex == -1) {
+                    log.warn("SKIP ::: " + line);
+                    continue;
+                }
                 if (correctIndex > 5) {
                     correctIndex = correctIndex - 5;
                 }
@@ -216,7 +225,12 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                     log.debug("SKIP ::: " + line);
                     continue;
                 }
-                int correctIndex = StringUtils.indexOfAny(line, "정정 후", "정정후");
+
+                int correctIndex = StringUtils.indexOfAny(line, "정정 후", "정정후","정 정 후");
+                if (correctIndex == -1) {
+                    log.warn("SKIP ::: " + line);
+                    continue;
+                }
                 if (correctIndex > 5) {
                     correctIndex = correctIndex - 5;
                 }
@@ -264,6 +278,9 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     }
 
     private boolean findAfterCorrectKeyword(String[] lines) {
+        if (lines == null) {
+            return false;
+        }
         for (String line : lines) {
             line = StringUtils.remove(line, " ").trim();
             if (line.contains("정정후")) {
@@ -290,6 +307,11 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         if (tableElement == null) {
             return index;
         }
+
+        // 버그 수정.
+
+        //
+
         com.google.common.collect.Table<Integer, Integer, String> gtable = TreeBasedTable.create();
         findTitles(tableElement, gtable);
         findBodies(tableElement, gtable);

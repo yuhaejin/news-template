@@ -12,4 +12,8 @@
         <level value="DEBUG"/>
         <appender-ref ref="STDOUT"/>
     </logger>
+    <logger name="com.tachyon.news.template" additivity="false">
+        <level value="DEBUG"/>
+        <appender-ref ref="STDOUT"/>
+    </logger>
 </configuration>

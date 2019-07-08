@@ -70,4 +70,6 @@ public interface TemplateMapper {
     void insertExpiration(Map<String, Object> param);
 
     int findExpirationCount(Map<String, Object> param);
+
+    int findTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
 }

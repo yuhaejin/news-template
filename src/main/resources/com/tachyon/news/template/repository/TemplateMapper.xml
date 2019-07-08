@@ -111,7 +111,7 @@
                ifnull(b.keyword, '') as keyword,
                ifnull(a.grade, 10)   as grade,
                ifnull(c.chat_id, 0)  as chat_id,
-               ifnull(c.bot_seq,-1) as bot_seq
+               ifnull(c.bot_seq, -1) as bot_seq
         from member a
                  left join keywordholder b on a.userid = b.userid and b.useYn = 'Y'
                  left join telegram c on a.userid = c.userid and c.userYn = 'Y'
@@ -180,7 +180,7 @@
     <update id="completeNoGroupTelegramHolder" parameterType="map">
         update telegramholder
         set processed_yn = 'Y',
-            updated_at = now()
+            updated_at   = now()
         where doc_no = #{doc_no}
           and acpt_no = #{acpt_no}
           and keyword = #{keyword}
@@ -216,7 +216,7 @@
     <update id="completeGroupTelegramHolder" parameterType="map">
         update telegramholder
         set group_processed_yn = 'Y',
-            group_updated_at = now()
+            group_updated_at   = now()
         where doc_no = #{doc_no}
           and acpt_no = #{acpt_no}
           and keyword = #{keyword}
@@ -231,12 +231,15 @@
     </select>
 
     <select id="findClose" resultType="int" parameterType="map">
-        select close from stock_data where code = #{code} and date = #{date}
+        select close
+        from stock_data
+        where code = #{code}
+          and date = #{date}
     </select>
 
     <insert id="insertExpiration" parameterType="map">
-        INSERT INTO expirationholder (name, birthday, isu_cd,changeday, doc_no,acpt_no,doc_url)
-        VALUES (#{name}, #{birthday}, #{isu_cd}, #{changeday},#{doc_no},#{acpt_no},#{doc_url})
+        INSERT INTO expirationholder (name, birthday, isu_cd, changeday, doc_no, acpt_no, doc_url)
+        VALUES (#{name}, #{birthday}, #{isu_cd}, #{changeday}, #{doc_no}, #{acpt_no}, #{doc_url})
     </insert>
     <select id="findExpirationCount" resultType="int" parameterType="map">
         select count(*)
@@ -246,5 +249,14 @@
           and isu_cd = #{isu_cd}
           and changeday = #{changeday}
     </select>
+
+    <insert id="findTelegramHolder" parameterType="map">
+        select count(*)
+        from telegramholder
+        where doc_no = #{doc_no}
+          and keyword = #{keyword}
+          and acpt_no = #{acpt_no}
+    </insert>
+
 </mapper>
 

@@ -170,9 +170,10 @@ public class StockHolderCommand extends BasicCommand {
             templateMapper.insertExpiration(param);
         }
     }
+
     private boolean hasExpiration(Change change) {
         String remarks = change.getRemarks();
-        if (StringUtils.contains(remarks, "만료")) {
+        if (StringUtils.contains(remarks, "만료") && StringUtils.contains(remarks, "임기")) {
             return true;
         } else {
             return false;
@@ -209,6 +210,7 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
 
     private String findBirthDay(String docRaw, String docUrl) throws Exception {
         StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();

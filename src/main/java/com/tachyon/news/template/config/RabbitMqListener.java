@@ -46,7 +46,6 @@ public class RabbitMqListener {
         executeSplit(message);
     }
 
-
     private void execute(Message message, String queue) {
         if ("GATEWAY".equalsIgnoreCase(queue)) {
             NewsService newsService = commandFactory.findService(GatewayService.class);
