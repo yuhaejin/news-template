@@ -83,7 +83,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 log.info("Html파일 경로를 알 수 없음... " + key);
                 return;
             }
-
+            log.debug("htmlFilePath="+htmlFilePath);
             File f = new File(htmlFilePath);
             if (f.exists() == false) {
                 log.info("Html파일이 존재하지 않음.... " + htmlFilePath + " " + key);
@@ -97,10 +97,10 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             }
 
             // 1. 테이블에서 정정후 데이터찾기
-            findCorrectTable(c, sb, key);
+            int correctIndex = findCorrectTable(c, sb, key);
 
             // 2. 정정사항 테이블 이후 데이터 중에서 정정후 데이터만 찾기..
-            findEtcCorrect(c, sb, key, index);
+            findEtcCorrect(c, sb, key, correctIndex);
 
         } else {
             String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
@@ -141,6 +141,8 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             int count = templateMapper.findTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getAcptNo(), keyword);
             if (count == 0) {
                 templateMapper.insertTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo(), keyword);
+            } else {
+                log.info("telegramHolder count "+count);
             }
         }
 
@@ -308,17 +310,17 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             return index;
         }
 
-        // 버그 수정.
-
-        //
-
         com.google.common.collect.Table<Integer, Integer, String> gtable = TreeBasedTable.create();
         findTitles(tableElement, gtable);
         findBodies(tableElement, gtable);
         List<List<String>> lists = JSoupHelper.convert(gtable);
+        for (List<String> list : lists) {
+            log.debug("테이블" +list.toString());
+        }
         if (lists.size() >= 2) {
             List<String> titles = lists.get(0);
             int correctIndex = findCorrectField(titles);
+            log.debug("정정후 타이블 index="+correctIndex);
             for (int i = 1; i < lists.size(); i++) {
                 List<String> bodies = lists.get(i);
                 if (bodies.size() - 1 >= correctIndex) {

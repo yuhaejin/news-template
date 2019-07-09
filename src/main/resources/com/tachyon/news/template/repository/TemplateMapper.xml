@@ -250,13 +250,13 @@
           and changeday = #{changeday}
     </select>
 
-    <insert id="findTelegramHolder" parameterType="map">
+    <select id="findTelegramHolder" resultType="int" parameterType="map">
         select count(*)
         from telegramholder
         where doc_no = #{doc_no}
           and keyword = #{keyword}
           and acpt_no = #{acpt_no}
-    </insert>
+    </select>
 
 </mapper>
 

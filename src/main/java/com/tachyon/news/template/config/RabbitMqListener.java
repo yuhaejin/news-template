@@ -4,13 +4,16 @@ import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.nio.charset.Charset;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -75,9 +78,24 @@ public class RabbitMqListener {
         String queue = strings[0].trim();
 
         for (int i = 1; i < strings.length; i++) {
-            String value = strings[i].trim();
-            rabbitTemplate.convertAndSend(queue,value);
+            Object value = strings[i].trim();
+            if (StringUtils.isEmpty(value.toString())) {
+                continue;
+            }
+            rabbitTemplate.convertAndSend(queue,value,convert(message.getMessageProperties().getHeaders()));
             log.info(queue+ " << "+value);
         }
+    }
+
+    private MessagePostProcessor convert(Map<String, Object> headers) {
+        return new MessagePostProcessor(){
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                for (String key : headers.keySet()) {
+                    message.getMessageProperties().getHeaders().put(key, headers.get(key));
+                }
+                return message;
+            }
+        };
     }
 }

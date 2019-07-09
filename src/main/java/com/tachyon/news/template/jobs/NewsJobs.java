@@ -193,67 +193,72 @@ public class NewsJobs {
      * @param telegramHandler 그룹방,비그룹방 처리를 표현하는 인터페이스
      */
     private void handleTelegram(TelegramHandler telegramHandler) {
-        if (isWorkingHour(new Date()) == false) {
-            return;
-        }
-        InfixToPostfixParens infix = new InfixToPostfixParens();
-
-        List<Map<String, Object>> maps = telegramHandler.findTelegramHodler(templateMapper);
-        if (maps == null || maps.size() == 0) {
-            return;
-        } else {
-            List<TelegramHolder> holders = toTelegramHolder(maps);
-            log.info(telegramHandler.findName() + " 텔레그램 속보 갯수 " + holders.size());
-            Map<String, User> telegramMap = myContext.getTelegramMap();
-            // 결과저장.
-            List<TelegramBean> telegramBeans = new ArrayList<>();
-
-            synchronized (telegramMap) {
-                User admin = telegramMap.get("admin");
-                for (String userId : telegramMap.keySet()) {
-                    User user = telegramMap.get(userId);
-                    if ("admin".equalsIgnoreCase(user.getUserid())) {
-                        continue;
-                    }
-                    if (telegramHandler.isChargedChatId(user.getChatId()) == false) {
-                        continue;
-                    }
-
-                    findKeyword(user, admin, holders, telegramBeans, infix);
-                }
+        try {
+            if (isWorkingHour(new Date()) == false) {
+                return;
             }
+            InfixToPostfixParens infix = new InfixToPostfixParens();
 
-            List<Future> futures = new ArrayList<>();
-            // 텔레그램 전송...
-            long start = System.nanoTime();
-            if (telegramBeans.size() != 0) {
-                // 맨 마지막이라는 걸 알려주는 객체 삽입..
-                telegramBeans.add(new TelegramBean(null, null));
-            }
-            for (TelegramBean telegramBean : telegramBeans) {
-                //  봇당 30건에 마다 1초 지났는지 체크하고 지나지 않았으면 잠시 멈춤.
-                telegramHandler.execute(futures, telegramBean);
-            }
+            List<Map<String, Object>> maps = telegramHandler.findTelegramHodler(templateMapper);
+            if (maps == null || maps.size() == 0) {
+                return;
+            } else {
+                List<TelegramHolder> holders = toTelegramHolder(maps);
+                log.info(telegramHandler.findName() + " 텔레그램 속보 갯수 " + holders.size());
+                Map<String, User> telegramMap = myContext.getTelegramMap();
+                // 결과저장.
+                List<TelegramBean> telegramBeans = new ArrayList<>();
 
-            if (futures.size() > 0) {
-                while (true) {
-                    try {
-                        if (allDone(futures)) {
-                            break;
+                synchronized (telegramMap) {
+                    User admin = telegramMap.get("admin");
+                    for (String userId : telegramMap.keySet()) {
+                        User user = telegramMap.get(userId);
+                        if ("admin".equalsIgnoreCase(user.getUserid())) {
+                            continue;
                         }
-                        Thread.sleep(5);
-                    } catch (InterruptedException e) {
-                        log.error(e.getMessage());
+                        if (telegramHandler.isChargedChatId(user.getChatId()) == false) {
+                            continue;
+                        }
+
+                        findKeyword(user, admin, holders, telegramBeans, infix);
                     }
                 }
-            }
-            log.info(telegramHandler.findName() + " ALL ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS)+" "+telegramBeans.size());
 
-            // TelegramHolder 처리
-            for (TelegramHolder holder : holders) {
-                telegramHandler.completeTelegramHolder(templateMapper, holder.getDocNo(), holder.getAcptNo(), holder.getKeyword());
+                List<Future> futures = new ArrayList<>();
+                // 텔레그램 전송...
+                long start = System.nanoTime();
+                if (telegramBeans.size() != 0) {
+                    // 맨 마지막이라는 걸 알려주는 객체 삽입..
+                    telegramBeans.add(new TelegramBean(null, null));
+                }
+                for (TelegramBean telegramBean : telegramBeans) {
+                    //  봇당 30건에 마다 1초 지났는지 체크하고 지나지 않았으면 잠시 멈춤.
+                    telegramHandler.execute(futures, telegramBean);
+                }
+
+                if (futures.size() > 0) {
+                    while (true) {
+                        try {
+                            if (allDone(futures)) {
+                                break;
+                            }
+                            Thread.sleep(5);
+                        } catch (InterruptedException e) {
+                            log.error(e.getMessage());
+                        }
+                    }
+                }
+                log.info(telegramHandler.findName() + " ALL ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS)+" "+telegramBeans.size());
+
+                // TelegramHolder 처리
+                for (TelegramHolder holder : holders) {
+                    telegramHandler.completeTelegramHolder(templateMapper, holder.getDocNo(), holder.getAcptNo(), holder.getKeyword());
+                }
             }
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
         }
+
     }
 
     private boolean allDone(List<Future> list) {
