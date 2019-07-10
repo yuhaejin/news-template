@@ -2,6 +2,8 @@ package com.tachyon.news.template.command;
 
 import com.google.common.collect.TreeBasedTable;
 import com.tachyon.crawl.BizUtils;
+import com.tachyon.crawl.kind.model.CorrectBean;
+import com.tachyon.crawl.kind.model.CorrectInfo;
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
 import com.tachyon.crawl.kind.util.JSoupHelper;
 import com.tachyon.crawl.kind.util.JSoupTableException;
@@ -9,11 +11,11 @@ import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.jobs.InfixToPostfixParens;
 import com.tachyon.news.template.jobs.StackNode;
-import com.tachyon.news.template.model.CorrectBean;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -24,9 +26,6 @@ import org.springframework.stereotype.Component;
 import javax.annotation.PostConstruct;
 import java.io.File;
 import java.util.*;
-
-import static com.tachyon.crawl.BizUtils.findBodies;
-import static com.tachyon.crawl.BizUtils.findTitles;
 
 /**
  * 중요한 키워드를 가진 공시를 노티하기 위해 공시텍스트를 확인하고 해당 공시를 DB에 저장함.
@@ -71,7 +70,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             log.info("SKIP 정정공시중의 이전 공시임. " + key + " " + docUrl);
             return;
         }
-        log.info(key+" "+docUrl);
+        log.info(key + " " + docUrl);
 //        String c = null;
         String contents = "";
         StringBuilder sb = new StringBuilder();
@@ -83,7 +82,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 log.info("Html파일 경로를 알 수 없음... " + key);
                 return;
             }
-            log.debug("htmlFilePath="+htmlFilePath);
+            log.debug("htmlFilePath=" + htmlFilePath);
             File f = new File(htmlFilePath);
             if (f.exists() == false) {
                 log.info("Html파일이 존재하지 않음.... " + htmlFilePath + " " + key);
@@ -96,12 +95,8 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 c = c.substring(0, index);
             }
 
-            // 1. 테이블에서 정정후 데이터찾기
-            int correctIndex = findCorrectTable(c, sb, key);
-
-            // 2. 정정사항 테이블 이후 데이터 중에서 정정후 데이터만 찾기..
-            findEtcCorrect(c, sb, key, correctIndex);
-
+            handleCorrectPart(c, sb, key);
+            log.info("정정 " + sb.toString());
         } else {
             String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
             if (isEmpty(txtFilePath)) {
@@ -120,6 +115,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
 
         contents = BizUtils.removeBlank(sb.toString());
+
 
         // 속보 키워드 목록 가져옴..
         // TODO 사용자별로 키워드를 가지면 아래 로직 변경해야 함.
@@ -142,7 +138,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             if (count == 0) {
                 templateMapper.insertTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo(), keyword);
             } else {
-                log.info("telegramHolder count "+count);
+                log.info("telegramHolder count " + count);
             }
         }
 
@@ -151,107 +147,232 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
     }
 
     /**
-     * 정정사항 테이블 이외 데이터에서 정정후 데이터만 추출
+     * 정정공시 패턴을 구한다.
+     * 패턴에 맞게 정정후 내용을 구한다.
+     * 한테이블에 정정전, 정정후 내용이 있는 경우가 두가지가 있는데 구분해서 처리한다.
      *
      * @param c
      * @param sb
-     * @param corectIndex
+     * @param key
+     * @throws JSoupTableException
      */
-    private void findEtcCorrect(String c, StringBuilder sb, String key, int corectIndex) {
-        if (corectIndex != -1) {
-            c = c.substring(corectIndex);
-        }
-
-        List<CorrectBean> beans = findCorrectInfo(c);
-        log.debug("CorrectBean size "+beans.size());
-        for (int i = 0; i < beans.size(); i++) {
-            CorrectBean bean = beans.get(i);
-            log.debug(bean.toString());
-            if ("AFTER".equalsIgnoreCase(bean.getType())) {
-                if (i == beans.size() - 1) {
-                    // 정정후 이후 끝까지..
-                    String s = c.substring(bean.getIndex());
-                    s = BizUtils.extractText(s);
-                    log.debug("<<< " + s);
-                    sb.append(s).append(" ");
-                } else {
-                    CorrectBean _bean = beans.get(i + 1);
-                    log.debug("\t"+_bean.toString());
-                    if ("BEFORE".equalsIgnoreCase(_bean.getType())) {
-                        // 정정후 이후 정정전까지 데이터 추가.
-                        String s = c.substring(bean.getIndex(), _bean.getIndex());
-                        s = BizUtils.extractText(s);
-                        log.debug("<<< " + s);
-                        sb.append(s).append(" ");
-                    }
-                }
-            } else {
-
+    private void handleCorrectPart(String c, StringBuilder sb, String key) throws Exception {
+        c = c.toLowerCase();
+        CorrectInfo correctInfo = findPattern(c);
+        String pattern = correctInfo.getPattern();
+        log.info("PATTERN "+pattern+" "+key);
+        if ("SOMETABLE".equalsIgnoreCase(pattern)) {
+            List<Element> elements = correctInfo.getElements();
+            for (Element table : elements) {
+                List<String> titles = findTitles(table);
+                List<List<String>> bodies = findBodies(table);
+                aggregate(sb, titles, bodies);
             }
+        } else if ("DIVIDED".equalsIgnoreCase(pattern)) {
+            List<CorrectBean> beans = findCorrectInfo(c);
+            for (CorrectBean correctBean : beans) {
+                log.info(correctBean.toString());
+            }
+
+            int index = 0;
+            for (int i = 0; i < beans.size(); i++) {
+                if (i < index) {
+                    continue;
+                }
+                com.tachyon.crawl.kind.model.CorrectBean bean = beans.get(i);
+                if ("AFTER".equalsIgnoreCase(bean.getType())) {
+                    if (i == beans.size() - 1) {
+                        // 정정후 이후 끝까지..
+                        String s = c.substring(bean.getIndex());
+                        s = BizUtils.extractText(s);
+                        log.info(bean.getIndex()+"~ LAST <<< " + StringUtils.abbreviate(s,100));
+                        sb.append(s).append(" ");
+                    } else {
+                        index = findBeforeIndex(beans, i);
+                        if (index == -1) {
+                            String s = c.substring(bean.getIndex());
+                            s = BizUtils.extractText(s);
+                            log.info(bean.getIndex()+" LAST <<< " + StringUtils.abbreviate(s,100));
+                            sb.append(s).append(" ");
+                            i = beans.size()-1;
+                        } else {
+                            CorrectBean _bean = beans.get(index);
+                            // 정정후 이후 정정전까지 데이터 추가.
+                            String s = c.substring(bean.getIndex(), _bean.getIndex());
+                            s = BizUtils.extractText(s);
+                            log.info(bean.getIndex()+" ~ "+_bean.getIndex()+ "<<< " + StringUtils.abbreviate(s,100));
+                            sb.append(s).append(" ");
+                            i = index;
+                        }
+
+                    }
+                } else {
+
+                }
+            }
+
+        } else if ("ONETABLE".equalsIgnoreCase(pattern)) {
+            Element element = correctInfo.getElements().get(0);
+            List<String> titles = findTitles(element);
+            List<List<String>> bodies = findBodies(element);
+
+            if (isOneField(titles)) {
+                aggregateOneField(sb, titles, bodies);
+            } else {
+                aggregate(sb, titles, bodies);
+            }
+        } else {
+            log.error("INVALID pattern " + pattern + " " + key);
         }
 
     }
 
-    private List<CorrectBean> findCorrectInfo(String c) {
-        List<CorrectBean> beans = new ArrayList<>();
+    private int findBeforeIndex(List<CorrectBean> beans, int _i) {
+        for (int i = _i; i < beans.size(); i++) {
+            CorrectBean correctBean = beans.get(i);
+            if ("BEFORE".equalsIgnoreCase(correctBean.getType())) {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private boolean isOneField(List<String> titles) {
+        for (String title : titles) {
+            if (title.contains("정정전") && title.contains("정정후")) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void aggregateOneField(StringBuilder sb, List<String> titles, List<List<String>> bodies) {
+        int index = findTitleIndex(titles);
+        if (index == -1) {
+            return;
+        }
+        for (List<String> body : bodies) {
+            if (body.size() - 1 >= index) {
+                String _body = body.get(index);
+                _body = StringUtils.remove(_body, " ");
+                sb.append(collectAfter(_body)).append(" ");
+            } else {
+                continue;
+            }
+        }
+    }
+
+    private String collectAfter(String body) {
+        int index = body.indexOf("정정후");
+        if (index != -1) {
+            return body.substring(index);
+        } else {
+            return "";
+        }
+    }
+
+    private List<com.tachyon.crawl.kind.model.CorrectBean> findCorrectInfo(String c) {
+        List<com.tachyon.crawl.kind.model.CorrectBean> beans = new ArrayList<>();
         String[] lines = StringUtils.splitByWholeSeparator(c, "\n");
         String[] lastLines = null;
         String lastLine = null;
+        int _beforeIndex = 0;
+        int _afterIndex = 0;
         for (String line : lines) {
             line = line.trim();
             String[] _lines = BizUtils.getPlainText(line);
             // 먼저 라인에 정정전이나 정정후가 모두 있다고 하면..
             if (findBeforeCorrectKeyword(_lines) && findAfterCorrectKeyword(_lines)) {
+                log.info("BEFORE_AFTER.. " + StringUtils.abbreviate(line,500));
+                int beforeIndex = StringUtils.indexOfAny(line, "정정 전", "정정전", "정 정 전");
+                if (beforeIndex == -1) {
+                    continue;
+                }
+                if (beforeIndex > 5) {
+                    beforeIndex = beforeIndex - 5;
+                }
+                int afterIndex = StringUtils.indexOfAny(line, "정정 후", "정정후", "정 정 후");
+                if (afterIndex == -1) {
+                    continue;
+                }
+                if (afterIndex > 5) {
+                    afterIndex = afterIndex - 5;
+                }
+
+                if (beforeIndex > afterIndex) {
+                    String subLine = line.substring(afterIndex, beforeIndex);
+                    _afterIndex = c.indexOf(subLine, _afterIndex);
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex));
+                    _afterIndex++;
+                    subLine = line.substring(beforeIndex);
+                    _beforeIndex = c.indexOf(subLine, _beforeIndex);
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex));
+                    _beforeIndex++;
+                } else {
+                    String subLine = line.substring(beforeIndex, afterIndex);
+                    _beforeIndex = c.indexOf(subLine, _beforeIndex);
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex));
+                    _beforeIndex++;
+                    subLine = line.substring(afterIndex);
+                    _afterIndex = c.indexOf(subLine, _afterIndex);
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex));
+                    _afterIndex++;
+                }
+
 
                 //
             } else if (findBeforeCorrectKeyword(_lines)) {
                 if (isInTable(line)) {
-                    log.debug("SKIP ::: " + line);
+                    log.debug("SKIP INTABLE ::: " + StringUtils.abbreviate(line,500));
                     continue;
                 }
-                int correctIndex = StringUtils.indexOfAny(line, "정정 전", "정정전","정 정 전");
-                if (correctIndex == -1) {
-                    log.warn("SKIP ::: " + line);
+                int beforeIndex = StringUtils.indexOfAny(line, "정정 전", "정정전", "정 정 전");
+                if (beforeIndex == -1) {
+                    log.warn("SKIP ::: " + StringUtils.abbreviate(line,500));
                     continue;
                 }
-                if (correctIndex > 5) {
-                    correctIndex = correctIndex - 5;
+                if (beforeIndex > 5) {
+                    beforeIndex = beforeIndex - 5;
                 }
 
-                String subLine = line.substring(correctIndex);
+                String subLine = line.substring(beforeIndex);
                 log.debug("BEFORE::: " + subLine.trim());
-                beans.add(new CorrectBean("BEFORE", c.indexOf(subLine)));
-
+                _beforeIndex = c.indexOf(subLine, _beforeIndex);
+                beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex));
+                _beforeIndex++;
             } else if (findAfterCorrectKeyword(_lines)) {
                 if (isInTable(line)) {
-                    log.debug("SKIP ::: " + line);
+                    log.debug("SKIP INTABLE ::: " + StringUtils.abbreviate(line,500));
                     continue;
                 }
 
-                int correctIndex = StringUtils.indexOfAny(line, "정정 후", "정정후","정 정 후");
-                if (correctIndex == -1) {
-                    log.warn("SKIP ::: " + line);
+                int afterIndex = StringUtils.indexOfAny(line, "정정 후", "정정후", "정 정 후");
+                if (afterIndex == -1) {
+                    log.warn("SKIP ::: " + StringUtils.abbreviate(line,500));
                     continue;
                 }
-                if (correctIndex > 5) {
-                    correctIndex = correctIndex - 5;
+                if (afterIndex > 5) {
+                    afterIndex = afterIndex - 5;
                 }
-                String subLine = line.substring(correctIndex);
+                String subLine = line.substring(afterIndex);
                 log.debug("AFTER::: " + subLine.trim());
-                beans.add(new CorrectBean("AFTER", c.indexOf(subLine)));
+                _afterIndex = c.indexOf(subLine, _afterIndex);
+                beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex));
+                _afterIndex++;
             } else {
 
             }
         }
         // 정정전과 정정후가 같은 라인에 있을 때...
         if (beans.size() > 0) {
-            CorrectBean last = beans.get(beans.size() - 1);
+            com.tachyon.crawl.kind.model.CorrectBean last = beans.get(beans.size() - 1);
             if ("BEFORE".equalsIgnoreCase(last.getType())) {
                 if (findAfterCorrectKeyword(lastLines)) {
                     log.debug("AFTER::: " + lastLine.trim());
                     // 정정전과 정정후가 같은 라인에 있으므로 정정후 이후부터 처리하려고 아래 로직 삽입.
                     int lastAfterCorrectIndex = StringUtils.indexOfAny(lastLine, "정정 후", "정정후");
-                    beans.add(new CorrectBean("AFTER", c.indexOf(lastLine.substring(lastAfterCorrectIndex))));
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", c.indexOf(lastLine.substring(lastAfterCorrectIndex))));
                 }
             }
         }
@@ -260,14 +381,38 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
     }
 
+
+    private int indexOfAny(String line, int before, String... strings) {
+        for (String s : strings) {
+            int index = line.indexOf(s, before);
+            if (index != -1) {
+                return index;
+            }
+        }
+
+        return -1;
+    }
+
+    private List<String> findTitles(Element table) throws JSoupTableException {
+        com.google.common.collect.Table<Integer, Integer, String> gtable = TreeBasedTable.create();
+        JSoupHelper.parseTableHeader(table, gtable);
+        return BizUtils.convertHeaders(JSoupHelper.convert(gtable));
+
+    }
+
+    private List<List<String>> findBodies(Element table) throws JSoupTableException {
+        com.google.common.collect.Table<Integer, Integer, String> gtable = TreeBasedTable.create();
+        JSoupHelper.parseTableBody(table, gtable);
+        return JSoupHelper.convert(gtable);
+    }
+
     private boolean isInTable(String line) {
-        if (line.contains("</TH>") || line.contains("</TD>")) {
+        if (line.contains("</th>") || line.contains("</td>")) {
             return true;
         } else {
             return false;
         }
     }
-
 
     private boolean findBeforeCorrectKeyword(String[] lines) {
         for (String line : lines) {
@@ -292,93 +437,94 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         return false;
     }
 
-    /**
-     * 정정사항 테이블 찾아 정정후 데이터만 추가
-     *
-     * @param c
-     * @param sb
-     */
-    private int findCorrectTable(String c, StringBuilder sb, String key) throws JSoupTableException {
-        int index = findCorrectIndex(c);
-        if (index == -1) {
-            log.warn("정정사항 테이블이 없음. " + key);
-            return index;
-        }
-        String _c = c.substring(index);
-        Element tableElement = findCorrectTable(_c);
-        if (tableElement == null) {
-            return index;
-        }
-
-        com.google.common.collect.Table<Integer, Integer, String> gtable = TreeBasedTable.create();
-        findTitles(tableElement, gtable);
-        findBodies(tableElement, gtable);
-        List<List<String>> lists = JSoupHelper.convert(gtable);
-        for (List<String> list : lists) {
-            log.debug("테이블" +list.toString());
-        }
-        if (lists.size() >= 2) {
-            List<String> titles = lists.get(0);
-            int correctIndex = findCorrectField(titles);
-            log.debug("정정후 타이블 index="+correctIndex);
-            for (int i = 1; i < lists.size(); i++) {
-                List<String> bodies = lists.get(i);
-                if (bodies.size() - 1 >= correctIndex) {
-                    String cc = bodies.get(correctIndex);
-                    log.info("<< " + cc);
-                    sb.append(cc).append(" ");
-                }
-            }
-        }
-
-        return index;
-    }
-
-    private int findCorrectField(List<String> titles) {
+    private int findTitleIndex(List<String> titles) {
         for (int i = 0; i < titles.size(); i++) {
-            String line = titles.get(i);
-            line = BizUtils.removeBlank(line);
-            if (line.contains("정정후")) {
+            String t = titles.get(i);
+            if (t.contains("정정후")) {
                 return i;
             }
         }
         return -1;
     }
 
-    private Element findCorrectTable(String _c) {
-        Document document = JSoupHelper.getDocumentByText(_c);
-        Elements tables = JSoupHelper.findElements(document, "TABLE");
-        if (tables != null && tables.size() != 0) {
-            Element table = tables.first();
-            return table;
+    private void aggregate(StringBuilder sb, List<String> titles, List<List<String>> bodies) {
+        int index = findTitleIndex(titles);
+        if (index == -1) {
+            return;
+        }
+        for (List<String> body : bodies) {
+            if (body.size() - 1 >= index) {
+                sb.append(body.get(index)).append(" ");
+            } else {
+                continue;
+            }
+        }
+    }
+
+    private CorrectInfo findPattern(String c) {
+        Document document = Jsoup.parse(c);
+        Element element = document.body();
+        Elements elements = element.children();
+        List<Element> list = findElements(elements);
+        if (list.size() == 1) {
+            return new CorrectInfo("ONETABLE", list);
         } else {
-            return null;
-        }
-    }
-
-    private int findCorrectIndex(String c) {
-        String[] lines = StringUtils.splitByWholeSeparator(c, "\n");
-        for (String line : lines) {
-            String[] _lines = BizUtils.getPlainText(line);
-            if (hasCorrect(_lines)) {
-                return StringUtils.indexOf(c, line);
+            int count = findTitle(list);
+            if (count > 0) {
+                return new CorrectInfo("DIVIDED", list);
+            } else {
+                return new CorrectInfo("SOMETABLE", list);
             }
         }
-
-        return -1;
     }
 
-    private boolean hasCorrect(String[] lines) {
-        for (String line : lines) {
-            line = StringUtils.remove(line, " ").trim();
-            log.debug("정정사항 ... " + line);
-            if (line.endsWith("정정사항")) {
-                return true;
+    private int findTitle(List<Element> elements) {
+        int count = 0;
+        for (Element e : elements) {
+            String s = e.nodeName();
+            if (s.contains("table")) {
+
+            } else {
+                count++;
             }
         }
-
-        return false;
+        return count;
     }
+
+    private List<Element> findElements(Elements elements) {
+        List<Element> list = new ArrayList<>();
+        boolean isBelowCorrect = false;
+        for (Element element : elements) {
+            String name = element.nodeName();
+            if (!"table".equalsIgnoreCase(name) && !"p".equalsIgnoreCase(name)) {
+                continue;
+            }
+
+            String text = StringUtils.remove(element.text().trim(), " ");
+            if ("p".equalsIgnoreCase(name) && "".equalsIgnoreCase(text)) {
+                continue;
+            }
+
+
+            if ("p".equalsIgnoreCase(name) && text.contains("정정사항")) {
+                isBelowCorrect = true;
+            }
+            if (isBelowCorrect == true) {
+                if ("table".equalsIgnoreCase(name)) {
+                    list.add(element);
+                } else {
+                    if ("p".equalsIgnoreCase(name) && (text.contains("정정전") || text.contains("정정후"))) {
+                        list.add(element);
+                    }
+                }
+            } else {
+                continue;
+            }
+        }
+        return list;
+
+    }
+
 
     private boolean isCorrectedKongsi(Map<String, Object> kongsiHodler) {
         String docNm = Maps.getValue(kongsiHodler, "doc_nm");

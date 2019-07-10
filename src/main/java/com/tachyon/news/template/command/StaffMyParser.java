@@ -39,14 +39,14 @@ public class StaffMyParser extends AbstractMyParser {
         int count = 0;
         boolean doFirstTable = false;
         for (Element _table : _tables) {
-            log.info(index + " table ... ");
+            log.debug(index + " table ... ");
             int _index = index;
             if (index++ == 0) {
                 if (tables.size() == 0) {
                     // 기준일 테이블이 없는 경우..
                 } else {
                     // 기준일 테이블이 있는 경우..
-                    log.info("skip  table ");
+                    log.debug("skip  table ");
                     continue;
                 }
             }
@@ -60,14 +60,14 @@ public class StaffMyParser extends AbstractMyParser {
             whenHeader0(lists, table);
             if (table.getTitles() == null || table.getTitles().size() == 0) {
                 //테이블에 타이틀이 있는 경우
-                log.info("skip table text " + text);
+                log.debug("skip table text " + text);
                 if (doFirstTable == true) {
                     // 처음 임원테이블이 지난 다음..
                     if (text.contains("상기") == false) {
                         if ("UNKNOWN".equalsIgnoreCase(findTypeFromString2(text)) == false) {
                             String _title = titles.get(_index);
                             titles.set(_index, _title + " " + text);
-                            log.info("set title " + _index + " " + _title + " " + text);
+                            log.debug("set title " + _index + " " + _title + " " + text);
                         }
                     }
                 }
@@ -75,7 +75,7 @@ public class StaffMyParser extends AbstractMyParser {
                 tables.add(table);
             } else {
                 doFirstTable = true;
-                log.info("setTitle OK ");
+                log.debug("setTitle OK ");
                 table.setTitle("OK");
                 tables.add(table);
             }
@@ -133,7 +133,7 @@ public class StaffMyParser extends AbstractMyParser {
                     table.add(strings);
                 }
             }
-            log.info("header >> " + header);
+            log.debug("header >> " + header);
             table.setTitles(header);
         }
     }
@@ -229,13 +229,13 @@ public class StaffMyParser extends AbstractMyParser {
         List<Table> tables = new ArrayList<>();
         try {
             Elements _tables = JSoupHelper.findElements(_document, "TABLE");
-            log.info("<< " + titles.size() + "\t" + _tables.size());
+            log.debug("<< " + titles.size() + "\t" + _tables.size());
             if (_tables.size() == 0) {
                 return tables;
             }
             handleKongsiDay(_tables, tables);
             handleTable(_tables, tables, titles);
-            log.info(">> " + titles.size() + "\t" + tables.size());
+            log.debug(">> " + titles.size() + "\t" + tables.size());
             setupTableName(tables, titles);
             return tables;
         } catch (Exception e) {
@@ -251,16 +251,16 @@ public class StaffMyParser extends AbstractMyParser {
         for (int i = 0; i < tables.size(); i++) {
             Table table = tables.get(i);
             String title = table.getTitle();
-            log.info(i + " >>>> " + title);
+            log.debug(i + " >>>> " + title);
             if (title == null) {
                 table.setTitle("SKIP");
-                log.info("setTitle SKIP");
+                log.debug("setTitle SKIP");
             } else if ("SKIP".equalsIgnoreCase(title)) {
-                log.info("setTitle SKIP");
+                log.debug("setTitle SKIP");
             } else if ("OK".equalsIgnoreCase(title)) {
                 if (checkedStaff == false) {
                     checkedStaff = true;
-                    log.info("setTitle 임원");
+                    log.debug("setTitle 임원");
                     table.setTitle("임원");
                 } else {
 
@@ -271,7 +271,7 @@ public class StaffMyParser extends AbstractMyParser {
                     String _title = titles.get(i);
 
                     String type = findSimpleType(_title);
-                    log.info(type + " < == " + _title);
+                    log.debug(type + " < == " + _title);
                     if ("UNKNOWN".equalsIgnoreCase(type)) {
 
                         // 인덱스가 하나 적은 타이틀을 가져옴.
