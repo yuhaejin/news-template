@@ -257,6 +257,12 @@
           and keyword = #{keyword}
           and acpt_no = #{acpt_no}
     </select>
-
+    <delete id="deleteOverlapRumor" parameterType="map">
+        delete
+        from rumorholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+          and acpt_no = #{acpt_no}
+    </delete>
 </mapper>
 

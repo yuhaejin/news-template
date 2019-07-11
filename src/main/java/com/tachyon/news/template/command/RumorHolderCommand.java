@@ -1,5 +1,6 @@
 package com.tachyon.news.template.command;
 
+import com.tachyon.crawl.kind.model.Kongsi;
 import com.tachyon.crawl.kind.model.Rumor;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.NoHeaderMyParser;
@@ -50,6 +51,7 @@ public class RumorHolderCommand extends BasicCommand {
         String docNo = docNoIsuCd.getDocNo();
         String acptNo = docNoIsuCd.getAcptNo();
 
+
         Map<String, Object> map = findKongsiHalder(myContext, message, templateMapper, docNo, code, acptNo);
         if (map == null) {
             log.error("기초공시가 없음.. " + key);
@@ -58,7 +60,14 @@ public class RumorHolderCommand extends BasicCommand {
         String docNm = Maps.getValue(map, "doc_nm");
         String docUrl = Maps.getValue(map, "doc_url");
         String tnsDt = Maps.getValue(map, "tns_dt");
+        String acptNm = Maps.getValue(map, "rpt_nm");
 
+        if (acptNm.contains("정정")) {
+            if (docNm.contains("정정") == false) {
+                log.info("정정공시중에 이전공시임.. " + key);
+                return;
+            }
+        }
         // DB 확인...
         int count = templateMapper.findRumorCount(docNo, code, acptNo);
         if (count > 0) {
@@ -91,7 +100,7 @@ public class RumorHolderCommand extends BasicCommand {
             return;
         }
 
-
+        handleSrcCorrectKongsi(code,acptNo);
         for (Rumor rumor : rumors) {
             log.info(rumor.toString() +" "+ key + " " + docUrl);
             if (rumor.getSkips().size() > 0) {
@@ -104,5 +113,21 @@ public class RumorHolderCommand extends BasicCommand {
             templateMapper.insertRumor(rumor.toParamMap());
         }
 
+    }
+
+    /**
+     * TODO 정정 이전 공시 삭제처리..
+     * @param code
+     * @param acptNo
+     */
+    private void handleSrcCorrectKongsi(String code, String acptNo) {
+//        for (Kongsi.UrlInfo urlInfo : urlInfos) {
+//            String docNm = urlInfo.getDocNm();
+//            if (docNm.contains("정정") == false) {
+//                String docNo = urlInfo.getDocNo();
+//                log.info("정정이전공시 삭제 " + docNo + "_" + code + "_" + acptNo);
+//                templateMapper.deleteOverlapRumor(docNo, code, acptNo);
+//            }
+//        }
     }
 }
