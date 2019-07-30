@@ -25,6 +25,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * TODO 국믄연금관련된 문제가 있을 때... 통일된 투자자 이름으로 변경을 해야 함.
+ */
 @Slf4j
 @Component
 public class StockHolderCommand extends BasicCommand {
@@ -135,10 +138,15 @@ public class StockHolderCommand extends BasicCommand {
             setupName(changes);
             setupPrice(changes);
             log.info("주식거래내역 ... " + changes.size());
+            int stockCount = 0;
             for (Change change : changes) {
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
                     log.info("거래내역에 이름이 없어 SKIP " + change);
                 } else {
+
+                    //대표투자자명으로 변경함.
+                    modifyRepresentativeName(change);
+
                     // 유일한 값이라고 할만한 조회...
                     //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
                     if (findStockHolder(templateMapper, code, change)) {
@@ -147,6 +155,7 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         log.info("INSERT ... " + change);
                         insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
+                        stockCount++;
                     }
 
                     if (hasExpiration(change)) {
@@ -157,11 +166,31 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
 
+            if (stockCount > 0) {
+                int count = templateMapper.findTelegramHolder(docNo, acptNo, "NOT_KEYWORD");
+                if (count == 0) {
+                    templateMapper.insertTelegramHolder(docNo, code, acptNo, "NOT_KEYWORD");
+                } else {
+                }
+            }
         } else {
             log.error("기초공시가 없음  docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
         }
 
+
+
+
         log.info("done " + key);
+    }
+
+    private void modifyRepresentativeName(Change change) {
+        String ownerName = change.getName().trim();
+        if (myContext.hasRepresentativeName(ownerName)) {
+            String _ownerName = myContext.findRepresentativeName(ownerName);
+            log.info(ownerName+" ==> "+_ownerName);
+            change.setName(_ownerName);
+
+        }
     }
 
     private void handleExpiration(TemplateMapper templateMapper, Map<String, Object> param) {

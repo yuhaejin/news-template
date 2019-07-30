@@ -223,7 +223,24 @@ public class NewsConfig {
         Mustache mustache = mf.compile(new StringReader(c), "example");
         return mustache;
     }
+    @Bean
+    public Mustache investmentMustache() {
+        MustacheFactory mf = new DefaultMustacheFactory();
 
+        String c =
+                "봇이름: tachyonnews_mining_bot\n" +
+                        "투자자: <b>{{investor}}</b>\n" +
+                        "발생시간: {{time}}\n" +
+                        "종목: <b>{{company}}</b>\n" +
+                        "변동전: <b>{{before}}</b>\n" +
+                        "변동후: <b>{{after}}</b>\n" +
+                        "단가: <b>{{price}}</b>\n" +
+                        "실현액: <b>{{sum}}</b>\n" +
+                        "공시명: <a href=\"{{docUrl}}\">{{docNm}}</a>\n" +
+                        "기초공시명: <a href=\"{{acptUrl}}\">{{acptNm}}</a>";
+        Mustache mustache = mf.compile(new StringReader(c), "example2");
+        return mustache;
+    }
 
     @Bean(destroyMethod = "shutdown")
     public ExecutorService groupThreadPool() {

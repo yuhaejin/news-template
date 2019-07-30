@@ -150,7 +150,7 @@ public abstract class AbstractService extends BaseObject implements NewsService 
         return headers;
     }
     protected String findKey(Message message) {
-        byte[] bytes= (byte[])message.getBody();
+        byte[] bytes= message.getBody();
         return new String(bytes, Charset.forName("UTF-8"));
     }
 

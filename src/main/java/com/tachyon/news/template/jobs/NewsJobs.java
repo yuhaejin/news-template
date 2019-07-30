@@ -1,21 +1,25 @@
 package com.tachyon.news.template.jobs;
 
+import com.rometools.rome.feed.synd.SyndFeed;
+import com.rometools.rome.io.SyndFeedInput;
+import com.rometools.rome.io.XmlReader;
 import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.config.MyContext;
-import com.tachyon.news.template.model.Limit;
 import com.tachyon.news.template.model.TelegramBean;
 import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
 import com.tachyon.news.template.telegram.TelegramHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.net.URL;
 import java.sql.Timestamp;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -37,8 +41,6 @@ public class NewsJobs {
     private AmqpAdmin amqpAdmin;
 
     @Autowired
-    private ExecutorService groupThreadPool;
-    @Autowired
     private ExecutorService noGroupThreadPool;
 
     private int workingStartHour = 7;
@@ -47,7 +49,10 @@ public class NewsJobs {
     // 그룹텔레그램 처리시 주기별 처리 갯수.. (분당20개, 30초당10개, 10개보다 작은 9개)
     private int countPerProcessing = 9;
 
+    private Date publishDate;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Scheduled(cron = "0 0 7-20 ? * MON-FRI")
     public void setupTelegramInfo() {
@@ -221,6 +226,7 @@ public class NewsJobs {
                         }
 
                         findKeyword(user, admin, holders, telegramBeans, infix);
+                        findNoKeyword(user, holders, telegramBeans);
                     }
                 }
 
@@ -259,6 +265,16 @@ public class NewsJobs {
             log.error(e.getMessage(),e);
         }
 
+    }
+
+    private void findNoKeyword(User user, List<TelegramHolder> holders, List<TelegramBean> telegramBeans) {
+        for (TelegramHolder holder : holders) {
+            if ("NOT_KEYWORD".equalsIgnoreCase(holder.getKeyword())) {
+                telegramBeans.add(new TelegramBean(user,holder));
+            } else {
+                continue;
+            }
+        }
     }
 
     private boolean allDone(List<Future> list) {
@@ -348,6 +364,9 @@ public class NewsJobs {
     private void findKeyword(User user, User admin, List<TelegramHolder> holders, List<TelegramBean> telegramBeans, InfixToPostfixParens infix) {
         String userId = user.getUserid();
         for (TelegramHolder holder : holders) {
+            if ("NOT_KEYWORD".equalsIgnoreCase(holder.getKeyword())) {
+                continue;
+            }
             // 사용자별 속보 키워드가 모두 동일하므로 아래 처러 admin으로 처리함.
             // TODO 사용자별 속보 키워드를 가지게 되면 아래 로직 변경 필요.
             if (user.hasCode(holder.getIsuCd())) {
@@ -427,6 +446,47 @@ public class NewsJobs {
             }
         }
     }
+    @Scheduled(fixedDelay = 1000 * 60 * 10)
+    public void monitorClinicalTrialsUpdateDateTime() {
+        try {
+            URL feedSource = new URL("https://clinicaltrials.gov/ct2/results/rss.xml?rcv_d=&lup_d=14&sel_rss=mod14&rslt=With&count=1");
+            SyndFeedInput input = new SyndFeedInput();
+            SyndFeed feed = input.build(new XmlReader(feedSource));
+            Date date = feed.getPublishedDate();
+            if (publishDate == null) {
+                publishDate = date;
+                log.info("PUB_DATE  => "+toString(date));
+                monitorRssPubDate(date);
+            } else {
+                if (publishDate.equals(date)) {
 
+                } else {
+                    log.info("PUB_DATE "+toString(publishDate) + " => " + toString(date));
+                    publishDate = date;
+                    monitorRssPubDate(date);
+                }
+            }
+        } catch (Exception e) {
+            log.error(e.getMessage(),e);
+        }
+
+    }
+
+    private void monitorRssPubDate(Date date) {
+        String rssPubDate =  toString2(date);
+        int count = templateMapper.findRssPubDateCount(rssPubDate);
+        if (count == 0) {
+            templateMapper.insertRssPubDate(rssPubDate);
+            rabbitTemplate.convertAndSend("CRINICAL_TRIALS_BATCH",rssPubDate);
+            log.info("CRINICAL_TRIALS_BATCH <<< "+rssPubDate);
+        }
+    }
+
+    private String toString(Date date) {
+        return DateUtils.toString(date, "yyyy-MM-dd HH:mm:ss");
+    }
+    private String toString2(Date date) {
+        return DateUtils.toString(date, "yyyyMMddHHmmss");
+    }
 
 }

@@ -32,15 +32,16 @@ public class Limit implements Serializable {
         total += time;
         if (count >= 29) {
             long _l = total - 1000;
-            if (_l >= 0) {
+            if (_l <= 0) {
                 //OK
                 reset();
             } else {
                 Thread.sleep(_l);
+                reset();
                 return _l;
             }
         } else {
-            // do Nothing..
+            //TODO 추후 튜닝이 필요함.
         }
 
         return 0;

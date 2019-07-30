@@ -53,6 +53,9 @@ public class MyContext {
     @Autowired
     private TemplateMapper templateMapper;
 
+    private Map<String, String> INVESTOR_MAP = new HashMap<>();
+
+
     private List<String> telegramKeywordList = new ArrayList<>();
 
     private Map<String, User> telegramMap = new LinkedHashMap<>();
@@ -67,12 +70,31 @@ public class MyContext {
         return gatewayCount.get();
     }
 
+
     @PostConstruct
     public void init() {
         setupTemplates();
         refreshTelegramKeywordList();
         refreshTelegramUserInfo();
+        setupRepresentativeName();
     }
+
+    private void setupRepresentativeName() {
+        //TODO 여기 변경하면 dataweb의 SharedServiceImpl  함께 변경해야 함..
+        INVESTOR_MAP.put("국민연금공단", "국민연금");
+        INVESTOR_MAP.put("국민연금관리공단", "국민연금");
+        INVESTOR_MAP.put("국민연금기금", "국민연금");
+    }
+
+    public boolean hasRepresentativeName(String investor){
+        return INVESTOR_MAP.containsKey(investor);
+    }
+
+    public String findRepresentativeName(String investor) {
+        return INVESTOR_MAP.get(investor);
+    }
+
+
 
     public void refreshTelegramKeywordList() {
         List<Map<String,Object>> maps = templateMapper.findKeywords();

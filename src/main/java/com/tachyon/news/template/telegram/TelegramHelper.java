@@ -4,6 +4,7 @@ import com.github.mustachejava.Mustache;
 import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
+import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.crawl.kind.util.TelegramSender;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.Limit;
@@ -36,6 +37,8 @@ public class TelegramHelper {
     @Autowired
     private Mustache mustache;
     @Autowired
+    private Mustache investmentMustache;
+    @Autowired
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
@@ -46,13 +49,25 @@ public class TelegramHelper {
 
     private Map<String, Limit> limitMap = new HashMap<>();
 
+    /**
+     * @param user
+     * @param telegramHolder
+     */
     public void sendToTelegram(User user, TelegramHolder telegramHolder) {
-        try {
-            if (user == null || telegramHolder == null) {
-                limitMap.clear();
-                return;
-            }
+        if (user == null || telegramHolder == null) {
+            limitMap.clear();
+            return;
+        }
+        if ("NOT_KEYWORD".equalsIgnoreCase(telegramHolder.getKeyword())) {
+            sendChangeFlashToTelegram(user, telegramHolder);
+        } else {
+            sendKeywordFlashToTelegram(user, telegramHolder);
+        }
 
+    }
+
+    private void sendKeywordFlashToTelegram(User user, TelegramHolder telegramHolder) {
+        try {
             String keyword = telegramHolder.getKeyword();
             String acptNm = telegramHolder.getAcptNm();
             String acptNo = telegramHolder.getAcptNo();
@@ -62,24 +77,104 @@ public class TelegramHelper {
             String tndDt = telegramHolder.getTndDt();
             String _message = makeMessage(keyword, acptNm, getItemUrl(acptNo), name, docNm, docUrl, tndDt);
             String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
-            String _chatId = user.getChatId() + "";
-            long start = System.currentTimeMillis();
-            if (loadBalancerCommandHelper != null) {
-                loadBalancerCommandHelper.executeAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
-            } else {
-                TelegramSender.sendAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
-            }
-
-            long end = System.currentTimeMillis();
-            handleTelegramLimit(user.getBot().getToken(), end - start);
-            //
+            sendAsync(user, _message, key);
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
-
     }
 
+    private void sendChangeFlashToTelegram(User user, TelegramHolder telegramHolder) {
+        // change 정보를 수집하고 메세지를 만들어 텔레그램으로 전송함.
+        try {
+
+            String docNo = telegramHolder.getDocNo();
+            String code = telegramHolder.getIsuCd();
+            String acptNo = telegramHolder.getAcptNo();
+
+
+            List<Map<String,Object>> maps = templateMapper.findChangeWithTelegram(docNo, code, acptNo);
+            if (maps == null || maps.size() == 0) {
+                return;
+            }
+
+            String name = findCompanyName(telegramHolder.getIsuCd());
+            String acptNm = telegramHolder.getAcptNm();
+            String docNm = telegramHolder.getDocNm();
+            String docUrl = telegramHolder.getDocUrl();
+            String tndDt = telegramHolder.getTndDt();
+            String acptUlr = getItemUrl(acptNo);
+            String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
+            for (Map<String, Object> map : maps) {
+                String ownerName = Maps.getValue(map,"owner_name");
+                String before = Maps.getValue(map,"before_amt");
+                String after = Maps.getValue(map,"after_amt");
+                String price = Maps.getValue(map,"unit_price");
+                String sum = findSum(before,after,price);
+                String _message = makeInvestmentMessage(ownerName, tndDt, name, before, after, price, sum, docUrl, docNm, acptUlr, acptNm);
+                sendAsync(user, _message, key);
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    private String findSum(String before, String after, String price) {
+        long b = Long.valueOf(before);
+        long a = Long.valueOf(after);
+        long p = Long.valueOf(price);
+        long s = (a-b)*p;
+        return s + "";
+    }
+
+
+    /**
+     *                 "봇이름: tachyonnews_mining_bot\n" +
+     *                         "투자자: <b>{{investor}}</b>\n" +
+     *                         "발생시간: {{time}}\n" +
+     *                         "종목: <b>{{company}}</b>\n" +
+     *                         "변동전: <b>{{before}}</b>\n" +
+     *                         "변동후: <b>{{after}}</b>\n" +
+     *                         "단가: <b>{{price}}</b>\n" +
+     *                         "실현액: <b>{{sum}}</b>\n" +
+     *                         "공시명: <a href=\"{{docUrl}}\">{{docNm}}</a>\n" +
+     *                         "기초공시명: <a href=\"{{acptUrl}}\">{{acptNm}}</a>";
+     * @return
+     */
+    private String makeInvestmentMessage(String investor,String time,String company,String before,String after,String price,String sum,String docUrl,String docNm,String acptUrl,String acptNm) {
+        StringWriter message = new StringWriter();
+        investmentMustache.execute(message, investmentScopes(investor,time,company,before,after,price,sum,docUrl,docNm,acptUrl,acptNm));
+        return message.toString();
+    }
+
+    private Map<String, Object> investmentScopes(String investor,String time,String company,String before,String after,String price,String sum,String docUrl,String docNm,String acptUrl,String acptNm) {
+        Map<String, Object> scopes = new HashMap<String, Object>();
+        scopes.put("investor", investor);
+        scopes.put("time", time);
+        scopes.put("company", company);
+        scopes.put("before", before);
+        scopes.put("after", after);
+        scopes.put("price", price);
+        scopes.put("sum", sum);
+        scopes.put("docUrl", docUrl);
+        scopes.put("docNm", docNm);
+        scopes.put("acptUrl", acptUrl);
+        scopes.put("acptNm", acptNm);
+        return scopes;
+    }
+
+    private void sendAsync(User user,String _message,String key) throws Exception {
+        String _chatId = user.getChatId() + "";
+        long start = System.currentTimeMillis();
+        if (loadBalancerCommandHelper != null) {
+            loadBalancerCommandHelper.executeAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
+        } else {
+            TelegramSender.sendAsync(makeUrl(user.getBot().getToken(), _chatId, _message), makeCallback(key, user.getUserid(), _chatId, _message), asyncClient);
+        }
+        long end = System.currentTimeMillis();
+        handleTelegramLimit(user.getBot().getToken(), end - start);
+    }
     /**
      * token에 해당하는 봇의 Limit 처리..
      * 초당 30건만 처리해야 함.

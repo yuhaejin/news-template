@@ -74,4 +74,11 @@ public interface TemplateMapper {
     int findTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
 
     void deleteOverlapRumor(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo);
+
+    List<Map<String, Object>> findChangeWithTelegram(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo);
+
+
+    int findRssPubDateCount(String rssPubDate);
+
+    void insertRssPubDate(String rssPubDate);
 }

@@ -174,6 +174,8 @@
           and a.isu_cd = b.isu_cd
           and a.acpt_no = b.acpt_no
           and a.processed_yn = 'N'
+          order by b.tns_dt
+          limit 30
 
     </select>
 
@@ -210,7 +212,8 @@
           and a.isu_cd = b.isu_cd
           and a.acpt_no = b.acpt_no
           and a.group_processed_yn = 'N'
-
+          order by b.tns_dt
+          limit 9
     </select>
 
     <update id="completeGroupTelegramHolder" parameterType="map">
@@ -264,5 +267,30 @@
           and doc_no = #{doc_no}
           and acpt_no = #{acpt_no}
     </delete>
+
+    <select id="findChangeWithTelegram" resultType="map" parameterType="map">
+        select a.owner_name, a.before_amt, a.after_amt, a.unit_price
+        from stockholder a,
+             telegramholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+    </select>
+
+    <select id="findRssPubDateCount" resultType="int" parameterType="string">
+        select count(*)
+        from rsspubholder
+        where pub_date = #{pub_date}
+    </select>
+
+    <insert id="insertRssPubDate" parameterType="string">
+        INSERT INTO rsspubholder (pub_date)
+        VALUES (#{pub_date})
+    </insert>
+
+
 </mapper>
 
