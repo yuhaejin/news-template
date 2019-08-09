@@ -74,4 +74,9 @@ public class RabbitMqRouteConfig {
     Queue _ROMOR_HOLDER() {
         return QueueBuilder.durable("_ROMOR_HOLDER").build();
     }
+    @Bean
+    Queue _LARGEST_SHARE_HOLDER() {
+        return QueueBuilder.durable("_LARGEST_SHARE_HOLDER").build();
+    }
+
 }

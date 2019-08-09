@@ -7,6 +7,9 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.swing.text.NumberFormatter;
+
+
 public class MonitoringBotTest {
     @Test
     public void testMonitoring() throws TelegramApiException {
@@ -57,5 +60,10 @@ public class MonitoringBotTest {
         sendMessage.setText("HI Hello...");
         sendMessage.setReplyMarkup(new ReplyKeyboardRemove());
         tachyonNewsFlashBot.execute(sendMessage);
+    }
+
+
+    @Test
+    public void testFormat() {
     }
 }

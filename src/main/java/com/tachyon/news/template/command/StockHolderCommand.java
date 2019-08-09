@@ -80,7 +80,7 @@ public class StockHolderCommand extends BasicCommand {
                     //birthday가 없을 수도 있음
                     String birthDay = findBirthDay(docRaw, docUrl);
                     table.findStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, submitName, birthDay, FILTER);
-                }
+            }
             } else if (isMajorStockChangeKongis(docNm)) {
                 log.info("최대주주등소유주식변동신고서 공시처리...");
                 TableParser stockChangeTableParser = new TableParser(new StockChangeSelectorByPattern2());
@@ -228,9 +228,7 @@ public class StockHolderCommand extends BasicCommand {
     private String toString(Timestamp date) {
         return DateUtils.toString(date, "yyyy-MM-dd HH:mm:ss");
     }
-    private boolean isMajorStockChangeKongis(String docNm) {
-        return docNm.contains("최대주주등소유주식변동신고서");
-    }
+
 
     private boolean isStaffStockStatusKongsi(String docNm) {
         if (docNm.contains("임원") && docNm.contains("주요주주") && docNm.contains("특정증권등") && docNm.contains("소유상황")) {

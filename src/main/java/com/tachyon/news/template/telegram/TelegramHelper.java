@@ -24,6 +24,7 @@ import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
 import java.io.StringWriter;
 import java.net.URISyntaxException;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,7 +125,7 @@ public class TelegramHelper {
         long b = Long.valueOf(before);
         long a = Long.valueOf(after);
         long p = Long.valueOf(price);
-        long s = (a-b)*p;
+        long s = (-1) * (a-b)*p;
         return s + "";
     }
 
@@ -153,10 +154,10 @@ public class TelegramHelper {
         scopes.put("investor", investor);
         scopes.put("time", time);
         scopes.put("company", company);
-        scopes.put("before", before);
-        scopes.put("after", after);
-        scopes.put("price", price);
-        scopes.put("sum", sum);
+        scopes.put("before", numberFormat(before));
+        scopes.put("after", numberFormat(after));
+        scopes.put("price", numberFormat(price));
+        scopes.put("sum", numberFormat(sum));
         scopes.put("docUrl", docUrl);
         scopes.put("docNm", docNm);
         scopes.put("acptUrl", acptUrl);
@@ -164,6 +165,11 @@ public class TelegramHelper {
         return scopes;
     }
 
+
+    private String numberFormat(String value) {
+        DecimalFormat decimalFormat = new DecimalFormat("#,###.##");
+        return decimalFormat.format(Double.valueOf(value));
+    }
     private void sendAsync(User user,String _message,String key) throws Exception {
         String _chatId = user.getChatId() + "";
         long start = System.currentTimeMillis();

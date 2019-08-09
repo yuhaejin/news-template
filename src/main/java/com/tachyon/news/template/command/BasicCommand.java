@@ -41,7 +41,9 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return map;
     }
-
+    boolean isMajorStockChangeKongis(String docNm) {
+        return docNm.contains("최대주주등소유주식변동신고서");
+    }
     Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo, String code, String acptNo) {
         return templateMapper.findKongsiHalder2(docNo, code, acptNo);
     }

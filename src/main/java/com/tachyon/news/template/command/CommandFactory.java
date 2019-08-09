@@ -43,6 +43,8 @@ public class CommandFactory implements ApplicationContextAware {
 //            return findCommand(TelegramCommand.class);
         } else if("_ROMOR_HOLDER".equalsIgnoreCase(routingKey)){
             return findCommand(RumorHolderCommand.class);
+        } else if("_LARGEST_SHARE_HOLDER".equalsIgnoreCase(routingKey)){
+            return findCommand(LargestShareHolderCommand.class);
         } else {
             return findCommand(DummyCommand.class);
         }

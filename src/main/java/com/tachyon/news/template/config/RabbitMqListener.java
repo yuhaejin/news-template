@@ -41,7 +41,7 @@ public class RabbitMqListener {
 
 
     @RabbitListener(queues = {"_STOCK_HOLDER","_ELASTICSEARCH_INDEX","_STAFF_HOLDER"
-            ,"_PURPOSE_HOLDER","_KEYWORD_NOTIFICATION","_ACCESS_HOLDER","_TELEGRAM","_ROMOR_HOLDER"})
+            ,"_PURPOSE_HOLDER","_KEYWORD_NOTIFICATION","_ACCESS_HOLDER","_TELEGRAM","_ROMOR_HOLDER","_LARGEST_SHARE_HOLDER"})
     public void TEMPLATE(Message message) {
         execute(message,"TEMPLATE");
     }
