@@ -50,6 +50,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
     public void saveFile(String filePath, String content) throws IOException {
         log.info("saveFile =" + filePath);
+
         FileUtils.write(new File(filePath), content, "UTF-8", false);
     }
 
@@ -156,7 +157,19 @@ public abstract class BasicCommand extends BaseObject implements Command {
             return false;
         }
     }
+    String findBeforeKongsi(TemplateMapper templateMapper, String code, String acptNo) {
+        List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
+        for (Map<String, Object> map : maps) {
+            String name = Maps.getValue(map, "doc_nm");
+            if (name.contains("정정")) {
+                continue;
+            } else {
+                return Maps.getValue(map, "doc_no");
+            }
+        }
 
+        return "";
+    }
 
 
     protected boolean isEmpty(String value) {

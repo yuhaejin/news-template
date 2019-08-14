@@ -280,19 +280,6 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private String findBeforeKongsi(TemplateMapper templateMapper, String code, String acptNo) {
-        List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
-        for (Map<String, Object> map : maps) {
-            String name = Maps.getValue(map, "doc_nm");
-            if (name.contains("정정")) {
-                continue;
-            } else {
-                return Maps.getValue(map, "doc_no");
-            }
-        }
-
-        return "";
-    }
 
 
 }

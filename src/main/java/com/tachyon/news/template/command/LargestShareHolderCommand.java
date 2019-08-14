@@ -1,18 +1,17 @@
 package com.tachyon.news.template.command;
 
-import com.tachyon.crawl.kind.model.Rumor;
 import com.tachyon.crawl.kind.model.Table;
-import com.tachyon.crawl.kind.parser.MajorStockChangeParser;
-import com.tachyon.crawl.kind.parser.NoHeaderMyParser;
+import com.tachyon.crawl.kind.parser.LargestStockHolderParser;
 import com.tachyon.crawl.kind.parser.TableParser;
-import com.tachyon.crawl.kind.parser.handler.RumorSelector;
-import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern2;
+import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByElement;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
+import com.tachyon.news.template.model.LargestStock;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -22,8 +21,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 최대주주 공시 처리..
- * docNo_code_acptNo 가 키
+ * 최대주주등 소유주식변동신고서..
+ * 최대주주등 주식소유현황 테이블 분석
+ *
  * 해당 공시파일(html)을 읽고 분석.
  *
  */
@@ -67,33 +67,62 @@ public class LargestShareHolderCommand extends BasicCommand {
             log.info("대상 공시가 아님.. "+key);
             return;
         }
+
         String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
 
-        StockChangeSelectorByPattern2 pattern2 = new StockChangeSelectorByPattern2();
-        pattern2.setKeywords(new String[]{"최대", "주주", "주식","소유","현황"});
+        StockChangeSelectorByElement selector = new StockChangeSelectorByElement();
+        selector.setKeywords(new String[]{"최대", "주주", "주식","소유","현황"});
 
-        /**
-         * TITLE을 보존할 수 있도록 수정해야 함.
-         */
-        TableParser stockChangeTableParser = new TableParser(pattern2);
-        MajorStockChangeParser myParser = new MajorStockChangeParser();
+        TableParser stockChangeTableParser = new TableParser(selector);
+        LargestStockHolderParser myParser = new LargestStockHolderParser();
         myParser.setStrings(new String[]{"주식수", "비율"});
 
         List<Table> tables = stockChangeTableParser.parseSome(docRaw, docUrl, myParser);
+        List<LargestStock> stocks = new ArrayList<>();
         if (tables != null && tables.size() > 0) {
             for (Table _table : tables) {
                 List<Map<String, Object>> maps = _table.toMapList();
                 for (Map<String, Object> _map : maps) {
-                    for (String _key : _map.keySet()) {
-                        log.info(_key+" ::: "+_map.get(_key));
+                    LargestStock largestStock = LargestStock.from(_map,code,docNo,acptNo);
+                    log.info(_map.toString()+"=>"+largestStock.toString());
+                    if (largestStock != null) {
+                        if (largestStock.getName().contains("합계")) {
+                            continue;
+                        }
+                        stocks.add(largestStock);
                     }
                 }
             }
+
+            if (isChangeKongsi(acptNm)) {
+                if (stocks.size()>0) {
+                    String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
+                    log.info("이전LargestStockHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+                    if (StringUtils.isEmpty(_docNo) == false) {
+                        deleteBeforeLargestStockHolder(templateMapper, code, _docNo);
+                        log.info("이전LargestStockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                    }
+                }
+            }
+
         } else {
-            log.info("최대주주등 주식소유현황 테이블 없음. ");
+            log.warn("최대주주등 주식소유현황 테이블 없음. " +key);
+        }
+
+        if (stocks.size() > 0) {
+            for (LargestStock stock : stocks) {
+                templateMapper.insertLargestStockHolder(stock.paramMap());
+            }
         }
 
 
+
+        log.info("done " + key);
+
+    }
+
+    private void deleteBeforeLargestStockHolder(TemplateMapper templateMapper, String code, String docNo) {
+        templateMapper.deleteBeforeLargestStockHolder(code, docNo);
     }
 
     /**

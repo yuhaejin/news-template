@@ -290,7 +290,15 @@
         INSERT INTO rsspubholder (pub_date)
         VALUES (#{pub_date})
     </insert>
-
-
+    <delete id="deleteBeforeLargestStockHolder" parameterType="map">
+        delete
+        from largeststockholder
+        where isu_cd = #{isuCd}
+          and doc_no = #{docNo}
+    </delete>
+    <insert id="insertLargestStockHolder" parameterType="map">
+        INSERT INTO largeststockholder (name,birthday,isu_cd,changedate,gender,homeabroad,relation,doubleup1,doubleup2,generalstockcnt,generalratio,kindstockcnt,kindratio,stockdepositorycnt,stockdepositoryratio,firststockratio,doc_no,acpt_no,firststockcnt,nationality)
+        VALUES (#{name},#{birthday},#{isu_cd},#{changedate},#{gender},#{homeabroad},#{relation},#{doubleup1},#{doubleup2},#{generalstockcnt},#{generalratio},#{kindstockcnt},#{kindratio},#{stockdepositorycnt},#{stockdepositoryratio},#{firststockratio},#{doc_no},#{acpt_no},#{firststockcnt},#{nationality})
+    </insert>
 </mapper>
 

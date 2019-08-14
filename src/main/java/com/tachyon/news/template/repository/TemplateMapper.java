@@ -1,5 +1,6 @@
 package com.tachyon.news.template.repository;
 
+import com.tachyon.news.template.model.LargestStock;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -81,4 +82,8 @@ public interface TemplateMapper {
     int findRssPubDateCount(String rssPubDate);
 
     void insertRssPubDate(String rssPubDate);
+
+    void insertLargestStockHolder(Map<String, Object> param);
+
+    void deleteBeforeLargestStockHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
 }
