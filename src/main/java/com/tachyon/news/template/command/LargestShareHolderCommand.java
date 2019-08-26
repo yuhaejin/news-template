@@ -111,7 +111,12 @@ public class LargestShareHolderCommand extends BasicCommand {
 
         if (stocks.size() > 0) {
             for (LargestStock stock : stocks) {
-                templateMapper.insertLargestStockHolder(stock.paramMap());
+                Map<String, Object> param = stock.paramMap();
+                if (findLargestStockHolderCount(templateMapper, stock.keyParam()) == 0) {
+                    templateMapper.insertLargestStockHolder(param);
+                } else {
+                    log.info("SKIP 중복된 데이터 "+param);
+                }
             }
         }
 
@@ -119,6 +124,10 @@ public class LargestShareHolderCommand extends BasicCommand {
 
         log.info("done " + key);
 
+    }
+
+    private int findLargestStockHolderCount(TemplateMapper templateMapper, Map<String, Object> keyParam) {
+        return templateMapper.findLargestStockHolderCount(keyParam);
     }
 
     private void deleteBeforeLargestStockHolder(TemplateMapper templateMapper, String code, String docNo) {

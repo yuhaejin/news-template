@@ -417,4 +417,13 @@ public class LargestStock implements Serializable {
         map.put("nationality",nationality );
         return map;
     }
+
+    public Map<String, Object> keyParam() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name",name);
+        map.put("birthday",birth );
+        map.put("isu_cd",isuCd );
+        map.put("changedate",changeDate );
+        return map;
+    }
 }

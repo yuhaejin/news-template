@@ -21,8 +21,8 @@
           and a.acpt_no = #{acpt_no}
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no,unit_price2)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no},#{unit_price2})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -300,5 +300,14 @@
         INSERT INTO largeststockholder (name,birthday,isu_cd,changedate,gender,homeabroad,relation,doubleup1,doubleup2,generalstockcnt,generalratio,kindstockcnt,kindratio,stockdepositorycnt,stockdepositoryratio,firststockratio,doc_no,acpt_no,firststockcnt,nationality)
         VALUES (#{name},#{birthday},#{isu_cd},#{changedate},#{gender},#{homeabroad},#{relation},#{doubleup1},#{doubleup2},#{generalstockcnt},#{generalratio},#{kindstockcnt},#{kindratio},#{stockdepositorycnt},#{stockdepositoryratio},#{firststockratio},#{doc_no},#{acpt_no},#{firststockcnt},#{nationality})
     </insert>
+
+    <select id="findLargestStockHolderCount" resultType="int" parameterType="map">
+        select count(*)
+        from largeststockholder
+        where name = #{name}
+          and birthday = #{birthday}
+          and isu_cd = #{isu_cd}
+          and changedate = #{changedate}
+    </select>
 </mapper>
 

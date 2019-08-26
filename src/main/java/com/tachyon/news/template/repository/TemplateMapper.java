@@ -86,4 +86,6 @@ public interface TemplateMapper {
     void insertLargestStockHolder(Map<String, Object> param);
 
     void deleteBeforeLargestStockHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
+
+    int findLargestStockHolderCount(Map<String, Object> keyParam);
 }
