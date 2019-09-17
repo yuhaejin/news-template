@@ -40,6 +40,8 @@ public class TelegramHelper {
     @Autowired
     private Mustache investmentMustache;
     @Autowired
+    private Mustache relativeMustache;
+    @Autowired
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
@@ -61,10 +63,111 @@ public class TelegramHelper {
         }
         if ("NOT_KEYWORD".equalsIgnoreCase(telegramHolder.getKeyword())) {
             sendChangeFlashToTelegram(user, telegramHolder);
+        }else if("RELATIVE".equalsIgnoreCase(telegramHolder.getKeyword())){
+            sendRelativeToTelegram(user, telegramHolder);
         } else {
             sendKeywordFlashToTelegram(user, telegramHolder);
         }
 
+    }
+
+    /**
+     * 친인척 속보 처리.
+     * 친인척 데이터 중에 처음 등장한 데이터를 메세지로 전송함.
+     * @param user
+     * @param telegramHolder
+     */
+    private void sendRelativeToTelegram(User user, TelegramHolder telegramHolder) {
+        try {
+
+            String docNo = telegramHolder.getDocNo();
+            String code = telegramHolder.getIsuCd();
+            String acptNo = telegramHolder.getAcptNo();
+
+            List<Map<String,Object>> maps = templateMapper.findRelativeWithTelegram(docNo, code, acptNo);
+            if (maps == null || maps.size() == 0) {
+                return;
+            }
+            // 회사명
+            String name = findCompanyName(telegramHolder.getIsuCd());
+            String acptNm = telegramHolder.getAcptNm();
+            String docNm = telegramHolder.getDocNm();
+            String docUrl = telegramHolder.getDocUrl();
+            String tndDt = telegramHolder.getTndDt();
+            String acptUlr = getItemUrl(acptNo);
+            String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
+            for (Map<String, Object> map : maps) {
+                // 투자자명
+                String name2 = Maps.getValue(map,"name");
+                // 투자자 생일
+                String birth = Maps.getValue(map,"birth");
+
+                List<Map<String, Object>> mapList  = templateMapper.findRelativeCount(docNo, code, acptNo, name2, birth);
+                if (mapList.size() == 0) {
+                    // 새 친인척이므로 전송..
+                    String gender = Maps.getValue(map,"gender");
+                    String homeabroad = Maps.getValue(map,"homeabroad");
+                    String nationality = Maps.getValue(map,"nationality");
+                    String relationHim = Maps.getValue(map,"relation_him");
+                    String address = Maps.getValue(map,"address");
+                    String job = Maps.getValue(map,"job");
+                    String _message = makeRelativeMessage(name,name2,birth, gender,homeabroad,nationality,relationHim,address,job,tndDt, docUrl, docNm, acptUlr, acptNm);
+                    sendAsync(user, _message, key);
+                } else {
+
+                    continue;
+                }
+
+            }
+
+        } catch (Exception e) {
+            log.error(e.getMessage(), e);
+        }
+    }
+
+    /**
+     * 속보 메세지 생성.
+     * @param companyName 친인척 이름
+     * @param name 친인척 이름
+     * @param birth 생일
+     * @param gender 성
+     * @param homeabroad 국내/해외
+     * @param nationality 국적
+     * @param relationHim 관계
+     * @param address 주소
+     * @param job  회사와의 관계
+     * @param tndDt 기초공시 날짜
+     * @param docUrl 공시url
+     * @param docNm 공시명
+     * @param acptUrl 기초공시url
+     * @param acptNm 기초공시명
+     * @return
+     */
+    private String makeRelativeMessage(String companyName,String name, String birth, String gender, String homeabroad, String nationality, String relationHim, String address, String job, String tndDt, String docUrl, String docNm, String acptUrl, String acptNm) {
+
+        StringWriter message = new StringWriter();
+        relativeMustache.execute(message, relativeScopes(companyName,name,tndDt,birth,gender,homeabroad,nationality,relationHim,address,job,docUrl,docNm,acptUrl,acptNm));
+        return message.toString();
+
+    }
+
+    private Map<String, Object> relativeScopes(String companyName,String name, String tndDt, String birth, String gender, String homeabroad, String nationality, String relationHim,String job, String relationCom, String docUrl, String docNm, String acptUrl, String acptNm) {
+        Map<String, Object> scopes = new HashMap<String, Object>();
+        scopes.put("company", companyName);
+        scopes.put("time", tndDt);
+        scopes.put("name", name);
+        scopes.put("birth", birth);
+        scopes.put("gender", gender);
+        scopes.put("homeabroad", homeabroad);
+        scopes.put("nationality", nationality);
+        scopes.put("relationHim", relationHim);
+        scopes.put("relationCom", relationCom);
+        scopes.put("job", job);
+        scopes.put("docUrl", docUrl);
+        scopes.put("docNm", docNm);
+        scopes.put("acptUrl", acptUrl);
+        scopes.put("acptNm", acptNm);
+        return scopes;
     }
 
     private void sendKeywordFlashToTelegram(User user, TelegramHolder telegramHolder) {

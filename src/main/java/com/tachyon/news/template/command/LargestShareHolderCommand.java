@@ -1,5 +1,6 @@
 package com.tachyon.news.template.command;
 
+import com.tachyon.crawl.kind.model.LargestStock;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.LargestStockHolderParser;
 import com.tachyon.crawl.kind.parser.TableParser;
@@ -8,7 +9,6 @@ import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
-import com.tachyon.news.template.model.LargestStock;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +58,7 @@ public class LargestShareHolderCommand extends BasicCommand {
             log.error("기초공시가 없음.. " + key);
             return;
         }
+        log.info(key+" "+map.toString());
         String docNm = Maps.getValue(map, "doc_nm");
         String docUrl = Maps.getValue(map, "doc_url");
         String tnsDt = Maps.getValue(map, "tns_dt");
@@ -84,9 +85,9 @@ public class LargestShareHolderCommand extends BasicCommand {
                 List<Map<String, Object>> maps = _table.toMapList();
                 for (Map<String, Object> _map : maps) {
                     LargestStock largestStock = LargestStock.from(_map,code,docNo,acptNo);
-                    log.info(_map.toString()+"=>"+largestStock.toString());
                     if (largestStock != null) {
-                        if (largestStock.getName().contains("합계")) {
+                        if (isTotalName(largestStock.getName())) {
+                            log.info("SKIP 합계.. ");
                             continue;
                         }
                         stocks.add(largestStock);
@@ -112,7 +113,8 @@ public class LargestShareHolderCommand extends BasicCommand {
         if (stocks.size() > 0) {
             for (LargestStock stock : stocks) {
                 Map<String, Object> param = stock.paramMap();
-                if (findLargestStockHolderCount(templateMapper, stock.keyParam()) == 0) {
+                if (findLargestStockHolderCount(templateMapper, param) == 0) {
+                    log.info(param.toString());
                     templateMapper.insertLargestStockHolder(param);
                 } else {
                     log.info("SKIP 중복된 데이터 "+param);
@@ -126,6 +128,14 @@ public class LargestShareHolderCommand extends BasicCommand {
 
     }
 
+    private boolean isTotalName(String value) {
+        value = StringUtils.remove(value, " ");
+        if (value.contains("합계")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     private int findLargestStockHolderCount(TemplateMapper templateMapper, Map<String, Object> keyParam) {
         return templateMapper.findLargestStockHolderCount(keyParam);
     }

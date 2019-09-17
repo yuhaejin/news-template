@@ -45,6 +45,10 @@ public class RabbitMqListener {
     public void TEMPLATE(Message message) {
         execute(message,"TEMPLATE");
     }
+    @RabbitListener(queues = {"_RELATIVE_HOLDER"})
+    public void TEMPLATE2(Message message) {
+        execute(message,"TEMPLATE");
+    }
 
     @RabbitListener(queues = {"_SPLIT_QUEUE"})
     public void _SPLIT_QUEUE(Message message) {
@@ -70,9 +74,11 @@ public class RabbitMqListener {
         }else {
 
         }
-
-
     }
+
+
+
+
     private void executeSplit(Message message) {
         byte[] bytes = message.getBody();
         String _message = new String(bytes, Charset.forName("UTF-8"));

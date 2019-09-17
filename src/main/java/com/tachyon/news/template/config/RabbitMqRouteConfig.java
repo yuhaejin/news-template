@@ -43,6 +43,10 @@ public class RabbitMqRouteConfig {
     }
 
     @Bean
+    Queue _RELATIVE_HOLDER() {
+        return QueueBuilder.durable("_RELATIVE_HOLDER").build();
+    }
+    @Bean
     Queue _KEYWORD_NOTIFICATION() {
         return QueueBuilder.durable("_KEYWORD_NOTIFICATION").build();
     }

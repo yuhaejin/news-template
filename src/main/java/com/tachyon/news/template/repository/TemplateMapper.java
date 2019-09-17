@@ -1,6 +1,5 @@
 package com.tachyon.news.template.repository;
 
-import com.tachyon.news.template.model.LargestStock;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -88,4 +87,14 @@ public interface TemplateMapper {
     void deleteBeforeLargestStockHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
 
     int findLargestStockHolderCount(Map<String, Object> keyParam);
+
+    void deleteBeforeRelativeHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
+
+    void insertRelativeHolder(Map<String, Object> param);
+
+    int findRelativeHolderCount(Map<String, Object> param);
+
+    List<Map<String, Object>> findRelativeWithTelegram(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo);
+
+    List<Map<String, Object>> findRelativeCount(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo, @Param("name")String name, @Param("birth")String birth);
 }

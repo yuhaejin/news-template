@@ -200,12 +200,14 @@ public class NewsJobs {
     private void handleTelegram(TelegramHandler telegramHandler) {
         try {
             if (isWorkingHour(new Date()) == false) {
+                log.debug("처리시간이 아님... ");
                 return;
             }
             InfixToPostfixParens infix = new InfixToPostfixParens();
 
             List<Map<String, Object>> maps = telegramHandler.findTelegramHodler(templateMapper);
             if (maps == null || maps.size() == 0) {
+                log.debug(telegramHandler.findName()+" 처리할 속보데이터..가 없음..");
                 return;
             } else {
                 List<TelegramHolder> holders = toTelegramHolder(maps);
@@ -226,7 +228,8 @@ public class NewsJobs {
                         }
 
                         findKeyword(user, admin, holders, telegramBeans, infix);
-                        findNoKeyword(user, holders, telegramBeans);
+                        findStockChange(user, holders, telegramBeans);
+                        findRelatives(user, holders, telegramBeans);
                     }
                 }
 
@@ -267,7 +270,17 @@ public class NewsJobs {
 
     }
 
-    private void findNoKeyword(User user, List<TelegramHolder> holders, List<TelegramBean> telegramBeans) {
+    private void findRelatives(User user, List<TelegramHolder> holders, List<TelegramBean> telegramBeans) {
+        for (TelegramHolder holder : holders) {
+            if ("RELATIVE".equalsIgnoreCase(holder.getKeyword())) {
+                telegramBeans.add(new TelegramBean(user,holder));
+            } else {
+                continue;
+            }
+        }
+    }
+
+    private void findStockChange(User user, List<TelegramHolder> holders, List<TelegramBean> telegramBeans) {
         for (TelegramHolder holder : holders) {
             if ("NOT_KEYWORD".equalsIgnoreCase(holder.getKeyword())) {
                 telegramBeans.add(new TelegramBean(user,holder));
@@ -364,7 +377,7 @@ public class NewsJobs {
     private void findKeyword(User user, User admin, List<TelegramHolder> holders, List<TelegramBean> telegramBeans, InfixToPostfixParens infix) {
         String userId = user.getUserid();
         for (TelegramHolder holder : holders) {
-            if ("NOT_KEYWORD".equalsIgnoreCase(holder.getKeyword())) {
+            if ("NOT_KEYWORD".equalsIgnoreCase(holder.getKeyword()) || "RELATIVE".equalsIgnoreCase(holder.getKeyword())) {
                 continue;
             }
             // 사용자별 속보 키워드가 모두 동일하므로 아래 처러 admin으로 처리함.

@@ -215,6 +215,7 @@ public class NewsConfig {
 
         String c =
                 "봇이름: tachyonnews_bot\n" +
+                        "중요공시 속보\n" +
                         "발생시간: {{time}}\n" +
                         "키워드: <b>{{keyword}}</b>\n" +
                         "기업명: <b>{{company}}</b>\n" +
@@ -229,6 +230,7 @@ public class NewsConfig {
 
         String c =
                 "봇이름: tachyonnews_mining_bot\n" +
+                        "투자자 투자속보\n" +
                         "투자자: <b>{{investor}}</b>\n" +
                         "발생시간: {{time}}\n" +
                         "종목: <b>{{company}}</b>\n" +
@@ -241,7 +243,28 @@ public class NewsConfig {
         Mustache mustache = mf.compile(new StringReader(c), "example2");
         return mustache;
     }
+    @Bean
+    public Mustache relativeMustache() {
+        MustacheFactory mf = new DefaultMustacheFactory();
 
+        String c =
+                "봇이름: tachyonnews_mining_bot\n" +
+                        "새로운 친인척 속보\n" +
+                        "회사: {{company}}\n" +
+                        "발생시간: {{time}}\n" +
+                        "친인척: <b>{{name}}</b>\n" +
+                        "생일: <b>{{birth}}</b>\n" +
+                        "성별: <b>{{gender}}</b>\n" +
+                        "국내외: <b>{{homeabroad}}</b>\n" +
+                        "국적: <b>{{nationality}}</b>\n" +
+                        "관계: <b>{{relationHim}}</b>\n" +
+                        "회사와의관계: <b>{{relationCom}}</b>\n" +
+                        "직업: <b>{{job}}</b>\n" +
+                        "공시명: <a href=\"{{docUrl}}\">{{docNm}}</a>\n" +
+                        "기초공시명: <a href=\"{{acptUrl}}\">{{acptNm}}</a>";
+        Mustache mustache = mf.compile(new StringReader(c), "example2");
+        return mustache;
+    }
     @Bean(destroyMethod = "shutdown")
     public ExecutorService groupThreadPool() {
         return Executors.newFixedThreadPool(2);

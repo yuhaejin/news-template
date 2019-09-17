@@ -446,7 +446,15 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return false;
     }
+    boolean isSemiRealTimeData(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__SEMI_REAL_TIME")) {
+            if ("YES".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__SEMI_REAL_TIME"))) {
+                return true;
+            }
+        }
 
+        return false;
+    }
 }
 
 

@@ -45,7 +45,9 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(RumorHolderCommand.class);
         } else if("_LARGEST_SHARE_HOLDER".equalsIgnoreCase(routingKey)){
             return findCommand(LargestShareHolderCommand.class);
-        } else {
+        } else if("_RELATIVE_HOLDER".equalsIgnoreCase(routingKey)){
+            return findCommand(RelativeHolderCommand.class);
+        }else {
             return findCommand(DummyCommand.class);
         }
     }

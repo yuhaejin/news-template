@@ -21,8 +21,8 @@
           and a.acpt_no = #{acpt_no}
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no,unit_price2)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no},#{unit_price2})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -174,8 +174,7 @@
           and a.isu_cd = b.isu_cd
           and a.acpt_no = b.acpt_no
           and a.processed_yn = 'N'
-          order by b.tns_dt
-          limit 30
+        order by b.tns_dt limit 30
 
     </select>
 
@@ -212,8 +211,7 @@
           and a.isu_cd = b.isu_cd
           and a.acpt_no = b.acpt_no
           and a.group_processed_yn = 'N'
-          order by b.tns_dt
-          limit 9
+        order by b.tns_dt limit 9
     </select>
 
     <update id="completeGroupTelegramHolder" parameterType="map">
@@ -297,8 +295,10 @@
           and doc_no = #{docNo}
     </delete>
     <insert id="insertLargestStockHolder" parameterType="map">
-        INSERT INTO largeststockholder (name,birthday,isu_cd,changedate,gender,homeabroad,relation,doubleup1,doubleup2,generalstockcnt,generalratio,kindstockcnt,kindratio,stockdepositorycnt,stockdepositoryratio,firststockratio,doc_no,acpt_no,firststockcnt,nationality)
-        VALUES (#{name},#{birthday},#{isu_cd},#{changedate},#{gender},#{homeabroad},#{relation},#{doubleup1},#{doubleup2},#{generalstockcnt},#{generalratio},#{kindstockcnt},#{kindratio},#{stockdepositorycnt},#{stockdepositoryratio},#{firststockratio},#{doc_no},#{acpt_no},#{firststockcnt},#{nationality})
+        INSERT INTO largeststockholder (name, birthday, isu_cd, changedate, gender, homeabroad, relation, doubleup1, doubleup2, generalstockcnt, generalratio, kindstockcnt, kindratio, stockdepositorycnt, stockdepositoryratio, firststockratio, doc_no,
+                                        acpt_no, firststockcnt, nationality)
+        VALUES (#{name}, #{birthday}, #{isu_cd}, #{changedate}, #{gender}, #{homeabroad}, #{relation}, #{doubleup1}, #{doubleup2}, #{generalstockcnt}, #{generalratio}, #{kindstockcnt}, #{kindratio}, #{stockdepositorycnt}, #{stockdepositoryratio},
+                #{firststockratio}, #{doc_no}, #{acpt_no}, #{firststockcnt}, #{nationality})
     </insert>
 
     <select id="findLargestStockHolderCount" resultType="int" parameterType="map">
@@ -309,5 +309,59 @@
           and isu_cd = #{isu_cd}
           and changedate = #{changedate}
     </select>
+
+
+    <delete id="deleteBeforeRelativeHolder" parameterType="map">
+        delete
+        from relativeholder
+        where isu_cd = #{isuCd}
+          and doc_no = #{docNo}
+    </delete>
+
+    <select id="findRelativeHolderCount" resultType="int" parameterType="map">
+        select count(*)
+        from relativeholder
+        where name = #{name}
+          and birth = #{birth}
+          and isu_cd = #{isu_cd}
+          and change_date = #{change_date}
+    </select>
+    <insert id="insertRelativeHolder" parameterType="map">
+        INSERT INTO relativeholder (name, birth, isu_cd, gender, homeabroad, nationality, relation_him, address, job, relation_com, doc_no, acpt_no, change_date)
+        VALUES (#{name}, #{birth}, #{isu_cd}, #{gender}, #{homeabroad}, #{nationality}, #{relation_him}, #{address}, #{job}, #{relation_com}, #{doc_no}, #{acpt_no}, #{change_date})
+    </insert>
+
+    <select id="findRelativeWithTelegram" resultType="map" parameterType="map">
+        select a.name,
+               a.birth,
+               a.gender,
+               a.homeabroad,
+               a.nationality,
+               a.relation_him,
+               a.address,
+               a.job,
+               a.relation_com
+        from relativeholder a,
+             telegramholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+    </select>
+    <select id="findRelativeCount" resultType="map" parameterType="map">
+        <![CDATA[
+        select doc_no,acpt_no
+        from relativeholder
+        where name = #{name}
+        and birth = #{birth}
+        and isu_cd = #{isu_cd}
+        and doc_no <> #{doc_no}
+        and acpt_no <> #{acpt_no}
+        limit 1
+        ]]>
+    </select>
+
 </mapper>
 

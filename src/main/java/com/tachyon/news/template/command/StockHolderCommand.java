@@ -43,7 +43,10 @@ public class StockHolderCommand extends BasicCommand {
     public void execute(Message message) throws Exception {
         String key = myContext.findInputValue(message);
         log.info("<<< " + key);
-
+        if (isSemiRealTimeData(message) == false) {
+            log.info("준실시간데이터가 아님.. " + key);
+            return;
+        }
         // 이미 처리된 공시인지 확인
         // 처리되지 않았으면 공시 수집
         // 공시 StockChange 분석함
@@ -157,6 +160,8 @@ public class StockHolderCommand extends BasicCommand {
                         insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
                         stockCount++;
                     }
+
+
 
                     if (hasExpiration(change)) {
                         log.info("임기만료 ... "+change);
