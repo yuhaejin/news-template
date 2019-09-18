@@ -207,7 +207,7 @@ public class NewsJobs {
 
             List<Map<String, Object>> maps = telegramHandler.findTelegramHodler(templateMapper);
             if (maps == null || maps.size() == 0) {
-                log.debug(telegramHandler.findName()+" 처리할 속보데이터..가 없음..");
+//                log.debug(telegramHandler.findName()+" 처리할 속보데이터..가 없음..");
                 return;
             } else {
                 List<TelegramHolder> holders = toTelegramHolder(maps);
@@ -257,7 +257,7 @@ public class NewsJobs {
                         }
                     }
                 }
-                log.info(telegramHandler.findName() + " ALL ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS)+" "+telegramBeans.size());
+//                log.info(telegramHandler.findName() + " ALL ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS)+" "+telegramBeans.size());
 
                 // TelegramHolder 처리
                 for (TelegramHolder holder : holders) {
@@ -273,7 +273,9 @@ public class NewsJobs {
     private void findRelatives(User user, List<TelegramHolder> holders, List<TelegramBean> telegramBeans) {
         for (TelegramHolder holder : holders) {
             if ("RELATIVE".equalsIgnoreCase(holder.getKeyword())) {
-                telegramBeans.add(new TelegramBean(user,holder));
+                TelegramBean bean = new TelegramBean(user,holder);
+                log.info("RELATIVE <<< "+bean);
+                telegramBeans.add(bean);
             } else {
                 continue;
             }
@@ -405,9 +407,9 @@ public class NewsJobs {
     }
 
     private void handleTelegram(TelegramBean telegramBean, TelegramHelper telegramHelper, String name) {
-        long start = System.nanoTime();
+//        long start = System.nanoTime();
         telegramHelper.sendToTelegram(telegramBean.getUser(),telegramBean.getTelegramHolder());
-        log.info(name + " ONE ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
+//        log.info(name + " ONE ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
     }
 
     @Scheduled(fixedDelay = 60000)

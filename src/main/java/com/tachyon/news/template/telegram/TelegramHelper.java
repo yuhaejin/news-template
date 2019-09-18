@@ -79,7 +79,7 @@ public class TelegramHelper {
      */
     private void sendRelativeToTelegram(User user, TelegramHolder telegramHolder) {
         try {
-
+            log.info("TELEGRAM <<< "+user+" "+telegramHolder);
             String docNo = telegramHolder.getDocNo();
             String code = telegramHolder.getIsuCd();
             String acptNo = telegramHolder.getAcptNo();

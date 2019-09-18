@@ -349,6 +349,7 @@
           and a.doc_no = #{doc_no}
           and a.isu_cd = #{isu_cd}
           and a.acpt_no = #{acpt_no}
+          and b.keyword = 'RELATIVE'
     </select>
     <select id="findRelativeCount" resultType="map" parameterType="map">
         <![CDATA[

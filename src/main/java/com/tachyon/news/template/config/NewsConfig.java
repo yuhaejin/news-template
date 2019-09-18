@@ -214,7 +214,7 @@ public class NewsConfig {
         MustacheFactory mf = new DefaultMustacheFactory();
 
         String c =
-                "봇이름: tachyonnews_bot\n" +
+//                "봇이름: tachyonnews_bot\n" +
                         "중요공시 속보\n" +
                         "발생시간: {{time}}\n" +
                         "키워드: <b>{{keyword}}</b>\n" +
@@ -229,7 +229,7 @@ public class NewsConfig {
         MustacheFactory mf = new DefaultMustacheFactory();
 
         String c =
-                "봇이름: tachyonnews_mining_bot\n" +
+//                "봇이름: tachyonnews_mining_bot\n" +
                         "투자자 투자속보\n" +
                         "투자자: <b>{{investor}}</b>\n" +
                         "발생시간: {{time}}\n" +
@@ -248,7 +248,7 @@ public class NewsConfig {
         MustacheFactory mf = new DefaultMustacheFactory();
 
         String c =
-                "봇이름: tachyonnews_mining_bot\n" +
+//                "봇이름: tachyonnews_mining_bot\n" +
                         "새로운 친인척 속보\n" +
                         "회사: {{company}}\n" +
                         "발생시간: {{time}}\n" +
