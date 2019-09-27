@@ -75,7 +75,6 @@ public class RumorHolderCommand extends BasicCommand {
             return;
         }
 
-
         if ((docNm.contains("풍문") && docNm.contains("보도")) == false) {
             log.info("SkIP :  공시명 " + docNm + " " + key + " " + docUrl);
             return;

@@ -97,4 +97,10 @@ public interface TemplateMapper {
     List<Map<String, Object>> findRelativeWithTelegram(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo);
 
     List<Map<String, Object>> findRelativeCount(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo, @Param("name")String name, @Param("birth")String birth);
+
+    int findKrRssPubDateCount(String rssPubDate);
+
+    void insertKrRssPubDate(String rssPubDate);
+    void insertStaff(Map<String, Object> param);
+    int findStaff(Map<String, Object> param);
 }

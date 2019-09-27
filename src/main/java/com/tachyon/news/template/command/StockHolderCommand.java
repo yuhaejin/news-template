@@ -161,11 +161,9 @@ public class StockHolderCommand extends BasicCommand {
                         stockCount++;
                     }
 
-
-
-                    if (hasExpiration(change)) {
+                    if (hasExpiration2(change)) {
                         log.info("임기만료 ... "+change);
-                        handleExpiration(templateMapper, change.paramExpiration(DateUtils.toString(change.getDateType(),"yyyyMMdd")));
+                        handleExpiration2(templateMapper, createParam(change));
                     }
 
                 }
@@ -183,11 +181,31 @@ public class StockHolderCommand extends BasicCommand {
         }
 
 
-
-
         log.info("done " + key);
     }
 
+    private Map<String, Object> createParam(Change change) {
+        String name = change.getName();
+        String birth = change.getBirthDay();
+        String kongsiDate = DateUtils.toString(change.getDateType(), "yyyyMMdd");
+        String code = change.getIsuCd();
+        String docNo = change.getDocNo();
+        String acptNo = change.getAcptNo();
+        String docUrl = change.getDocUrl();
+        return createParam(name, birth, kongsiDate, code, docNo, acptNo, docUrl);
+    }
+    private Map<String, Object> createParam(String name, String birth, String kongsiDate, String code, String docNo, String acptNo, String docUrl) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("kongsi_day", kongsiDate);
+        param.put("name", name);
+        param.put("birth_day", birth);
+        param.put("isu_cd", code);
+        param.put("doc_no", docNo);
+        param.put("acpt_no", acptNo);
+        param.put("doc_url", docUrl);
+        param.put("spot", "임원퇴임");
+        return param;
+    }
     private void modifyRepresentativeName(Change change) {
         String ownerName = change.getName().trim();
         if (myContext.hasRepresentativeName(ownerName)) {
@@ -204,6 +222,15 @@ public class StockHolderCommand extends BasicCommand {
             templateMapper.insertExpiration(param);
         }
     }
+    private void handleExpiration2(TemplateMapper templateMapper, Map<String, Object> param) {
+        int count = templateMapper.findStaff(param);
+        if (count == 0) {
+            log.info("staffholder <<< " + param);
+            templateMapper.insertStaff(param);
+        } else {
+            log.info("SKIP 중복된 임원 " +param);
+        }
+    }
 
     private boolean hasExpiration(Change change) {
         String remarks = change.getRemarks();
@@ -213,7 +240,21 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+    private boolean hasExpiration2(Change change) {
+        String stockType = change.getStockType();
+        if (StringUtils.contains(stockType, "임원퇴임")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
+    /**
+     * change 객체에 보정되지 않은 단가는 unitPrice2에 있음.
+     * unitPrice는 보정된 단가로 이 메소드에서 설정함.
+     * 단가가 0이면 해당일의 종가를 가져와 설정함.
+     * @param changes
+     */
     private void setupPrice(List<Change> changes) {
         for (Change change : changes) {
             if (change.getPrice() == 0) {

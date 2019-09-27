@@ -50,6 +50,7 @@ public class NewsJobs {
     private int countPerProcessing = 9;
 
     private Date publishDate;
+    private Date krPublishDate;
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -412,6 +413,9 @@ public class NewsJobs {
 //        log.info(name + " ONE ... " + TimeUnit.MILLISECONDS.convert(System.nanoTime() - start, TimeUnit.NANOSECONDS));
     }
 
+    /**
+     * rabbitmq 모니터링..
+     */
     @Scheduled(fixedDelay = 60000)
     public void checkRabbitMq() {
         if (isWorkingHour(new Date()) == false) {
@@ -461,30 +465,64 @@ public class NewsJobs {
             }
         }
     }
+
+//    /**
+//     * clinicaltrials 10분마다 모니터링.. 프로젝트 시작까지 잠시 멈춤.
+//     */
+//    @Scheduled(fixedDelay = 1000 * 60 * 10)
+//    public void monitorClinicalTrialsUpdateDateTime() {
+//        try {
+//            URL feedSource = new URL("https://clinicaltrials.gov/ct2/results/rss.xml?rcv_d=&lup_d=14&sel_rss=mod14&rslt=With&count=1");
+//            SyndFeedInput input = new SyndFeedInput();
+//            SyndFeed feed = input.build(new XmlReader(feedSource));
+//            Date date = feed.getPublishedDate();
+//            if (publishDate == null) {
+//                publishDate = date;
+//                log.info("PUB_DATE  => "+toString(date));
+//                monitorRssPubDate(date);
+//            } else {
+//                if (publishDate.equals(date)) {
+//
+//                } else {
+//                    log.info("PUB_DATE "+toString(publishDate) + " => " + toString(date));
+//                    publishDate = date;
+//                    monitorRssPubDate(date);
+//                }
+//            }
+//        } catch (Exception e) {
+//            log.error(e.getMessage(),e);
+//        }
+//    }
+    /**
+     * 한국 clinicaltrials 10분마다 모니터링..
+     */
     @Scheduled(fixedDelay = 1000 * 60 * 10)
-    public void monitorClinicalTrialsUpdateDateTime() {
+    public void monitorKrClinicalTrialsUpdateDateTime() {
         try {
-            URL feedSource = new URL("https://clinicaltrials.gov/ct2/results/rss.xml?rcv_d=&lup_d=14&sel_rss=mod14&rslt=With&count=1");
+            URL feedSource = new URL("https://clinicaltrials.gov/ct2/results/rss.xml?rcv_d=&lup_d=14&sel_rss=mod14&count=1&cntry=KR");
             SyndFeedInput input = new SyndFeedInput();
             SyndFeed feed = input.build(new XmlReader(feedSource));
             Date date = feed.getPublishedDate();
-            if (publishDate == null) {
-                publishDate = date;
-                log.info("PUB_DATE  => "+toString(date));
-                monitorRssPubDate(date);
+            if (krPublishDate == null) {
+                krPublishDate = date;
+                log.info("KRPUB_DATE  => "+toString(date));
+                monitorKrRssPubDate(date);
             } else {
-                if (publishDate.equals(date)) {
+                if (krPublishDate.equals(date)) {
 
                 } else {
-                    log.info("PUB_DATE "+toString(publishDate) + " => " + toString(date));
-                    publishDate = date;
-                    monitorRssPubDate(date);
+                    log.info("KRPUB_DATE "+toString(krPublishDate) + " => " + toString(date));
+                    krPublishDate = date;
+                    monitorKrRssPubDate(date);
                 }
             }
         } catch (Exception e) {
             log.error(e.getMessage(),e);
         }
+    }
 
+    private void monitorClinicalTrialsUpdateDateTime(String url) {
+        //https://clinicaltrials.gov/ct2/results/rss.xml?rcv_d=&lup_d=14&sel_rss=mod14&count=1&cntry=KR
     }
 
     private void monitorRssPubDate(Date date) {
@@ -496,7 +534,15 @@ public class NewsJobs {
             log.info("CRINICAL_TRIALS_BATCH <<< "+rssPubDate);
         }
     }
-
+    private void monitorKrRssPubDate(Date date) {
+        String rssPubDate =  toString2(date);
+        int count = templateMapper.findKrRssPubDateCount(rssPubDate);
+        if (count == 0) {
+            templateMapper.insertKrRssPubDate(rssPubDate);
+            rabbitTemplate.convertAndSend("KR_CRINICAL_TRIALS_BATCH",rssPubDate);
+            log.info("KR_CRINICAL_TRIALS_BATCH <<< "+rssPubDate);
+        }
+    }
     private String toString(Date date) {
         return DateUtils.toString(date, "yyyy-MM-dd HH:mm:ss");
     }

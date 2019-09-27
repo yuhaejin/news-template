@@ -21,8 +21,8 @@
           and a.acpt_no = #{acpt_no}
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type,acpt_dt)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type},#{acpt_dt})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -363,6 +363,29 @@
         limit 1
         ]]>
     </select>
+    <select id="findKrRssPubDateCount" resultType="int" parameterType="string">
+        select count(*)
+        from krrsspubholder
+        where pub_date = #{pub_date}
+    </select>
+
+    <insert id="insertKrRssPubDate" parameterType="string">
+        INSERT INTO krrsspubholder (pub_date)
+        VALUES (#{pub_date})
+    </insert>
+
+    <select id="findStaff" parameterType="map" resultType="int">
+        select count(*)
+        from staffholder
+        where kongsi_day = #{kongsi_day}
+          and name = #{name}
+          and birth_day = #{birth_day}
+          and isu_cd = #{isu_cd}
+    </select>
+    <insert id="insertStaff" parameterType="map">
+        INSERT INTO staffholder (kongsi_day, name, birth_day, spot, isu_cd,doc_no,acpt_no,doc_url)
+        VALUES (#{kongsi_day}, #{name}, #{birth_day}, #{spot}, #{isu_cd},#{doc_no},#{acpt_no},#{doc_url})
+    </insert>
 
 </mapper>
 
