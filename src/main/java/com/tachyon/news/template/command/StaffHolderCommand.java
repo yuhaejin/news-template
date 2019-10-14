@@ -1,5 +1,6 @@
 package com.tachyon.news.template.command;
 
+import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Staff;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.TableParser;
@@ -81,8 +82,15 @@ public class StaffHolderCommand extends BasicCommand {
             } else {
                 log.info(ratio + " parsing_" + rptNm + "_" + docNm + "_" + docUrl);
             }
+
             setupKongsiDay(FILTER,acptNo);
-            handleFilter(FILTER,docNo,acptNo);
+            if (isConvertingBirthday(message)) {
+//                updateBirthday(FILTER);
+
+            } else {
+                setupBirthDay(FILTER, acptNo);
+                handleFilter(FILTER,docNo,acptNo);
+            }
 
         } else {
             // 예외상황임...
@@ -91,6 +99,24 @@ public class StaffHolderCommand extends BasicCommand {
         }
     }
 
+    private void setupBirthDay(Map<String, Staff> FILTER, String acptNo) {
+        for (String key : FILTER.keySet()) {
+            Staff staff = FILTER.get(key);
+            // 예전 공시는 생년월일까지 있으나 요즘 공시는 생년월까지 있어 아래처럼 작업한다.
+            String birthDay = BizUtils.parseBirthDay2_2(staff.getBirthDay());
+            staff.setBirthDay(birthDay);
+        }
+    }
+
+
+    boolean isConvertingBirthday(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__BIRTHDAY")) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
     /**
      * 기초공시 acpt_no 을 통해 이전 것이면 처리하지 않는다. 이후 것이면 이전 것은 삭제한다.
      * - 처리는 하나의 공시단위로 처리하면 될 듯...

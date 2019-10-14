@@ -46,6 +46,12 @@ public class MyContext {
     @Value("${kongsi.telegram.chatId}")
     private String chatId;
 
+    @Value("${kongsi.spclp.path}")
+    private String spcLpPath;
+
+    @Value("${kongsi.spclp.keyword}")
+    private String spcLpKeyword;
+
     private String[] templates;
     private AtomicLong gatewayCount = new AtomicLong();
 
@@ -77,6 +83,12 @@ public class MyContext {
         refreshTelegramKeywordList();
         refreshTelegramUserInfo();
         setupRepresentativeName();
+        viewValue();
+    }
+
+    private void viewValue() {
+        log.info("spcLpPath="+spcLpPath);
+        log.info("spcLpKeyword="+spcLpKeyword);
     }
 
     private void setupRepresentativeName() {
@@ -86,8 +98,17 @@ public class MyContext {
         INVESTOR_MAP.put("국민연금기금", "국민연금");
     }
 
+
     public boolean hasRepresentativeName(String investor){
         return INVESTOR_MAP.containsKey(investor);
+    }
+
+    public String getSpcLpKeyword() {
+        return spcLpKeyword;
+    }
+
+    public void setSpcLpKeyword(String spcLpKeyword) {
+        this.spcLpKeyword = spcLpKeyword;
     }
 
     public String findRepresentativeName(String investor) {
@@ -95,6 +116,13 @@ public class MyContext {
     }
 
 
+    public String getSpcLpPath() {
+        return spcLpPath;
+    }
+
+    public void setSpcLpPath(String spcLpPath) {
+        this.spcLpPath = spcLpPath;
+    }
 
     public void refreshTelegramKeywordList() {
         List<Map<String,Object>> maps = templateMapper.findKeywords();

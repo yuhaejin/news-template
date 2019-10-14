@@ -91,6 +91,10 @@ public class KongsiCollector extends AbstractService {
                     // 텍스트파일이 크기가 다르다면..
                     log.info("파일존재하지만 크기가 달라 재처리.. "+txtPath);
                     saveFile(txtPath, text);
+                    if (hasSpcLpKeyword(text)) {
+                        String spcLpPath = findSpcLpPath(myContext.getSpcLpPath(), code, docNo, acptNo, "txt");
+                        saveFile(spcLpPath, text);
+                    }
                     reindexing = true;
                 } else {
                     reindexing = false;
@@ -99,6 +103,10 @@ public class KongsiCollector extends AbstractService {
                 // 파일이 없다면..
                 log.info("파일 미존재.. "+txtPath);
                 saveFile(txtPath, text);
+                if (hasSpcLpKeyword(text)) {
+                    String spcLpPath = findSpcLpPath(myContext.getSpcLpPath(), code, docNo, acptNo, "txt");
+                    saveFile(spcLpPath, text);
+                }
                 reindexing = true;
             }
             log.info("공시파일 처리 완료..."+key);
@@ -106,6 +114,14 @@ public class KongsiCollector extends AbstractService {
 
         } catch (Exception e) {
             handleError(rabbitTemplate, message, e, log);
+        }
+    }
+
+    private boolean hasSpcLpKeyword(String c) {
+        if (c.contains(myContext.getSpcLpKeyword())) {
+            return true;
+        } else {
+            return false;
         }
     }
 

@@ -126,10 +126,17 @@ public class RelativeHolderCommand extends BasicCommand {
                         }
                     }
 
+                    boolean hasNewHolder = false;
                     for (Relative relative : relativeList) {
                         Map<String, Object> param = relative.paramMap();
                         if (findRelativeHolderCount(templateMapper, param) == 0) {
                             log.info(param.toString());
+                            if (isNewHolder(templateMapper, param)) {
+                                param.put("new_yn", "Y");
+                                hasNewHolder = true;
+                            } else {
+                                param.put("new_yn", "N");
+                            }
                             templateMapper.insertRelativeHolder(param);
                         } else {
                             log.info("SKIP 중복된 데이터 " + param);
@@ -138,7 +145,8 @@ public class RelativeHolderCommand extends BasicCommand {
 
 
                     for (Relative relative : relativeList) {
-                        if (isNewRelative(templateMapper, relative)) {
+                        if (hasNewHolder) {
+//                        if (isNewRelative(templateMapper, relative)) {
                             // 실시간공지..
                             int count = templateMapper.findTelegramHolder(docNo, acptNo, keyword);
                             if (count == 0) {
@@ -166,6 +174,22 @@ public class RelativeHolderCommand extends BasicCommand {
 
     }
 
+    private boolean isNewHolder(TemplateMapper templateMapper, Map<String, Object> param) {
+        int size = templateMapper.findRelativeHodlerSize(param);
+        if (size > 0) {
+            return false;
+        } else {
+            return true;
+        }
+    }
+
+    /**
+     * TODO 구현해야 함.
+     *
+     * @param templateMapper
+     * @param relative
+     * @return
+     */
     private boolean isNewRelative(TemplateMapper templateMapper, Relative relative) {
         return false;
     }

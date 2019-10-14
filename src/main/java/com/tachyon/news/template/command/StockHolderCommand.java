@@ -81,9 +81,12 @@ public class StockHolderCommand extends BasicCommand {
                 if (table != null) {
                     String submitName = Maps.getValue(map, "submit_nm");
                     //birthday가 없을 수도 있음
-                    String birthDay = findBirthDay(docRaw, docUrl);
-                    table.findStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, submitName, birthDay, FILTER);
-            }
+                    Table _table = findBirthDay(docRaw, docUrl);
+                    String birthDay = _table.findBirthDay();
+                    String birthDay2 = _table.findBirthDay("BIRTH_DAY2");
+
+                    table.findStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, submitName, birthDay, birthDay2, FILTER);
+                }
             } else if (isMajorStockChangeKongis(docNm)) {
                 log.info("최대주주등소유주식변동신고서 공시처리...");
                 TableParser stockChangeTableParser = new TableParser(new StockChangeSelectorByPattern2());
@@ -150,21 +153,36 @@ public class StockHolderCommand extends BasicCommand {
                     //대표투자자명으로 변경함.
                     modifyRepresentativeName(change);
 
-                    // 유일한 값이라고 할만한 조회...
-                    //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
-                    if (findStockHolder(templateMapper, code, change)) {
-                        // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
-                        log.info("ALREADY StockHodler " + change);
+                    if (isBirthdayUpdate(message)) {
+                        if (findStockHolder(templateMapper, code, change)) {
+                            Map<String, Object> _map = toParam(change, code);
+                            if (StringUtils.equals(change.getBirthDay(), change.getBirthDay2()) == false) {
+                                log.info("updateStockHolderBirthDay " + _map);
+                                updateStockHolderBirthDay(templateMapper, _map);
+                            } else {
+                                log.info("SKIP 생일파싱이 동일함 "+_map);
+                            }
+                        }
                     } else {
-                        log.info("INSERT ... " + change);
-                        insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
-                        stockCount++;
+                        // 유일한 값이라고 할만한 조회...
+                        //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
+                        if (findStockHolder(templateMapper, code, change)) {
+                            // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
+
+                            log.info("ALREADY StockHodler " + change);
+
+                        } else {
+                            log.info("INSERT ... " + change);
+                            insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
+                            stockCount++;
+                        }
+
+                        if (hasExpiration2(change)) {
+                            log.info("임기만료 ... " + change);
+                            handleExpiration2(templateMapper, createParam(change));
+                        }
                     }
 
-                    if (hasExpiration2(change)) {
-                        log.info("임기만료 ... "+change);
-                        handleExpiration2(templateMapper, createParam(change));
-                    }
 
                 }
             }
@@ -184,6 +202,27 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void updateStockHolderBirthDay(TemplateMapper templateMapper, Map<String, Object> map) {
+        templateMapper.updateStockHolderBirthDay(map);
+    }
+
+    private Map<String, Object> toParam(Change change, String code) {
+        Map<String, Object> map = BizUtils.changeParamMap(change, code);
+        map.put("birth_day", change.getBirthDay2());
+        map.put("birth_day2", change.getBirthDay());
+
+        return map;
+    }
+
+    private boolean isBirthdayUpdate(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
+            if ("BIRTHDAY".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__UPDATE"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private Map<String, Object> createParam(Change change) {
         String name = change.getName();
         String birth = change.getBirthDay();
@@ -194,6 +233,7 @@ public class StockHolderCommand extends BasicCommand {
         String docUrl = change.getDocUrl();
         return createParam(name, birth, kongsiDate, code, docNo, acptNo, docUrl);
     }
+
     private Map<String, Object> createParam(String name, String birth, String kongsiDate, String code, String docNo, String acptNo, String docUrl) {
         Map<String, Object> param = new HashMap<>();
         param.put("kongsi_day", kongsiDate);
@@ -206,11 +246,12 @@ public class StockHolderCommand extends BasicCommand {
         param.put("spot", "임원퇴임");
         return param;
     }
+
     private void modifyRepresentativeName(Change change) {
         String ownerName = change.getName().trim();
         if (myContext.hasRepresentativeName(ownerName)) {
             String _ownerName = myContext.findRepresentativeName(ownerName);
-            log.info(ownerName+" ==> "+_ownerName);
+            log.info(ownerName + " ==> " + _ownerName);
             change.setName(_ownerName);
 
         }
@@ -222,13 +263,14 @@ public class StockHolderCommand extends BasicCommand {
             templateMapper.insertExpiration(param);
         }
     }
+
     private void handleExpiration2(TemplateMapper templateMapper, Map<String, Object> param) {
         int count = templateMapper.findStaff(param);
         if (count == 0) {
             log.info("staffholder <<< " + param);
             templateMapper.insertStaff(param);
         } else {
-            log.info("SKIP 중복된 임원 " +param);
+            log.info("SKIP 중복된 임원 " + param);
         }
     }
 
@@ -240,6 +282,7 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
     private boolean hasExpiration2(Change change) {
         String stockType = change.getStockType();
         if (StringUtils.contains(stockType, "임원퇴임")) {
@@ -253,13 +296,14 @@ public class StockHolderCommand extends BasicCommand {
      * change 객체에 보정되지 않은 단가는 unitPrice2에 있음.
      * unitPrice는 보정된 단가로 이 메소드에서 설정함.
      * 단가가 0이면 해당일의 종가를 가져와 설정함.
+     *
      * @param changes
      */
     private void setupPrice(List<Change> changes) {
         for (Change change : changes) {
             if (change.getPrice() == 0) {
-                log.debug("  "+change.getDate());
-                Integer price = templateMapper.findClose(change.getIsuCd(),new Timestamp(change.getDateTime()));
+                log.debug("  " + change.getDate());
+                Integer price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
                 if (price == null || price == 0) {
                     log.debug("no...");
                 } else {
@@ -284,17 +328,16 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-
-    private String findBirthDay(String docRaw, String docUrl) throws Exception {
+    private Table findBirthDay(String docRaw, String docUrl) throws Exception {
         StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
         selector.setKeywords(new String[]{"보고자", "관한", "사항"});
         TableParser stockChangeTableParser = new TableParser(selector);
         List<Table> tables = stockChangeTableParser.parseSome(docRaw, docUrl, new StaffBirthDayParser());
         if (tables == null || tables.size() == 0) {
-            return "";
+            return null;
         } else {
             Table table = tables.get(0);
-            return table.findBirthDay();
+            return table;
         }
     }
 
@@ -325,7 +368,6 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
-
 
 
 }

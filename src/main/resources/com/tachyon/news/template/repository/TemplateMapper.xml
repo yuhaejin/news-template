@@ -327,8 +327,8 @@
           and change_date = #{change_date}
     </select>
     <insert id="insertRelativeHolder" parameterType="map">
-        INSERT INTO relativeholder (name, birth, isu_cd, gender, homeabroad, nationality, relation_him, address, job, relation_com, doc_no, acpt_no, change_date)
-        VALUES (#{name}, #{birth}, #{isu_cd}, #{gender}, #{homeabroad}, #{nationality}, #{relation_him}, #{address}, #{job}, #{relation_com}, #{doc_no}, #{acpt_no}, #{change_date})
+        INSERT INTO relativeholder (name, birth, isu_cd, gender, homeabroad, nationality, relation_him, address, job, relation_com, doc_no, acpt_no, change_date,new_yn)
+        VALUES (#{name}, #{birth}, #{isu_cd}, #{gender}, #{homeabroad}, #{nationality}, #{relation_him}, #{address}, #{job}, #{relation_com}, #{doc_no}, #{acpt_no}, #{change_date},#{new_yn})
     </insert>
 
     <select id="findRelativeWithTelegram" resultType="map" parameterType="map">
@@ -386,6 +386,26 @@
         INSERT INTO staffholder (kongsi_day, name, birth_day, spot, isu_cd,doc_no,acpt_no,doc_url)
         VALUES (#{kongsi_day}, #{name}, #{birth_day}, #{spot}, #{isu_cd},#{doc_no},#{acpt_no},#{doc_url})
     </insert>
+    <update id="updateStockHolderBirthDay" parameterType="map">
+        update stockholder
+        set birth_day = #{birth_day2}
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </update>
+
+    <!--findRelativeHodlerSize-->
+    <select id="findRelativeHodlerSize" resultType="int" parameterType="map">
+        select count(seq)
+        from relativeholder
+        where name = #{name}
+          and birth = #{birth}
+          and isu_cd = #{isu_cd}
+    </select>
+
 
 </mapper>
 

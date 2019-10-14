@@ -103,4 +103,13 @@ public interface TemplateMapper {
     void insertKrRssPubDate(String rssPubDate);
     void insertStaff(Map<String, Object> param);
     int findStaff(Map<String, Object> param);
+
+    void updateStockHolderBirthDay(Map<String, Object> map);
+    /**
+     * 친인척 table 에 처음으로 등장하는지 체크한다.
+     * code, name, birth으로 조회함.
+     * @param param
+     * @return
+     */
+    int findRelativeHodlerSize(Map<String, Object> param);
 }

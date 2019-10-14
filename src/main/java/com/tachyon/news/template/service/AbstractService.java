@@ -61,7 +61,10 @@ public abstract class AbstractService extends BaseObject implements NewsService 
         String year = docNo.substring(0, 4);
         return htmlTargetPath + "/" + code + "/" + year + "/" + docNo + "_" + code + "." + ext;
     }
-
+    protected String findSpcLpPath(String spcLpPath, String code, String docNo, String acptNo,String ext) {
+        String year = docNo.substring(0, 4);
+        return spcLpPath + "/" + code + "/" + year + "/" + docNo + "_" + code + "_"+acptNo+"." + ext;
+    }
 
     private Collection<File> listFiles(String dir) {
         return listFiles(new File(dir));

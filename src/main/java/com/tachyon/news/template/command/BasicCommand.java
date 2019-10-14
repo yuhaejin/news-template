@@ -365,6 +365,8 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
     }
 
+
+
     /**
      * 이름이 - 인 것중에 이전 Change 성명과 동일하게 처리하는 로직..
      *
@@ -452,7 +454,6 @@ public abstract class BasicCommand extends BaseObject implements Command {
                 return true;
             }
         }
-
         return false;
     }
 }
