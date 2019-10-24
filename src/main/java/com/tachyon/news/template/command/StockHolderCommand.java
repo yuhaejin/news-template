@@ -67,6 +67,7 @@ public class StockHolderCommand extends BasicCommand {
             log.info("... " + docUrl);
             String docNm = Maps.getValue(map, "doc_nm");
             String rptNm = Maps.getValue(map, "rpt_nm");
+            String tempRptNm = Maps.getValue(map, "temp_rpt_nm");
             String tnsDt = findTnsDt(map);
             String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
             // 일반문서처리.
@@ -166,7 +167,7 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
-                        if (findStockHolder(templateMapper, code, change)) {
+                        if (hasDuplicateStockHolder(templateMapper, code, change,tempRptNm)) {
                             // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
 
                             log.info("ALREADY StockHodler " + change);
@@ -201,6 +202,31 @@ public class StockHolderCommand extends BasicCommand {
 
         log.info("done " + key);
     }
+
+    /**
+     * 최대주주등소유주식변동신고서 스크래핑한 데이터중에 처리일시가 잘못되어 중복되어 나왔는데 이걸 방지하기 위한 로직임.
+     * 두개의 제한 조건이 들어감
+     * 1. 동일한 공시에서는 처리일시까지 넣어 중복 데이터를 찾는다.
+     * 2. 다른 공시에서는 처리일시를 빼고 중복 데이터를 찾는다.
+     * @param templateMapper
+     * @param code
+     * @param change
+     * @return
+     */
+    private boolean hasDuplicateStockHolder(TemplateMapper templateMapper, String code, Change change,String tempRptNm) {
+        Map<String, Object> param = BizUtils.changeParamMap(change, code);
+        param.put("temp_rpt_nm", tempRptNm);
+        if (templateMapper.findDupStockCountOnSameKind(param) > 0) {
+            return true;
+        } else {
+            if (templateMapper.findDupStockOnOtherKind(param) > 0) {
+                return true;
+            } else {
+                return false;
+            }
+        }
+    }
+
 
     private void updateStockHolderBirthDay(TemplateMapper templateMapper, Map<String, Object> map) {
         templateMapper.updateStockHolderBirthDay(map);

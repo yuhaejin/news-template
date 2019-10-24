@@ -51,6 +51,15 @@ public class MyContext {
 
     @Value("${kongsi.spclp.keyword}")
     private String spcLpKeyword;
+    @Value("${kongsi.skip.key.path}")
+    private String skipDocNoIsuCdAcptNoFilePath;
+
+    @Value("${max.pool.size}")
+    private int maxPoolSize;
+    @Value("${core.pool.size}")
+    private int corePoolSize;
+    @Value("${queue.capacity}")
+    private int queueCapacity;
 
     private String[] templates;
     private AtomicLong gatewayCount = new AtomicLong();
@@ -99,6 +108,30 @@ public class MyContext {
     }
 
 
+    public int getMaxPoolSize() {
+        return maxPoolSize;
+    }
+
+    public void setMaxPoolSize(int maxPoolSize) {
+        this.maxPoolSize = maxPoolSize;
+    }
+
+    public int getCorePoolSize() {
+        return corePoolSize;
+    }
+
+    public void setCorePoolSize(int corePoolSize) {
+        this.corePoolSize = corePoolSize;
+    }
+
+    public int getQueueCapacity() {
+        return queueCapacity;
+    }
+
+    public void setQueueCapacity(int queueCapacity) {
+        this.queueCapacity = queueCapacity;
+    }
+
     public boolean hasRepresentativeName(String investor){
         return INVESTOR_MAP.containsKey(investor);
     }
@@ -115,6 +148,13 @@ public class MyContext {
         return INVESTOR_MAP.get(investor);
     }
 
+    public String getSkipDocNoIsuCdAcptNoFilePath() {
+        return skipDocNoIsuCdAcptNoFilePath;
+    }
+
+    public void setSkipDocNoIsuCdAcptNoFilePath(String skipDocNoIsuCdAcptNoFilePath) {
+        this.skipDocNoIsuCdAcptNoFilePath = skipDocNoIsuCdAcptNoFilePath;
+    }
 
     public String getSpcLpPath() {
         return spcLpPath;

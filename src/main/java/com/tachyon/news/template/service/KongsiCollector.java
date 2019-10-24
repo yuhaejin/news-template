@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -42,11 +43,30 @@ public class KongsiCollector extends AbstractService {
         super(templateMapper);
     }
 
+    private Map<String, String> temp = new HashMap<>();
     public void consume(Message message) {
         try {
             infoView(message,log);
             String key = myContext.findInputValue(message);
             log.info("<<< " + key);
+
+            String path = myContext.getSkipDocNoIsuCdAcptNoFilePath();
+            File f = new File(path);
+            if (f.exists() == false) {
+                // skip
+            }else {
+                List<String> strings = FileUtils.readLines(f, "UTF-8");
+                if (strings.size() > 0) {
+                    for (String line : strings) {
+                        temp.put(line, line);
+                    }
+                }
+            }
+
+            if (temp.containsKey(key)) {
+                log.error("SkIP " + key);
+                return;
+            }
             DocNoIsuCd docNoIsuCd = findDocNoIsuCd(key);
             String docNo = docNoIsuCd.getDocNo();
             String code = docNoIsuCd.getIsuCd();
@@ -128,6 +148,8 @@ public class KongsiCollector extends AbstractService {
     private String convertText(String content) {
         return BizUtils.extractText(content);
     }
+
+
     private String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, String docUrl) throws IOException {
         log.info("공시파일 수집.. "+docUrl);
         if (loadBalancerCommandHelper == null) {

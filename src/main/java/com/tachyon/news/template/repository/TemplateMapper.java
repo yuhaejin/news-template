@@ -112,4 +112,8 @@ public interface TemplateMapper {
      * @return
      */
     int findRelativeHodlerSize(Map<String, Object> param);
+
+    int findDupStockCountOnSameKind(Map<String, Object> param);
+
+    int findDupStockOnOtherKind(Map<String, Object> param);
 }

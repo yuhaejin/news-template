@@ -14,15 +14,22 @@
 
 
     <select id="findKongsiHalder2" resultType="map" parameterType="string">
-        select a.doc_nm, a.doc_url, a.isu_cd, a.acpt_no, a.rpt_nm, a.tns_dt, a.submit_nm
+        select a.doc_nm,
+               a.doc_url,
+               a.isu_cd,
+               a.acpt_no,
+               a.rpt_nm,
+               a.tns_dt,
+               a.submit_nm,
+               a.temp_rpt_nm
         from kongsiholder a
         where a.doc_no = #{doc_no}
           and a.isu_cd = #{isu_cd}
           and a.acpt_no = #{acpt_no}
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type,acpt_dt)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type},#{acpt_dt})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -327,8 +334,8 @@
           and change_date = #{change_date}
     </select>
     <insert id="insertRelativeHolder" parameterType="map">
-        INSERT INTO relativeholder (name, birth, isu_cd, gender, homeabroad, nationality, relation_him, address, job, relation_com, doc_no, acpt_no, change_date,new_yn)
-        VALUES (#{name}, #{birth}, #{isu_cd}, #{gender}, #{homeabroad}, #{nationality}, #{relation_him}, #{address}, #{job}, #{relation_com}, #{doc_no}, #{acpt_no}, #{change_date},#{new_yn})
+        INSERT INTO relativeholder (name, birth, isu_cd, gender, homeabroad, nationality, relation_him, address, job, relation_com, doc_no, acpt_no, change_date, new_yn)
+        VALUES (#{name}, #{birth}, #{isu_cd}, #{gender}, #{homeabroad}, #{nationality}, #{relation_him}, #{address}, #{job}, #{relation_com}, #{doc_no}, #{acpt_no}, #{change_date}, #{new_yn})
     </insert>
 
     <select id="findRelativeWithTelegram" resultType="map" parameterType="map">
@@ -353,14 +360,13 @@
     </select>
     <select id="findRelativeCount" resultType="map" parameterType="map">
         <![CDATA[
-        select doc_no,acpt_no
+        select doc_no, acpt_no
         from relativeholder
         where name = #{name}
-        and birth = #{birth}
-        and isu_cd = #{isu_cd}
-        and doc_no <> #{doc_no}
-        and acpt_no <> #{acpt_no}
-        limit 1
+          and birth = #{birth}
+          and isu_cd = #{isu_cd}
+          and doc_no <> #{doc_no}
+          and acpt_no <> #{acpt_no} limit 1
         ]]>
     </select>
     <select id="findKrRssPubDateCount" resultType="int" parameterType="string">
@@ -383,8 +389,8 @@
           and isu_cd = #{isu_cd}
     </select>
     <insert id="insertStaff" parameterType="map">
-        INSERT INTO staffholder (kongsi_day, name, birth_day, spot, isu_cd,doc_no,acpt_no,doc_url)
-        VALUES (#{kongsi_day}, #{name}, #{birth_day}, #{spot}, #{isu_cd},#{doc_no},#{acpt_no},#{doc_url})
+        INSERT INTO staffholder (kongsi_day, name, birth_day, spot, isu_cd, doc_no, acpt_no, doc_url)
+        VALUES (#{kongsi_day}, #{name}, #{birth_day}, #{spot}, #{isu_cd}, #{doc_no}, #{acpt_no}, #{doc_url})
     </insert>
     <update id="updateStockHolderBirthDay" parameterType="map">
         update stockholder
@@ -405,7 +411,47 @@
           and birth = #{birth}
           and isu_cd = #{isu_cd}
     </select>
+    <!--    findDupStockCountOnSameKind-->
+    <select id="findDupStockCountOnSameKind" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(b.seq)
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+                   and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm = #{temp_rpt_nm}
+        ]]>
+    </select>
 
-
+<!--    findDupStockOnOtherKind-->
+    <select id="findDupStockOnOtherKind" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(b.seq)
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm <> #{temp_rpt_nm}
+        ]]>
+    </select>
 </mapper>
 

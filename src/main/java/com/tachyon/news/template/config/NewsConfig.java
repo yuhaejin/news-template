@@ -33,6 +33,8 @@ import org.elasticsearch.common.unit.TimeValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.task.TaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.telegram.telegrambots.ApiContextInitializer;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException;
@@ -74,6 +76,18 @@ public class NewsConfig {
 //
 //        return factory;
 //    }
+
+    @Bean
+    public TaskExecutor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(myContext.getCorePoolSize());
+        executor.setMaxPoolSize(myContext.getMaxPoolSize());
+        executor.setQueueCapacity(myContext.getQueueCapacity());
+        return executor;
+    }
+
+
+
 
     @Bean(destroyMethod = "close")
     public RestHighLevelClient restHighLevelClient() {
