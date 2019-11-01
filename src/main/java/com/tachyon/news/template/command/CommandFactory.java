@@ -1,5 +1,6 @@
 package com.tachyon.news.template.command;
 
+import com.tachyon.crawl.kind.parser.StaffReportParser;
 import com.tachyon.news.template.service.NewsService;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -47,6 +48,8 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(LargestShareHolderCommand.class);
         } else if("_RELATIVE_HOLDER".equalsIgnoreCase(routingKey)){
             return findCommand(RelativeHolderCommand.class);
+        }else if("_STAFF_REPORT".equalsIgnoreCase(routingKey)){
+            return findCommand(StaffReportCommand.class);
         }else {
             return findCommand(DummyCommand.class);
         }

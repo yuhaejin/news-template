@@ -371,8 +371,9 @@ public abstract class BasicCommand extends BaseObject implements Command {
      * 이름이 - 인 것중에 이전 Change 성명과 동일하게 처리하는 로직..
      *
      * @param changes
+     * @param NAMES
      */
-    protected void setupName(List<Change> changes) {
+    protected void setupName(List<Change> changes, Map<String, String> NAMES) {
         if (hasNameDashNStock(changes)) {
             String name = findName(changes);
             if ("".equalsIgnoreCase(name)) {
@@ -389,9 +390,33 @@ public abstract class BasicCommand extends BaseObject implements Command {
                     }
                 }
             }
+
+
         } else {
+            for (Change change : changes) {
+                String name = change.getName();
+                if (isEmpty(name)) {
+                    continue;
+                }
+
+                if (name.contains("주식회사")) {
+                    String _name = StringUtils.remove(name, "주식회사").trim();
+                    log.info(name + " ==> " + _name);
+                    change.setName(_name);
+                } else {
+                    if (NAMES.containsKey(name)) {
+                        String _name = NAMES.get(name);
+                        log.info(name + " ==> " + _name);
+                        change.setName(_name);
+                    }
+                }
+
+
+            }
+
             // no action
         }
+
     }
 
     protected void setupName2(List<Change> changes) {
@@ -417,7 +442,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
     }
 
-    private String findName(List<Change> changes) {
+    private String findName(List<Change>  changes) {
         for (Change change : changes) {
             String name = change.getName();
             if (isEmpty(name) || "-".equalsIgnoreCase(name) || "\"".equalsIgnoreCase(name)) {

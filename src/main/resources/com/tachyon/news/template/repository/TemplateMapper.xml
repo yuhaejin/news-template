@@ -453,5 +453,28 @@
           and a.temp_rpt_nm <> #{temp_rpt_nm}
         ]]>
     </select>
+
+<!--    findStaffCount-->
+    <select id="findStaffCount" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(a.seq)
+        from staffholder a
+        where a.isu_cd = #{isuCd}
+          and a.name = #{name}
+          and a.birth_day = #{birth}
+        ]]>
+    </select>
+
+<!--    findLastDayStaffCount-->
+    <select id="findLastDayStaffCount" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(a.seq)
+        from staffholder a
+        where a.isu_cd = #{isuCd}
+          and a.name = #{name}
+          and a.birth_day = #{birth_day}
+          and a.kongsi_day = #{kongsi_day}
+        ]]>
+    </select>
 </mapper>
 

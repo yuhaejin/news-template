@@ -46,6 +46,7 @@ public class RabbitMqRouteConfig {
     Queue _RELATIVE_HOLDER() {
         return QueueBuilder.durable("_RELATIVE_HOLDER").build();
     }
+
     @Bean
     Queue _KEYWORD_NOTIFICATION() {
         return QueueBuilder.durable("_KEYWORD_NOTIFICATION").build();
@@ -70,17 +71,24 @@ public class RabbitMqRouteConfig {
     Queue _ERROR_QUEUE() {
         return QueueBuilder.durable("_ERROR_QUEUE").build();
     }
+
     @Bean
     Queue _TELEGRAM() {
         return QueueBuilder.durable("_TELEGRAM").build();
     }
+
     @Bean
     Queue _ROMOR_HOLDER() {
         return QueueBuilder.durable("_ROMOR_HOLDER").build();
     }
+
     @Bean
     Queue _LARGEST_SHARE_HOLDER() {
         return QueueBuilder.durable("_LARGEST_SHARE_HOLDER").build();
     }
 
+    @Bean
+    Queue _STAFF_REPORT() {
+        return QueueBuilder.durable("_STAFF_REPORT").build();
+    }
 }

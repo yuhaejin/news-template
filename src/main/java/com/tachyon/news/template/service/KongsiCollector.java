@@ -50,23 +50,22 @@ public class KongsiCollector extends AbstractService {
             String key = myContext.findInputValue(message);
             log.info("<<< " + key);
 
-            String path = myContext.getSkipDocNoIsuCdAcptNoFilePath();
-            File f = new File(path);
-            if (f.exists() == false) {
-                // skip
-            }else {
-                List<String> strings = FileUtils.readLines(f, "UTF-8");
-                if (strings.size() > 0) {
-                    for (String line : strings) {
-                        temp.put(line, line);
-                    }
-                }
-            }
-
-            if (temp.containsKey(key)) {
-                log.error("SkIP " + key);
-                return;
-            }
+//            String path = myContext.getSkipDocNoIsuCdAcptNoFilePath();
+//            File f = new File(path);
+//            if (f.exists() == false) {
+//                 skip
+//            }else {
+//                List<String> strings = FileUtils.readLines(f, "UTF-8");
+//                if (strings.size() > 0) {
+//                    for (String line : strings) {
+//                        temp.put(line, line);
+//                    }
+//                }
+//            }
+//            if (temp.containsKey(key)) {
+//                log.error("SkIP " + key);
+//                return;
+//            }
             DocNoIsuCd docNoIsuCd = findDocNoIsuCd(key);
             String docNo = docNoIsuCd.getDocNo();
             String code = docNoIsuCd.getIsuCd();
@@ -101,6 +100,10 @@ public class KongsiCollector extends AbstractService {
             }
 
             // 텍스트 파일 체크 및 처리..
+            if (validate(content) == false) {
+                log.error(" INVALID HTML "+key+" "+filePath+" "+docUrl);
+                return;
+            }
             String text = convertText(content);
             log.info("텍스트파일 처리... "+htmlFile+" textSize="+text.length());
             String txtPath = findPath(myContext.getHtmlTargetPath(), code, docNo, "txt");
@@ -148,7 +151,16 @@ public class KongsiCollector extends AbstractService {
     private String convertText(String content) {
         return BizUtils.extractText(content);
     }
-
+    private boolean validate(String raw) {
+        raw = raw.trim();
+        if (raw.endsWith("</HTML>")) {
+            return true;
+        } else if (raw.endsWith("</html>")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     private String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, String docUrl) throws IOException {
         log.info("공시파일 수집.. "+docUrl);

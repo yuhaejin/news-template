@@ -116,4 +116,15 @@ public interface TemplateMapper {
     int findDupStockCountOnSameKind(Map<String, Object> param);
 
     int findDupStockOnOtherKind(Map<String, Object> param);
+
+    /**
+     * 정정 임원ㆍ주요주주특정증권등소유상황보고서 공시인 경우 이전 공시 데이터 삭제함.
+     * @param code
+     * @param docNo
+     */
+    void deleteBeforeStaffHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+
+    int findStaffCount(@Param("isuCd")String code, @Param("name")String name, @Param("birth")String birth);
+
+    int findLastDayStaffCount(@Param("isuCd")String code, @Param("name")String name, @Param("birth_day")String birth, @Param("kongsi_day")String endDate);
 }

@@ -39,6 +39,19 @@ public class StockHolderCommand extends BasicCommand {
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
+    /**
+     * 투자자명을 변경을 함. 중복되지 않도록 하기 위해서.
+     *
+     */
+    private static Map<String, String> NAMES = new HashMap<>();
+
+    static {
+        NAMES.put("One Equity Partners IV, L.P.", "ONE EQUITY PARTNERS Ⅳ,L.P.");
+    }
+
+
+
+
     @Override
     public void execute(Message message) throws Exception {
         String key = myContext.findInputValue(message);
@@ -47,6 +60,8 @@ public class StockHolderCommand extends BasicCommand {
             log.info("준실시간데이터가 아님.. " + key);
             return;
         }
+
+
         // 이미 처리된 공시인지 확인
         // 처리되지 않았으면 공시 수집
         // 공시 StockChange 분석함
@@ -71,6 +86,10 @@ public class StockHolderCommand extends BasicCommand {
             String tnsDt = findTnsDt(map);
             String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
             // 일반문서처리.
+            log.info("... done docRow");
+            if (validate(docRaw) == false) {
+                return;
+            }
             Table table = null;
             if (isStaffStockStatusKongsi(docNm)) {
                 //임원ㆍ주요주주특정증권등소유상황보고서
@@ -142,7 +161,7 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
 
-            setupName(changes);
+            setupName(changes,NAMES);
             setupPrice(changes);
             log.info("주식거래내역 ... " + changes.size());
             int stockCount = 0;
@@ -203,6 +222,17 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+
+    private boolean validate(String raw) {
+        raw = raw.trim();
+        if (raw.endsWith("</HTML>")) {
+            return true;
+        } else if (raw.endsWith("</html>")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     /**
      * 최대주주등소유주식변동신고서 스크래핑한 데이터중에 처리일시가 잘못되어 중복되어 나왔는데 이걸 방지하기 위한 로직임.
      * 두개의 제한 조건이 들어감
