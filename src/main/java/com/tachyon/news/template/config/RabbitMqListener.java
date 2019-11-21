@@ -45,7 +45,7 @@ public class RabbitMqListener {
     public void TEMPLATE(Message message) {
         execute(message,"TEMPLATE");
     }
-    @RabbitListener(queues = {"_RELATIVE_HOLDER","_STAFF_REPORT"})
+    @RabbitListener(queues = {"_RELATIVE_HOLDER","_STAFF_REPORT","_PROVISIONAL_PERF"})
     public void TEMPLATE2(Message message) {
         execute(message,"TEMPLATE");
     }

@@ -1,0 +1,77 @@
+censed to the Apache Software Foundation (ASF) under one or more
+## contributor license agreements.  See the NOTICE file distributed with
+## this work for additional information regarding copyright ownership.
+## The ASF licenses this file to You under the Apache License, Version 2.0
+## (the "License"); you may not use this file except in compliance with
+## the License.  You may obtain a copy of the License at
+##
+##      http://www.apache.org/licenses/LICENSE-2.0
+##
+## Unless required by applicable law or agreed to in writing, software
+## distributed under the License is distributed on an "AS IS" BASIS,
+## WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+## See the License for the specific language governing permissions and
+## limitations under the License.
+## ---------------------------------------------------------------------------
+
+debug = false
+
+logging.level.org.springframework = INFO
+logging.level.io.atomix = DEBUG
+logging.level.org.apache.camel.cluster = DEBUG
+logging.level.org.apache.camel.impl.cluster = DEBUG
+logging.level.org.apache.camel.component.atomix = DEBUG
+logging.level.org.apache.camel.component.master = DEBUG
+logging.level.org.apache.camel.examples.cluster = DEBUG
+
+#logging.config=classpath:logback.xml
+#logging.config=classpath:log4j2.properties
+#server.address=0.0.0.0
+#server.port=8087
+
+spring.rabbitmq.host=10.168.0.2
+spring.rabbitmq.username=lloydkwon
+spring.rabbitmq.password=miso2miso
+spring.rabbitmq.port=5672
+
+spring.rabbitmq.listener.simple.concurrency=2
+spring.rabbitmq.listener.simple.max-concurrency=4
+spring.rabbitmq.listener.simple.retry.initial-interval=5000
+
+
+
+spring.main.web-application-type=none
+spring.datasource.url=jdbc:mysql://10.168.0.2:3306/tachyon?useSSL=false&allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8
+spring.datasource.username=dbuser1
+spring.datasource.password=tachy!23
+spring.datasource.driver-class-name=com.mysql.jdbc.Driver
+
+kongsi.html.targetPath=/mnt/disks/disk01/kongsi-new-html
+kongsi.json.targetPath=/mnt/disks/disk01/basic-kongsi
+kongsi.spclp.path=/mnt/disks/disk01/spc-lp-txt
+kongsi.spclp.keyword=\ubc95\uc778\ub4f1\ub85d\ubc88\ud638
+
+kongsi.template.queues=_STOCK_HOLDER,_ELASTICSEARCH_INDEX,_STAFF_HOLDER,_PURPOSE_HOLDER,_KEYWORD_NOTIFICATION,_LARGEST_SHARE_HOLDER,_RELATIVE_HOLDER,_ROMOR_HOLDER,_STAFF_REPORT,_PROVISIONAL_PERF
+
+
+kongsi.elastic-url=10.168.0.2
+kongsi.elastic-port=9202
+kongsi.elastic-index=tachyon-news
+kongsi.elastic-type=kongsi
+kongsi.elastic-bulk-action=100
+kongsi.elastic-flush-interval=60
+kongsi.elastic-bulk-size=25
+
+#kongsi.telegram.chatId=334618638
+#kongsi.telegram.chatId=551021193
+kongsi.telegram.chatId=-384784509
+
+
+#spring.task.scheduling.pool.size=8
+#spring.task.scheduling.thread-name-prefix=news
+
+kongsi.skip.key.path=/home/firstgathering/crawler/news-template/config/skip.txt
+
+max.pool.size=100
+core.pool.size=75
+queue.capacity=75

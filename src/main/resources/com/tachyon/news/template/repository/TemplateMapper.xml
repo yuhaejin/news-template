@@ -12,7 +12,6 @@
     <!--        </collection>-->
     <!--    </resultMap>-->
 
-
     <select id="findKongsiHalder2" resultType="map" parameterType="string">
         select a.doc_nm,
                a.doc_url,
@@ -21,11 +20,13 @@
                a.rpt_nm,
                a.tns_dt,
                a.submit_nm,
-               a.temp_rpt_nm
-        from kongsiholder a
+               a.temp_rpt_nm,
+               b.isu_nm
+        from kongsiholder a,isu b
         where a.doc_no = #{doc_no}
           and a.isu_cd = #{isu_cd}
           and a.acpt_no = #{acpt_no}
+          and a.isu_cd = b.isu_cd
     </select>
     <insert id="insertStockHolder" parameterType="map">
         INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt)
@@ -476,5 +477,31 @@
           and a.kongsi_day = #{kongsi_day}
         ]]>
     </select>
+
+    <select id="findCode" parameterType="string" resultType="string">
+        select isu_cd
+        from isu
+        where isu_nm = #{isu_nm}
+    </select>
+    <delete id="deleteBeforePerfHolder" parameterType="map">
+        delete
+        from perfholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+    <!--    findDuplicatePerf-->
+    <select id="findDuplicatePerf" resultType="int" parameterType="map">
+        select count(seq)
+        from perfholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+    <!--    insertPerf-->
+
+    <insert id="insertPerf" parameterType="map">
+        INSERT INTO perfholder (seq, dang_mae_dang, dang_mae_nu, dang_yeong_dang, dang_yeong_nu, dang_beob_dang, dang_beob_nu, dang_dang_dang, dang_dang_nu, dang_ji_dang, dang_ji_nu, sil_mae_dang, sil_mae_nu, sil_yeong_dang, sil_yeong_nu, sil_beob_dang, sil_beob_nu, sil_dang_dang, sil_dang_nu, sil_ji_dang, sil_ji_nu, yul_mae_dang, yul_mae_nu, yul_yeong_dang, yul_yeong_nu, yul_beob_dang, yul_beob_nu, yul_dang_dang, yul_dang_nu, yul_ji_dang, yul_ji_nu, jeon_sil_mae_dang, jeon_sil_mae_nu, jeon_sil_yeong_dang, jeon_sil_yeong_nu, jeon_sil_beob_dang, jeon_sil_beob_nu, jeon_sil_dang_dang, jeon_sil_dang_nu, jeon_sil_ji_dang, jeon_sil_ji_nu, jeon_jeung_mae_dang, jeon_jeung_mae_nu, jeon_jeung_yeong_dang, jeon_jeung_yeong_nu, jeon_jeung_beob_dang, jeon_jeung_beob_nu, jeon_jeung_dang_dang, jeon_jeung_dang_nu, jeon_jeung_ji_dang, jeon_jeung_ji_nu, unit1, unit2, provider, subject, provider_date, provider_positon, contact, isu_cd, doc_no, acpt_no, acpt_dt)
+        VALUES (#{seq},#{dang_mae_dang},#{dang_mae_nu},#{dang_yeong_dang},#{dang_yeong_nu},#{dang_beob_dang},#{dang_beob_nu},#{dang_dang_dang},#{dang_dang_nu},#{dang_ji_dang},#{dang_ji_nu},#{sil_mae_dang},#{sil_mae_nu},#{sil_yeong_dang},#{sil_yeong_nu},#{sil_beob_dang},#{sil_beob_nu},#{sil_dang_dang},#{sil_dang_nu},#{sil_ji_dang},#{sil_ji_nu},#{yul_mae_dang},#{yul_mae_nu},#{yul_yeong_dang},#{yul_yeong_nu},#{yul_beob_dang},#{yul_beob_nu},#{yul_dang_dang},#{yul_dang_nu},#{yul_ji_dang},#{yul_ji_nu},#{jeon_sil_mae_dang},#{jeon_sil_mae_nu},#{jeon_sil_yeong_dang},#{jeon_sil_yeong_nu},#{jeon_sil_beob_dang},#{jeon_sil_beob_nu},#{jeon_sil_dang_dang},#{jeon_sil_dang_nu},#{jeon_sil_ji_dang},#{jeon_sil_ji_nu},#{jeon_jeung_mae_dang},#{jeon_jeung_mae_nu},#{jeon_jeung_yeong_dang},#{jeon_jeung_yeong_nu},#{jeon_jeung_beob_dang},#{jeon_jeung_beob_nu},#{jeon_jeung_dang_dang},#{jeon_jeung_dang_nu},#{jeon_jeung_ji_dang},#{jeon_jeung_ji_nu},#{unit1},#{unit2},#{provider},#{subject},#{provider_date},#{provider_positon},#{contact},#{isu_cd},#{doc_no},#{acpt_no},#{acpt_dt})
+    </insert>
 </mapper>
 

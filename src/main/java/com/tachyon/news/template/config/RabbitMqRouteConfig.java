@@ -91,4 +91,14 @@ public class RabbitMqRouteConfig {
     Queue _STAFF_REPORT() {
         return QueueBuilder.durable("_STAFF_REPORT").build();
     }
+
+    /**
+     * 잠정적인 영업실적
+     * @return
+     */
+    @Bean
+    Queue _PROVISIONAL_PERF() {
+        return QueueBuilder.durable("_PROVISIONAL_PERF").build();
+    }
+
 }

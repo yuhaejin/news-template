@@ -127,4 +127,12 @@ public interface TemplateMapper {
     int findStaffCount(@Param("isuCd")String code, @Param("name")String name, @Param("birth")String birth);
 
     int findLastDayStaffCount(@Param("isuCd")String code, @Param("name")String name, @Param("birth_day")String birth, @Param("kongsi_day")String endDate);
+
+    String findCode(String codeNm);
+
+    void deleteBeforePerfHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code);
+
+    int findDuplicatePerf(Map<String, Object> param);
+
+    void insertPerf(Map<String, Object> param);
 }

@@ -50,22 +50,23 @@ public class KongsiCollector extends AbstractService {
             String key = myContext.findInputValue(message);
             log.info("<<< " + key);
 
-//            String path = myContext.getSkipDocNoIsuCdAcptNoFilePath();
-//            File f = new File(path);
-//            if (f.exists() == false) {
-//                 skip
-//            }else {
-//                List<String> strings = FileUtils.readLines(f, "UTF-8");
-//                if (strings.size() > 0) {
-//                    for (String line : strings) {
-//                        temp.put(line, line);
-//                    }
-//                }
-//            }
-//            if (temp.containsKey(key)) {
-//                log.error("SkIP " + key);
-//                return;
-//            }
+            String path = myContext.getSkipDocNoIsuCdAcptNoFilePath();
+            File f = new File(path);
+            if (f.exists() == false) {
+
+            }else {
+                List<String> strings = FileUtils.readLines(f, "UTF-8");
+                if (strings.size() > 0) {
+                    for (String line : strings) {
+                        temp.put(line, line);
+                    }
+                }
+            }
+
+            if (temp.containsKey(key)) {
+                log.error("SkIP " + key);
+                return;
+            }
             DocNoIsuCd docNoIsuCd = findDocNoIsuCd(key);
             String docNo = docNoIsuCd.getDocNo();
             String code = docNoIsuCd.getIsuCd();

@@ -403,7 +403,11 @@ public abstract class BasicCommand extends BaseObject implements Command {
                     String _name = StringUtils.remove(name, "주식회사").trim();
                     log.info(name + " ==> " + _name);
                     change.setName(_name);
-                } else {
+                } else if(name.contains("유한회사")){
+                    String _name = StringUtils.remove(name, "유한회사").trim();
+                    log.info(name + " ==> " + _name);
+                    change.setName(_name);
+                }else {
                     if (NAMES.containsKey(name)) {
                         String _name = NAMES.get(name);
                         log.info(name + " ==> " + _name);

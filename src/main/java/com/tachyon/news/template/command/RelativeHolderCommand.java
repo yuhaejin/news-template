@@ -72,7 +72,6 @@ public class RelativeHolderCommand extends BasicCommand {
                 return;
             }
 
-
             String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
 
             List<Relative> relatives = new ArrayList<>();
@@ -86,7 +85,6 @@ public class RelativeHolderCommand extends BasicCommand {
 
                 List<Table> tables = stockChangeTableParser.parseSome(docRaw, docUrl, myParser);
                 if (tables != null && tables.size() > 0) {
-
                     for (Table _table : tables) {
                         _table.findRelative(relatives, docNo, code, acptNo, docUrl);
                     }

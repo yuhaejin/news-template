@@ -20,10 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * TODO 국믄연금관련된 문제가 있을 때... 통일된 투자자 이름으로 변경을 해야 함.
@@ -47,8 +44,8 @@ public class StockHolderCommand extends BasicCommand {
 
     static {
         NAMES.put("One Equity Partners IV, L.P.", "ONE EQUITY PARTNERS Ⅳ,L.P.");
+        NAMES.put("리잘커머셜뱅킹코퍼레이션", "RIZAL COMMERCIAL BANKING CORPORATION");
     }
-
 
 
 
@@ -76,13 +73,14 @@ public class StockHolderCommand extends BasicCommand {
         Map<String, Object> map = findKongsiHalder(myContext, message, templateMapper, docNo, code, acptNo);
         if (map != null) {
             List<Change> changes = new ArrayList<>();
-            Map<String, Change> FILTER = new HashMap<>();
+            Map<String, Change> FILTER = new LinkedHashMap<>();
             Map<String, String> DELETE = new HashMap<>();
             String docUrl = Maps.getValue(map, "doc_url");
             log.info("... " + docUrl);
             String docNm = Maps.getValue(map, "doc_nm");
             String rptNm = Maps.getValue(map, "rpt_nm");
             String tempRptNm = Maps.getValue(map, "temp_rpt_nm");
+            String codeNm = Maps.getValue(map, "isu_nm");
             String tnsDt = findTnsDt(map);
             String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
             // 일반문서처리.
@@ -153,16 +151,21 @@ public class StockHolderCommand extends BasicCommand {
                 if (DELETE.containsKey(change.getDocNo()) == false) {
                     change.setAcptNo(acptNo);
                     change.setIsuCd(code);
-                    if (isNameTotal(change.getName()) == false) {
+
+                    if (isNameTotal(change.getName())) {
                         // 이름이 합계이면 skip..
-                        changes.add(change);
-                    } else {
+                        continue;
                     }
+                    if(hasEmptyValue(change)){
+                        continue;
+                    }
+
+                    changes.add(change);
                 }
             }
 
             setupName(changes,NAMES);
-            setupPrice(changes);
+            setupPrice(changes,codeNm);
             log.info("주식거래내역 ... " + changes.size());
             int stockCount = 0;
             for (Change change : changes) {
@@ -203,7 +206,6 @@ public class StockHolderCommand extends BasicCommand {
                         }
                     }
 
-
                 }
             }
 
@@ -222,6 +224,13 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private boolean hasEmptyValue(Change change) {
+        if (change.getBefore() == 0 && change.getAfter() == 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
     private boolean validate(String raw) {
         raw = raw.trim();
@@ -354,12 +363,24 @@ public class StockHolderCommand extends BasicCommand {
      * 단가가 0이면 해당일의 종가를 가져와 설정함.
      *
      * @param changes
+     * @param codeNm
      */
-    private void setupPrice(List<Change> changes) {
+    private void setupPrice(List<Change> changes, String codeNm) {
         for (Change change : changes) {
             if (change.getPrice() == 0) {
                 log.debug("  " + change.getDate());
-                Integer price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
+                Integer price = null;
+                if (isPreferredStock(change)) {
+                    // 우선주 회사코드 필요
+                    String preferredCode = findPreferred(codeNm);
+                    if (isEmpty(preferredCode)) {
+                        price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
+                    } else {
+                        price = templateMapper.findClose(preferredCode, new Timestamp(change.getDateTime()));
+                    }
+                } else {
+                    price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
+                }
                 if (price == null || price == 0) {
                     log.debug("no...");
                 } else {
@@ -368,6 +389,32 @@ public class StockHolderCommand extends BasicCommand {
                     change.setupProfit();
                 }
             }
+        }
+    }
+
+    /**
+     * TODO
+     * 회사명으로 우선주 회사 찾기
+     * @param codeNm
+     * @return
+     */
+    private String findPreferred(String codeNm) {
+        codeNm = codeNm + "우";
+        return templateMapper.findCode(codeNm);
+    }
+
+    /**
+     * TODO 변경가능.
+     * 우선주인지 여부 확인
+     * @param change
+     * @return
+     */
+    private boolean isPreferredStock(Change change) {
+        String stockMethod = change.getStockMethod();
+        if (StringUtils.equalsAny(stockMethod, "종류주식", "우선주","자동전환우선주")) {
+            return true;
+        } else {
+            return false;
         }
     }
 
