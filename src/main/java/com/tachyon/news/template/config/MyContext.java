@@ -7,6 +7,8 @@ import com.tachyon.news.template.model.Keyword;
 import com.tachyon.news.template.model.User;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import java.io.File;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -60,10 +64,25 @@ public class MyContext {
     private int corePoolSize;
     @Value("${queue.capacity}")
     private int queueCapacity;
+    @Value("${dir.to.monitor}")
+    private String dirToMonitor;
 
     private String[] templates;
     private AtomicLong gatewayCount = new AtomicLong();
+    /**
+     * 투자자명 변경.
+     * KEY 인 투자자명을 VALUE 투자자명으로 변경함.
+     */
+    private Map<String, String> INVESTER_NAME = new HashMap<>();
 
+
+    public String getDirToMonitor() {
+        return dirToMonitor;
+    }
+
+    public void setDirToMonitor(String dirToMonitor) {
+        this.dirToMonitor = dirToMonitor;
+    }
     private Map<String, String> isuCdNmMap = new HashMap<>();
     @Autowired
     private TemplateMapper templateMapper;
@@ -93,6 +112,28 @@ public class MyContext {
         refreshTelegramUserInfo();
         setupRepresentativeName();
         viewValue();
+        setupInvestorName();
+    }
+
+    private void setupInvestorName() {
+        File dir = new File(getDirToMonitor());
+        if (dir.exists()==false) {
+            return;
+        }
+
+
+        File[] files = dir.listFiles();
+        for (File f : files) {
+            String name = FilenameUtils.getName(f.getAbsolutePath());
+            if (name.equalsIgnoreCase("investor.txt")) {
+                try {
+                    List<String> lines = FileUtils.readLines(f, "UTF-8");
+                    initializeInvestor(lines);
+                } catch (IOException e) {
+
+                }
+            }
+        }
     }
 
     private void viewValue() {
@@ -107,7 +148,36 @@ public class MyContext {
         INVESTOR_MAP.put("국민연금기금", "국민연금");
     }
 
+    public void initializeInvestor(List<String> lines) {
+        if (lines == null || lines.size() == 0) {
+            return;
+        }
 
+        synchronized (INVESTER_NAME) {
+            INVESTER_NAME.clear();
+            for (String line : lines) {
+                if (line.startsWith("#")) {
+                    continue;
+                }
+                log.info("... "+line);
+                String[] strings = StringUtils.splitByWholeSeparator(line, "=");
+                if (strings.length == 2) {
+                    log.info(strings[0]+" >>> "+strings[1]);
+                    INVESTER_NAME.put(strings[0], strings[1]);
+                }
+            }
+        }
+    }
+
+    public String findInvestorName(String name) {
+        synchronized (INVESTER_NAME) {
+            if (INVESTER_NAME.containsKey(name)==false) {
+                return null;
+            } else {
+                return INVESTER_NAME.get(name);
+            }
+        }
+    }
     public int getMaxPoolSize() {
         return maxPoolSize;
     }
@@ -468,5 +538,7 @@ public class MyContext {
         QUEUE_MAP.put(queueName, newCount);
         return result;
     }
+
+
 
 }

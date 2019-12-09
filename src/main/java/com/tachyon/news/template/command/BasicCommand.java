@@ -41,9 +41,11 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return map;
     }
+
     boolean isMajorStockChangeKongis(String docNm) {
         return docNm.contains("최대주주등소유주식변동신고서");
     }
+
     Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo, String code, String acptNo) {
         return templateMapper.findKongsiHalder2(docNo, code, acptNo);
     }
@@ -157,6 +159,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
             return false;
         }
     }
+
     String findBeforeKongsi(TemplateMapper templateMapper, String code, String acptNo) {
         List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
         for (Map<String, Object> map : maps) {
@@ -195,7 +198,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
 
     public Map<String, Object> paramMap(Kongsi kongsi, Kongsi.UrlInfo urlInfo, String isuCd, String day) {
-        return urlInfo.simpleParamMap(kongsi.getAcpt_no(), isuCd, tnsDt(kongsi.getTns_dt(), day), kongsi.getRpt_nm(),kongsi.getSubmit_oblg_nm());
+        return urlInfo.simpleParamMap(kongsi.getAcpt_no(), isuCd, tnsDt(kongsi.getTns_dt(), day), kongsi.getRpt_nm(), kongsi.getSubmit_oblg_nm());
     }
 
     private String tnsDt(String tnsDt, String day) {
@@ -366,14 +369,13 @@ public abstract class BasicCommand extends BaseObject implements Command {
     }
 
 
-
     /**
      * 이름이 - 인 것중에 이전 Change 성명과 동일하게 처리하는 로직..
      *
      * @param changes
-     * @param NAMES
+     * @param myContext
      */
-    protected void setupName(List<Change> changes, Map<String, String> NAMES) {
+    protected void setupName(List<Change> changes, MyContext myContext) {
         if (hasNameDashNStock(changes)) {
             String name = findName(changes);
             if ("".equalsIgnoreCase(name)) {
@@ -403,19 +405,17 @@ public abstract class BasicCommand extends BaseObject implements Command {
                     String _name = StringUtils.remove(name, "주식회사").trim();
                     log.info(name + " ==> " + _name);
                     change.setName(_name);
-                } else if(name.contains("유한회사")){
+                } else if (name.contains("유한회사")) {
                     String _name = StringUtils.remove(name, "유한회사").trim();
                     log.info(name + " ==> " + _name);
                     change.setName(_name);
-                }else {
-                    if (NAMES.containsKey(name)) {
-                        String _name = NAMES.get(name);
-                        log.info(name + " ==> " + _name);
+                } else {
+                    String _name = myContext.findInvestorName(name);
+                    if (_name != null) {
+                        log.info("CONVERT_INVESTOR "+ name + " ==> " + _name);
                         change.setName(_name);
                     }
                 }
-
-
             }
 
             // no action
@@ -446,7 +446,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
     }
 
-    private String findName(List<Change>  changes) {
+    private String findName(List<Change> changes) {
         for (Change change : changes) {
             String name = change.getName();
             if (isEmpty(name) || "-".equalsIgnoreCase(name) || "\"".equalsIgnoreCase(name)) {
@@ -477,6 +477,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return false;
     }
+
     boolean isSemiRealTimeData(Message message) {
         if (message.getMessageProperties().getHeaders().containsKey("__SEMI_REAL_TIME")) {
             if ("YES".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__SEMI_REAL_TIME"))) {

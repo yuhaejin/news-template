@@ -433,9 +433,30 @@
           and a.temp_rpt_nm = #{temp_rpt_nm}
         ]]>
     </select>
+    <select id="findDupStockSeqOnSameKind" resultType="long" parameterType="map">
+        <![CDATA[
+        select b.seq
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+                   and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm = #{temp_rpt_nm}
+        ]]>
+    </select>
 
-<!--    findDupStockOnOtherKind-->
-    <select id="findDupStockOnOtherKind" resultType="int" parameterType="map">
+
+<!--    findDupStockCountOnOtherKind-->
+    <select id="findDupStockCountOnOtherKind" resultType="int" parameterType="map">
         <![CDATA[
         select count(b.seq)
         from kongsiholder a,
@@ -454,7 +475,25 @@
           and a.temp_rpt_nm <> #{temp_rpt_nm}
         ]]>
     </select>
-
+    <select id="findDupStockSeqOnOtherKind" resultType="long" parameterType="map">
+        <![CDATA[
+        select b.seq
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm <> #{temp_rpt_nm}
+        ]]>
+    </select>
 <!--    findStaffCount-->
     <select id="findStaffCount" resultType="int" parameterType="map">
         <![CDATA[
@@ -500,8 +539,21 @@
     <!--    insertPerf-->
 
     <insert id="insertPerf" parameterType="map">
-        INSERT INTO perfholder (seq, dang_mae_dang, dang_mae_nu, dang_yeong_dang, dang_yeong_nu, dang_beob_dang, dang_beob_nu, dang_dang_dang, dang_dang_nu, dang_ji_dang, dang_ji_nu, sil_mae_dang, sil_mae_nu, sil_yeong_dang, sil_yeong_nu, sil_beob_dang, sil_beob_nu, sil_dang_dang, sil_dang_nu, sil_ji_dang, sil_ji_nu, yul_mae_dang, yul_mae_nu, yul_yeong_dang, yul_yeong_nu, yul_beob_dang, yul_beob_nu, yul_dang_dang, yul_dang_nu, yul_ji_dang, yul_ji_nu, jeon_sil_mae_dang, jeon_sil_mae_nu, jeon_sil_yeong_dang, jeon_sil_yeong_nu, jeon_sil_beob_dang, jeon_sil_beob_nu, jeon_sil_dang_dang, jeon_sil_dang_nu, jeon_sil_ji_dang, jeon_sil_ji_nu, jeon_jeung_mae_dang, jeon_jeung_mae_nu, jeon_jeung_yeong_dang, jeon_jeung_yeong_nu, jeon_jeung_beob_dang, jeon_jeung_beob_nu, jeon_jeung_dang_dang, jeon_jeung_dang_nu, jeon_jeung_ji_dang, jeon_jeung_ji_nu, unit1, unit2, provider, subject, provider_date, provider_positon, contact, isu_cd, doc_no, acpt_no, acpt_dt)
-        VALUES (#{seq},#{dang_mae_dang},#{dang_mae_nu},#{dang_yeong_dang},#{dang_yeong_nu},#{dang_beob_dang},#{dang_beob_nu},#{dang_dang_dang},#{dang_dang_nu},#{dang_ji_dang},#{dang_ji_nu},#{sil_mae_dang},#{sil_mae_nu},#{sil_yeong_dang},#{sil_yeong_nu},#{sil_beob_dang},#{sil_beob_nu},#{sil_dang_dang},#{sil_dang_nu},#{sil_ji_dang},#{sil_ji_nu},#{yul_mae_dang},#{yul_mae_nu},#{yul_yeong_dang},#{yul_yeong_nu},#{yul_beob_dang},#{yul_beob_nu},#{yul_dang_dang},#{yul_dang_nu},#{yul_ji_dang},#{yul_ji_nu},#{jeon_sil_mae_dang},#{jeon_sil_mae_nu},#{jeon_sil_yeong_dang},#{jeon_sil_yeong_nu},#{jeon_sil_beob_dang},#{jeon_sil_beob_nu},#{jeon_sil_dang_dang},#{jeon_sil_dang_nu},#{jeon_sil_ji_dang},#{jeon_sil_ji_nu},#{jeon_jeung_mae_dang},#{jeon_jeung_mae_nu},#{jeon_jeung_yeong_dang},#{jeon_jeung_yeong_nu},#{jeon_jeung_beob_dang},#{jeon_jeung_beob_nu},#{jeon_jeung_dang_dang},#{jeon_jeung_dang_nu},#{jeon_jeung_ji_dang},#{jeon_jeung_ji_nu},#{unit1},#{unit2},#{provider},#{subject},#{provider_date},#{provider_positon},#{contact},#{isu_cd},#{doc_no},#{acpt_no},#{acpt_dt})
+        INSERT INTO perfholder (seq, dang_mae_dang, dang_mae_nu, dang_yeong_dang, dang_yeong_nu, dang_beob_dang, dang_beob_nu, dang_dang_dang, dang_dang_nu, dang_ji_dang, dang_ji_nu, sil_mae_dang, sil_mae_nu, sil_yeong_dang, sil_yeong_nu, sil_beob_dang, sil_beob_nu, sil_dang_dang, sil_dang_nu, sil_ji_dang, sil_ji_nu, yul_mae_dang, yul_mae_nu, yul_yeong_dang, yul_yeong_nu, yul_beob_dang, yul_beob_nu, yul_dang_dang, yul_dang_nu, yul_ji_dang, yul_ji_nu, jeon_sil_mae_dang, jeon_sil_mae_nu, jeon_sil_yeong_dang, jeon_sil_yeong_nu, jeon_sil_beob_dang, jeon_sil_beob_nu, jeon_sil_dang_dang, jeon_sil_dang_nu, jeon_sil_ji_dang, jeon_sil_ji_nu, jeon_jeung_mae_dang, jeon_jeung_mae_nu, jeon_jeung_yeong_dang, jeon_jeung_yeong_nu, jeon_jeung_beob_dang, jeon_jeung_beob_nu, jeon_jeung_dang_dang, jeon_jeung_dang_nu, jeon_jeung_ji_dang, jeon_jeung_ji_nu, unit1, unit2, provider, subject, provider_date, provider_positon, contact, isu_cd, doc_no, acpt_no, acpt_dt,quarter,quarter_tp,year)
+        VALUES (#{seq},#{dang_mae_dang},#{dang_mae_nu},#{dang_yeong_dang},#{dang_yeong_nu},#{dang_beob_dang},#{dang_beob_nu},#{dang_dang_dang},#{dang_dang_nu},#{dang_ji_dang},#{dang_ji_nu},#{sil_mae_dang},#{sil_mae_nu},#{sil_yeong_dang},#{sil_yeong_nu},#{sil_beob_dang},#{sil_beob_nu},#{sil_dang_dang},#{sil_dang_nu},#{sil_ji_dang},#{sil_ji_nu},#{yul_mae_dang},#{yul_mae_nu},#{yul_yeong_dang},#{yul_yeong_nu},#{yul_beob_dang},#{yul_beob_nu},#{yul_dang_dang},#{yul_dang_nu},#{yul_ji_dang},#{yul_ji_nu},#{jeon_sil_mae_dang},#{jeon_sil_mae_nu},#{jeon_sil_yeong_dang},#{jeon_sil_yeong_nu},#{jeon_sil_beob_dang},#{jeon_sil_beob_nu},#{jeon_sil_dang_dang},#{jeon_sil_dang_nu},#{jeon_sil_ji_dang},#{jeon_sil_ji_nu},#{jeon_jeung_mae_dang},#{jeon_jeung_mae_nu},#{jeon_jeung_yeong_dang},#{jeon_jeung_yeong_nu},#{jeon_jeung_beob_dang},#{jeon_jeung_beob_nu},#{jeon_jeung_dang_dang},#{jeon_jeung_dang_nu},#{jeon_jeung_ji_dang},#{jeon_jeung_ji_nu},#{unit1},#{unit2},#{provider},#{subject},#{provider_date},#{provider_positon},#{contact},#{isu_cd},#{doc_no},#{acpt_no},#{acpt_dt},#{quarter},#{quarter_tp},#{year})
     </insert>
+<!--    insertDupStock-->
+    <insert id="insertDupStock" parameterType="map">
+        INSERT INTO stockdupholder (isu_cd, doc_no, acpt_no, doc_url, stock_seq)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{doc_url}, #{stock_seq})
+    </insert>
+<!--    findDupStockCount-->
+    <select id="findDupStockCount" resultType="int" parameterType="map">
+        select count(seq)
+        from stockdupholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
 </mapper>
 

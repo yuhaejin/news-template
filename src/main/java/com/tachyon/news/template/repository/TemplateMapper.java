@@ -114,8 +114,10 @@ public interface TemplateMapper {
     int findRelativeHodlerSize(Map<String, Object> param);
 
     int findDupStockCountOnSameKind(Map<String, Object> param);
+    List<Long> findDupStockSeqOnSameKind(Map<String, Object> param);
 
-    int findDupStockOnOtherKind(Map<String, Object> param);
+    int findDupStockCountOnOtherKind(Map<String, Object> param);
+    List<Long> findDupStockSeqOnOtherKind(Map<String, Object> param);
 
     /**
      * 정정 임원ㆍ주요주주특정증권등소유상황보고서 공시인 경우 이전 공시 데이터 삭제함.
@@ -135,4 +137,8 @@ public interface TemplateMapper {
     int findDuplicatePerf(Map<String, Object> param);
 
     void insertPerf(Map<String, Object> param);
+
+    void insertDupStock(Map<String, Object> param);
+
+    int findDupStockCount(Map<String, Object> param);
 }

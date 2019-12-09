@@ -15,6 +15,8 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import com.tachyon.news.template.telegram.TachyonMonitoringBot;
 import com.tachyon.news.template.telegram.TachyonNewsFlashBot;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.monitor.FileAlterationMonitor;
+import org.apache.commons.io.monitor.FileAlterationObserver;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.http.impl.nio.client.CloseableHttpAsyncClient;
@@ -85,9 +87,6 @@ public class NewsConfig {
         executor.setQueueCapacity(myContext.getQueueCapacity());
         return executor;
     }
-
-
-
 
     @Bean(destroyMethod = "close")
     public RestHighLevelClient restHighLevelClient() {
@@ -287,5 +286,15 @@ public class NewsConfig {
     @Bean(destroyMethod = "shutdown")
     public ExecutorService noGroupThreadPool() {
         return Executors.newFixedThreadPool(5);
+    }
+
+    @Bean(destroyMethod = "stop")
+    public FileAlterationMonitor fileAlterationMonitor() throws Exception {
+        FileAlterationMonitor monitor = new FileAlterationMonitor();
+        FileAlterationObserver observer       = new FileAlterationObserver(myContext.getDirToMonitor());
+        observer.addListener(new FileMonitorListener(myContext));
+        monitor.addObserver(observer);
+        monitor.start();
+        return monitor;
     }
 }

@@ -38,16 +38,14 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 투자자명을 변경을 함. 중복되지 않도록 하기 위해서.
-     *
      */
-    private static Map<String, String> NAMES = new HashMap<>();
 
     static {
-        NAMES.put("One Equity Partners IV, L.P.", "ONE EQUITY PARTNERS Ⅳ,L.P.");
-        NAMES.put("리잘커머셜뱅킹코퍼레이션", "RIZAL COMMERCIAL BANKING CORPORATION");
+//        NAMES.put("One Equity Partners IV, L.P.", "ONE EQUITY PARTNERS Ⅳ,L.P.");
+//        NAMES.put("리잘커머셜뱅킹코퍼레이션", "RIZAL COMMERCIAL BANKING CORPORATION");
+//        NAMES.put("이스트브릿지아시안미드마켓오퍼튜니티펀드엘피", "EastBridge Asian Mid-Market Opportunity Fund, L.P.");
+//
     }
-
-
 
     @Override
     public void execute(Message message) throws Exception {
@@ -147,7 +145,7 @@ public class StockHolderCommand extends BasicCommand {
 
             for (String _key : FILTER.keySet()) {
                 Change change = FILTER.get(_key);
-                log.debug(change.toString());
+
                 if (DELETE.containsKey(change.getDocNo()) == false) {
                     change.setAcptNo(acptNo);
                     change.setIsuCd(code);
@@ -164,7 +162,7 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
 
-            setupName(changes,NAMES);
+            setupName(changes,myContext);
             setupPrice(changes,codeNm);
             log.info("주식거래내역 ... " + changes.size());
             int stockCount = 0;
@@ -172,10 +170,9 @@ public class StockHolderCommand extends BasicCommand {
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
                     log.info("거래내역에 이름이 없어 SKIP " + change);
                 } else {
-
                     //대표투자자명으로 변경함.
                     modifyRepresentativeName(change);
-
+                    log.debug(change.toString());
                     if (isBirthdayUpdate(message)) {
                         if (findStockHolder(templateMapper, code, change)) {
                             Map<String, Object> _map = toParam(change, code);
@@ -189,7 +186,7 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
-                        if (hasDuplicateStockHolder(templateMapper, code, change,tempRptNm)) {
+                        if (hasDuplicateStockHolder(templateMapper, docNo,code,acptNo,docUrl, change,tempRptNm)) {
                             // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
 
                             log.info("ALREADY StockHodler " + change);
@@ -242,30 +239,80 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
+    private int countList(List<Long> longs) {
+        if (longs == null) {
+            return 0;
+        } else {
+            return longs.size();
+        }
+    }
     /**
      * 최대주주등소유주식변동신고서 스크래핑한 데이터중에 처리일시가 잘못되어 중복되어 나왔는데 이걸 방지하기 위한 로직임.
      * 두개의 제한 조건이 들어감
      * 1. 동일한 공시에서는 처리일시까지 넣어 중복 데이터를 찾는다.
-     * 2. 다른 공시에서는 처리일시를 빼고 중복 데이터를 찾는다.
+     * 2. 다른 공시에서의 처리
+     *  - 처리일시가 같으면 단가는 빼고 중복데이터틑 찾는다.
+     *  - 처리일시가 다르면 단가는 넣고 중복데이터를 찾는다.
+     *
      * @param templateMapper
      * @param code
      * @param change
      * @return
      */
-    private boolean hasDuplicateStockHolder(TemplateMapper templateMapper, String code, Change change,String tempRptNm) {
+    private boolean hasDuplicateStockHolder(TemplateMapper templateMapper, String docNo,String code,String acptNo, String docUrl, Change change,String tempRptNm) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
         param.put("temp_rpt_nm", tempRptNm);
-        if (templateMapper.findDupStockCountOnSameKind(param) > 0) {
+        param.put("doc_url", docUrl);
+        param.put("doc_no", docNo);
+        param.put("isu_cd", code);
+        param.put("acpt_no", acptNo);
+
+        List<Long> seqs = templateMapper.findDupStockSeqOnSameKind(param);
+        int count = countList(seqs);
+        if (count > 0) {
+            Long l = seqs.get(0);
+            log.info("SEQ1 "+l+" "+count);
+            param.put("stock_seq", l);
+            // 중북된 공시는 stockdupholder insert함
+            handleDupStock(templateMapper, param);
             return true;
-        } else {
-            if (templateMapper.findDupStockOnOtherKind(param) > 0) {
+        }else {
+            seqs = templateMapper.findDupStockSeqOnOtherKind(param);
+            count = countList(seqs);
+            if (count > 0) {
+                Long l = seqs.get(0);
+                log.info("SEQ2 "+l+" "+count);
+                param.put("stock_seq", l);
+                // 중북된 공시는 stockdupholder insert함
+                handleDupStock(templateMapper, param);
                 return true;
             } else {
                 return false;
             }
         }
+//        if (templateMapper.findDupStockCountOnSameKind(param) > 0) {
+//            return true;
+//        } else {
+//            if (templateMapper.findDupStockCountOnOtherKind(param) > 0) {
+//                return true;
+//            } else {
+//                return false;
+//            }
+//        }
     }
 
+    /**
+     * 거래내약 중복된 공시 정보를 수집함.
+     * 중복되지 않은 공시만 입력함.
+     * @param templateMapper
+     * @param param
+     */
+    private void handleDupStock(TemplateMapper templateMapper,Map<String, Object> param) {
+        if (templateMapper.findDupStockCount(param) ==0 ) {
+            templateMapper.insertDupStock(param);
+        }
+    }
 
     private void updateStockHolderBirthDay(TemplateMapper templateMapper, Map<String, Object> map) {
         templateMapper.updateStockHolderBirthDay(map);

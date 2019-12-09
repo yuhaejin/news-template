@@ -58,13 +58,18 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         }
 
         String docNm = Maps.getValue(kongsiHolder, "doc_nm");
+        String docUrl = Maps.getValue(kongsiHolder, "doc_url");
         if (docNm.contains("영업") && docNm.contains("실적")) {
-            if (docNm.contains("전망")==false) {
-                execute(key,code,docNo,acptNo,kongsiHolder, tableParser, parser);
+            if (docNm.contains("전망") == false) {
+                execute(key, code, docNo, acptNo, kongsiHolder, tableParser, parser);
+            } else {
+                log.info("SKIP 영업실적공시가 아님.. " + docNm + " docNo=" + docNo + " code=" + code + " acptNo=" + acptNo + " " + docUrl);
             }
+        } else {
+            log.info("SKIP 영업실적공시가 아님.. " + docNm + " docNo=" + docNo + " code=" + code + " acptNo=" + acptNo + " " + docUrl);
         }
 
-        log.info("done "+key);
+        log.info("done . "+key);
     }
 
     private void execute(String key,String code,String docNo,String acptNo,Map<String, Object> map, TableParser tableParser, WholeBodyParser myParser) throws Exception {
@@ -112,8 +117,9 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             }
         }
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP
+        String quarter = result.parseQuarter(acptNo);
         Map<String,Object> param = result.param(docNo,code,acptNo);
-        modify(param);
+        modify(param,quarter);
         if (isDuplicate(templateMapper, param) == false) {
             log.info("INSERT " + key + " " + docUrl +" "+param);
             insertPerf(templateMapper, param);
@@ -121,6 +127,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             log.info("SKIP 중복됨 "+ key + " " + docUrl+" "+param);
         }
     }
+
     private String toString(int valid) {
         if (Result.NO_TITLE == valid) {
             return "NO_TITLE";
@@ -130,20 +137,35 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return "NO_INFO";
         } else if (Result.NO_UNIT == valid) {
             return "NO_UNIT";
+        } else if (Result.INVALID_VALUE == valid) {
+            return "INVALID_VALUE";
         } else {
             return "VALID";
         }
     }
 
-    private void modify(Map<String, Object> param) {
-        modify(param, "provider_date");
-        modify(param, "provider_positon");
-        modify(param, "provider");
-        modify(param, "subject");
-        modify(param, "contact");
+    private void modify(Map<String, Object> param ,String quarter) {
+        modifyLength(param, "provider_date");
+        modifyLength(param, "provider_positon");
+        modifyLength(param, "provider");
+        modifyLength(param, "subject");
+        modifyLength(param, "contact");
+
+        modifyQuarter(param,quarter);
     }
 
-    private void modify(Map<String, Object> param,String key) {
+    private void modifyQuarter(Map<String, Object> param, String quarter) {
+        if (quarter.startsWith("_")==false) {
+            String[] strings = StringUtils.splitByWholeSeparator(quarter, "/");
+            if (strings.length == 2) {
+                param.put("year", strings[0]);
+                param.put("quarter_tp", strings[1]);
+            }
+        }
+        param.put("quarter", quarter);
+    }
+
+    private void modifyLength(Map<String, Object> param, String key) {
         String s = Maps.getValue(param, key);
         s = StringUtils.abbreviate(s, 50);
         param.put(key, s);
