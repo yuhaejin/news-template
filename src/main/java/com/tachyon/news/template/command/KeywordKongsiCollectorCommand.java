@@ -5,6 +5,7 @@ import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.CorrectBean;
 import com.tachyon.crawl.kind.model.CorrectInfo;
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
+import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.JSoupHelper;
 import com.tachyon.crawl.kind.util.JSoupTableException;
 import com.tachyon.crawl.kind.util.Maps;
@@ -132,18 +133,28 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 keywords.add(keyword);
             }
         }
+
+        kongsiHodler.put("doc_no", docNoIsuCd.getDocNo());
         // 사용자별 키워드가 없으므로 아래는 최대 하나 키워드가 존재..
         for (String keyword : keywords) {
             int count = templateMapper.findTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getAcptNo(), keyword);
             if (count == 0) {
                 templateMapper.insertTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo(), keyword);
+
+                setupParamMap(kongsiHodler, keyword, DateUtils.toString(new Date(), "yyyyMMddHHmm"));
+                templateMapper.insertTrotHolder(kongsiHodler);
             } else {
                 log.info("telegramHolder count " + count);
             }
         }
 
-
         log.info("done " + key);
+    }
+
+    private void setupParamMap(Map<String, Object> kongsiHodler, String keyword, String sigan) {
+        kongsiHodler.put("keyword", keyword);
+        kongsiHodler.put("sigan", sigan);
+        kongsiHodler.put("date_sigan", sigan.substring(0,8));
     }
 
     /**

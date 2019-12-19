@@ -275,7 +275,7 @@
     </delete>
 
     <select id="findChangeWithTelegram" resultType="map" parameterType="map">
-        select a.owner_name, a.before_amt, a.after_amt, a.unit_price
+        select a.owner_name, a.before_amt, a.after_amt, a.unit_price,a.birth_day,a.stock_type
         from stockholder a,
              telegramholder b
         where a.doc_no = b.doc_no
@@ -555,5 +555,10 @@
           and isu_cd = #{isu_cd}
           and acpt_no = #{acpt_no}
     </select>
+
+    <insert id="insertTrotHolder" parameterType="map">
+        INSERT INTO trotholder (isu_cd, doc_no, acpt_no, isu_nm, keyword,sigan)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{isu_nm}, #{keyword},#{sigan})
+    </insert>
 </mapper>
 

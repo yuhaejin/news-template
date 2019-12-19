@@ -1,11 +1,13 @@
 package com.tachyon.news.template.telegram;
 
 import com.github.mustachejava.Mustache;
+import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.TelegramHolder;
 import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.crawl.kind.util.TelegramSender;
+import com.tachyon.helper.MustacheHelper;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.Limit;
 import com.tachyon.news.template.model.User;
@@ -22,12 +24,12 @@ import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardRemove;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 
+import javax.annotation.PostConstruct;
+import javax.inject.Inject;
 import java.io.StringWriter;
 import java.net.URISyntaxException;
 import java.text.DecimalFormat;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 @Slf4j
@@ -36,7 +38,12 @@ public class TelegramHelper {
     @Autowired
     private TachyonMonitoringBot tachyonMonitoringBot;
     @Autowired
-    private Mustache mustache;
+    private Mustache keywordMustache;
+    @Inject
+    LinkedHashMap<String,Mustache> plusInvestmentMustaches;
+    @Inject
+    LinkedHashMap<String,Mustache>  minusInvestmentMustaches;
+
     @Autowired
     private Mustache investmentMustache;
     @Autowired
@@ -52,6 +59,11 @@ public class TelegramHelper {
 
     private Map<String, Limit> limitMap = new HashMap<>();
 
+
+    private Random random = new Random(System.currentTimeMillis());
+    @PostConstruct
+    public void debug() {
+    }
     /**
      * @param user
      * @param telegramHolder
@@ -188,14 +200,18 @@ public class TelegramHelper {
         }
     }
 
+    /**
+     * 주식 거래 속보..
+     * @param user
+     * @param telegramHolder 테이블에 저장된 속보 메타 정보..
+     */
     private void sendChangeFlashToTelegram(User user, TelegramHolder telegramHolder) {
         // change 정보를 수집하고 메세지를 만들어 텔레그램으로 전송함.
         try {
-
+            log.info("... sendChangeFlashToTelegram");
             String docNo = telegramHolder.getDocNo();
             String code = telegramHolder.getIsuCd();
             String acptNo = telegramHolder.getAcptNo();
-
 
             List<Map<String,Object>> maps = templateMapper.findChangeWithTelegram(docNo, code, acptNo);
             if (maps == null || maps.size() == 0) {
@@ -207,21 +223,58 @@ public class TelegramHelper {
             String docNm = telegramHolder.getDocNm();
             String docUrl = telegramHolder.getDocUrl();
             String tndDt = telegramHolder.getTndDt();
-            String acptUlr = getItemUrl(acptNo);
+            String acptUrl = getItemUrl(acptNo);
+
+            String day = acptNo.substring(6, 8);
             String key = telegramHolder.getDocNo() + "_" + telegramHolder.getIsuCd() + "_" + telegramHolder.getAcptNo();
             for (Map<String, Object> map : maps) {
                 String ownerName = Maps.getValue(map,"owner_name");
                 String before = Maps.getValue(map,"before_amt");
                 String after = Maps.getValue(map,"after_amt");
                 String price = Maps.getValue(map,"unit_price");
+                String birth = Maps.getValue(map,"birth_day");
+                String stockMethod = Maps.getValue(map,"stock_type");
+                stockMethod = MustacheHelper.modifyStockMethod(stockMethod);
+                String interval = findInterval(before, after);
                 String sum = findSum(before,after,price);
-                String _message = makeInvestmentMessage(ownerName, tndDt, name, before, after, price, sum, docUrl, docNm, acptUlr, acptNm);
-                sendAsync(user, _message, key);
+                String lastName = findLastName(ownerName);
+                Map<String,Object> investmentScope = investmentScopes(ownerName,tndDt,name,before,after,price,sum,docUrl,docNm,acptUrl,acptNm,"");
+                // 새로운 요소 추가
+                addInvestmentScope(investmentScope, day, birth, interval, lastName, before, after, price, stockMethod,sum);
+                Mustache mustache = MustacheHelper.findMustache(plusInvestmentMustaches, minusInvestmentMustaches, sum,random);
+                String article = makeInvestmentMessage(mustache,investmentScope);
+                String message = makeInvestmentMessage(ownerName, tndDt, name, before, after, price, sum, docUrl, docNm, acptUrl, acptNm,article);
+                sendAsync(user, message, key);
+                log.info("TELEGRAM  <<< "+article);
             }
 
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    private void addInvestmentScope(Map<String, Object> investmentScope, String day, String birth, String interval, String lastName, String before, String after, String price, String stockMethod, String sum) {
+        MustacheHelper.addInvestmentScope(investmentScope,day,birth,interval,lastName,before,after,price,stockMethod,sum);
+    }
+
+    private String findLastName(String ownerName) {
+        return ownerName.charAt(0)+"";
+    }
+
+    private String findInterval(String before, String after) {
+        return Math.abs(Integer.valueOf(after) - Integer.valueOf(before))+"";
+    }
+
+//    private String makeInvestmentMessage(List<Mustache> plusInvestmentMustaches, List<Mustache> minusInvestmentMustaches, String sum, Map<String, Object> investmentScope) {
+//        StringWriter message = new StringWriter();
+//        Mustache mustache = findMustache(plusInvestmentMustaches, minusInvestmentMustaches, sum);
+//        mustache.execute(message, investmentScope);
+//        return message.toString();
+//    }
+    private String makeInvestmentMessage(Mustache mustache, Map<String, Object> investmentScope) {
+        StringWriter message = new StringWriter();
+        mustache.execute(message, investmentScope);
+        return message.toString();
     }
 
     private String findSum(String before, String after, String price) {
@@ -246,13 +299,13 @@ public class TelegramHelper {
      *                         "기초공시명: <a href=\"{{acptUrl}}\">{{acptNm}}</a>";
      * @return
      */
-    private String makeInvestmentMessage(String investor,String time,String company,String before,String after,String price,String sum,String docUrl,String docNm,String acptUrl,String acptNm) {
+    private String makeInvestmentMessage(String investor,String time,String company,String before,String after,String price,String sum,String docUrl,String docNm,String acptUrl,String acptNm,String article) {
         StringWriter message = new StringWriter();
-        investmentMustache.execute(message, investmentScopes(investor,time,company,before,after,price,sum,docUrl,docNm,acptUrl,acptNm));
+        investmentMustache.execute(message, investmentScopes(investor,time,company,before,after,price,sum,docUrl,docNm,acptUrl,acptNm,article));
         return message.toString();
     }
 
-    private Map<String, Object> investmentScopes(String investor,String time,String company,String before,String after,String price,String sum,String docUrl,String docNm,String acptUrl,String acptNm) {
+    private Map<String, Object> investmentScopes(String investor,String time,String company,String before,String after,String price,String sum,String docUrl,String docNm,String acptUrl,String acptNm,String article) {
         Map<String, Object> scopes = new HashMap<String, Object>();
         scopes.put("investor", investor);
         scopes.put("time", time);
@@ -265,6 +318,7 @@ public class TelegramHelper {
         scopes.put("docNm", docNm);
         scopes.put("acptUrl", acptUrl);
         scopes.put("acptNm", acptNm);
+        scopes.put("article", article);
         return scopes;
     }
 
@@ -351,7 +405,7 @@ public class TelegramHelper {
 
     private String makeMessage(String keyword, String rptNm, String acptUrl, String name, String docNm, String docUlr, String tnsDt) {
         StringWriter message = new StringWriter();
-        mustache.execute(message, scopes(tnsDt, keyword, name, docUlr, docNm, acptUrl, rptNm));
+        keywordMustache.execute(message, scopes(tnsDt, keyword, name, docUlr, docNm, acptUrl, rptNm));
         return message.toString();
     }
 

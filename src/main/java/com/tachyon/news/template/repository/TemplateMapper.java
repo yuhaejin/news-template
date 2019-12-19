@@ -13,9 +13,7 @@ public interface TemplateMapper {
 
     void insertStockHolder(Map<String, Object> paramStockHolder);
 
-
     int findStockHolder(Map<String, Object> param);
-
 
     List<Map<String, Object>> findBeforeKongsi(@Param("isuCd")String code, @Param("acptNo")String acptNo);
 
@@ -141,4 +139,6 @@ public interface TemplateMapper {
     void insertDupStock(Map<String, Object> param);
 
     int findDupStockCount(Map<String, Object> param);
+
+    void insertTrotHolder(Map<String, Object> kongsiHodler);
 }
