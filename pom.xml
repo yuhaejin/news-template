@@ -45,10 +45,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
-        <!--    <dependency>-->
-        <!--      <groupId>org.apache.camel</groupId>-->
-        <!--      <artifactId>camel-mybatis-starter</artifactId>-->
-        <!--    </dependency>-->
 
         <dependency>
             <groupId>org.projectlombok</groupId>
