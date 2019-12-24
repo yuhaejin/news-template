@@ -557,8 +557,8 @@
     </select>
 
     <insert id="insertTrotHolder" parameterType="map">
-        INSERT INTO trotholder (isu_cd, doc_no, acpt_no, isu_nm, keyword,sigan)
-        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{isu_nm}, #{keyword},#{sigan})
+        INSERT INTO trotholder (isu_cd, doc_no, acpt_no, isu_nm, keyword,sigan,date_sigan)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{isu_nm}, #{keyword},#{sigan},#{date_sigan})
     </insert>
 </mapper>
 
