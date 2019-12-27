@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public abstract class AbstractService extends BaseObject implements NewsService {
-    private TemplateMapper templateMapper;
+    protected TemplateMapper templateMapper;
 
     public AbstractService(TemplateMapper templateMapper) {
         this.templateMapper = templateMapper;

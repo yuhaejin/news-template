@@ -412,7 +412,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
                 } else {
                     String _name = myContext.findInvestorName(name);
                     if (_name != null) {
-                        log.info("CONVERT_INVESTOR "+ name + " ==> " + _name);
+                        log.info("CONVERT_INVESTOR " + name + " ==> " + _name);
                         change.setName(_name);
                     }
                 }
@@ -486,6 +486,8 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
         return false;
     }
+
+
 }
 
 

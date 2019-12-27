@@ -75,6 +75,7 @@ public class KongsiCollector extends AbstractService {
             // 기초공시 정보 수집
             Map<String, Object> kongsiMap = findKongsiMap(myContext, message, docNo, code, acptNo);
             if (kongsiMap == null) {
+                log.error("기초공시가 없음. "+key);
                 return;
             }
             String docUrl = Maps.getValue(kongsiMap, "doc_url");
@@ -127,14 +128,19 @@ public class KongsiCollector extends AbstractService {
                 // 파일이 없다면..
                 log.info("파일 미존재.. "+txtPath);
                 saveFile(txtPath, text);
-                if (hasSpcLpKeyword(text)) {
-                    String spcLpPath = findSpcLpPath(myContext.getSpcLpPath(), code, docNo, acptNo, "txt");
-                    saveFile(spcLpPath, text);
-                }
+                // 현재 20191227에는 Spc 관련 작업하지 않으므로 일단 막아둠.
+//                if (hasSpcLpKeyword(text)) {
+//                    String spcLpPath = findSpcLpPath(myContext.getSpcLpPath(), code, docNo, acptNo, "txt");
+//                    saveFile(spcLpPath, text);
+//                }
                 reindexing = true;
             }
             log.info("공시파일 처리 완료..."+key);
-            noticeKongsiCorrectComplete(key, kongsiMap,reindexing,message);
+            if (isLocalCollectKongsi(message)) {
+                // 로컬공시 수집때에는 이후 처리하지 않음.
+            } else {
+                noticeKongsiCorrectComplete(key, kongsiMap,reindexing,message);
+            }
 
         } catch (Exception e) {
             handleError(rabbitTemplate, message, e, log);
@@ -148,7 +154,13 @@ public class KongsiCollector extends AbstractService {
             return false;
         }
     }
-
+    private boolean isLocalCollectKongsi(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__LOCAL_KONGSI")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     private String convertText(String content) {
         return BizUtils.extractText(content);
     }

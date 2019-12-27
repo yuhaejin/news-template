@@ -141,4 +141,8 @@ public interface TemplateMapper {
     int findDupStockCount(Map<String, Object> param);
 
     void insertTrotHolder(Map<String, Object> kongsiHodler);
+
+    void insertKongsiHolder(Map<String, Object> result);
+
+    int findKongsiCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
 }

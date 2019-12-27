@@ -21,12 +21,12 @@
                a.tns_dt,
                a.submit_nm,
                a.temp_rpt_nm,
-               b.isu_nm
-        from kongsiholder a,isu b
+               (select isu_nm from isu where isu_cd = a.isu_cd) as isu_nm
+        from kongsiholder a
         where a.doc_no = #{doc_no}
           and a.isu_cd = #{isu_cd}
           and a.acpt_no = #{acpt_no}
-          and a.isu_cd = b.isu_cd
+
     </select>
     <insert id="insertStockHolder" parameterType="map">
         INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt)
@@ -560,5 +560,14 @@
         INSERT INTO trotholder (isu_cd, doc_no, acpt_no, isu_nm, keyword,sigan,date_sigan)
         VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{isu_nm}, #{keyword},#{sigan},#{date_sigan})
     </insert>
+
+    <insert id="insertKongsiHolder" parameterType="map">
+        INSERT INTO kongsiholder (isu_cd,doc_no, doc_nm, doc_url, doc_type, tns_dt, acpt_no, rpt_nm,acpt_dt,submit_nm,temp_rpt_nm)
+        VALUES ( #{isu_cd},#{doc_no}, #{doc_nm}, #{doc_url}, #{doc_type}, #{tns_dt}, #{acpt_no}, #{rpt_nm},#{acpt_dt},#{submit_nm},#{temp_rpt_nm});
+    </insert>
+
+    <select id="findKongsiCount" parameterType="map" resultType="int">
+        select count(*) from kongsiholder where isu_cd = #{isu_cd} and doc_no = #{doc_no} and acpt_no=#{acpt_no}
+    </select>
 </mapper>
 

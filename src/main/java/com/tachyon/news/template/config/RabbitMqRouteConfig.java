@@ -100,5 +100,8 @@ public class RabbitMqRouteConfig {
     Queue _PROVISIONAL_PERF() {
         return QueueBuilder.durable("_PROVISIONAL_PERF").build();
     }
-
+    @Bean
+    Queue LOCAL_KONGSI() {
+        return QueueBuilder.durable("LOCAL_KONGSI").build();
+    }
 }
