@@ -236,6 +236,11 @@ public class TelegramHelper {
                 String stockMethod = Maps.getValue(map,"stock_type");
                 stockMethod = MustacheHelper.modifyStockMethod(stockMethod);
                 String interval = findInterval(before, after);
+                if ("0".equalsIgnoreCase(interval)) {
+                    log.info("SKIP 변동이없는 거래.. " + map);
+                    continue;
+                }
+
                 String sum = findSum(before,after,price);
                 String lastName = findLastName(ownerName);
                 Map<String,Object> investmentScope = investmentScopes(ownerName,tndDt,name,before,after,price,sum,docUrl,docNm,acptUrl,acptNm,"");
