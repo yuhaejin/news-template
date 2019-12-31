@@ -7,6 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -28,6 +29,9 @@ public class LocalKongsiService extends AbstractService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private Environment environment;
+
     public LocalKongsiService(TemplateMapper templateMapper) {
         super(templateMapper);
     }
@@ -37,6 +41,12 @@ public class LocalKongsiService extends AbstractService {
             infoView(message,log);
             String key = myContext.findInputValue(message);
             log.info("<<< " + key);
+
+            if ("prod".equalsIgnoreCase(findCurrentProfile())) {
+                log.info("SKIP 운영환경에서는 실행하지 않음...");
+                return;
+            }
+
             DocNoIsuCd docNoIsuCd = findDocNoIsuCd(key);
             String docNo = docNoIsuCd.getDocNo();
             String code = docNoIsuCd.getIsuCd();
@@ -59,6 +69,14 @@ public class LocalKongsiService extends AbstractService {
         }
     }
 
+    private String findCurrentProfile() {
+        String[] strings = environment.getActiveProfiles();
+        if (strings.length == 0) {
+            return "prod";
+        }
+
+        return strings[0];
+    }
     private String findKongsiApi(String docNo, String code, String acptNo) {
         return "http://localhost:8080/api/v1/kongsi?docNo=" + docNo + "&isuCd=" + code + "&acptNo=" + acptNo;
     }

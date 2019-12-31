@@ -104,4 +104,9 @@ public class RabbitMqRouteConfig {
     Queue LOCAL_KONGSI() {
         return QueueBuilder.durable("LOCAL_KONGSI").build();
     }
+    //_TAKING
+    @Bean
+    Queue _TAKING() {
+        return QueueBuilder.durable("_TAKING").build();
+    }
 }

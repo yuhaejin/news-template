@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -69,6 +70,11 @@ public class MyContext {
 
     private String[] templates;
     private AtomicLong gatewayCount = new AtomicLong();
+
+    @Autowired
+    private Environment environment;
+
+
     /**
      * 투자자명 변경.
      * KEY 인 투자자명을 VALUE 투자자명으로 변경함.
@@ -135,7 +141,22 @@ public class MyContext {
             }
         }
     }
+    private String findCurrentProfiles() {
+        String[] strings = environment.getActiveProfiles();
+        if (strings.length == 0) {
+            return "prod";
+        }
+        return strings[0];
+    }
 
+
+    public boolean isDev() {
+        if ("dev".equalsIgnoreCase(findCurrentProfiles())) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     private void viewValue() {
         log.info("spcLpPath="+spcLpPath);
         log.info("spcLpKeyword="+spcLpKeyword);

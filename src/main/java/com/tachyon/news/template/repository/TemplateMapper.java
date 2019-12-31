@@ -145,4 +145,7 @@ public interface TemplateMapper {
     void insertKongsiHolder(Map<String, Object> result);
 
     int findKongsiCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+
+    int findTakingCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+
 }

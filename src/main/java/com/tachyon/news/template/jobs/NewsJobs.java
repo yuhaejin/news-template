@@ -69,6 +69,9 @@ public class NewsJobs {
      */
     @Scheduled(fixedDelay = 30000)
     public void handleNoGroupTelegramHolder() {
+        if (myContext.isDev()) {
+            return;
+        }
         //a.doc_no,a.keyword,a.isu_cd,a.acpt_no,b.doc_nm,b.doc_url,b.rpt_nm
         //7 - 20 까지만 처리하게 ..
         TelegramHandler noGroupTelegramHandler = new TelegramHandler() {
@@ -157,7 +160,9 @@ public class NewsJobs {
      */
     @Scheduled(fixedDelay = 30000)
     public void handleGroupTelegramHolder() {
-
+        if (myContext.isDev()) {
+            return;
+        }
         TelegramHandler groupTelegramHandler = new TelegramHandler() {
             @Override
             public boolean isChargedChatId(long chatId) {
@@ -528,6 +533,9 @@ public class NewsJobs {
     @Scheduled(fixedDelay = 1000 * 60 * 10)
     public void monitorKrClinicalTrialsUpdateDateTime() {
         try {
+            if (myContext.isDev()) {
+                return;
+            }
             URL feedSource = new URL("https://clinicaltrials.gov/ct2/results/rss.xml?rcv_d=&lup_d=14&sel_rss=mod14&count=1&cntry=KR");
             SyndFeedInput input = new SyndFeedInput();
             SyndFeed feed = input.build(new XmlReader(feedSource));
