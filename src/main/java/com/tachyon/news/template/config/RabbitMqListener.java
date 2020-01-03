@@ -4,6 +4,7 @@ import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.service.*;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
@@ -22,25 +23,30 @@ public class RabbitMqListener {
     private CommandFactory commandFactory;
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    @RabbitListener(queues = {"GATEWAY"})
-    public void GATEWAY(Message message) {
-        execute(message,"GATEWAY");
-    }
-    @RabbitListener(queues = {"OK_GATEWAY"})
-    public void OK_GATEWAY(Message message) {
-        execute(message,"OK_GATEWAY");
-    }
-    @RabbitListener(queues = {"KONGSI_CHECK"})
-    public void KONGSI_CHECK(Message message) {
-        execute(message,"KONGSI_CHECK");
-    }
-    @RabbitListener(queues = {"META_KONGSI"})
-    public void META_KONGSI(Message message) {
-        execute(message,"META_KONGSI");
-    }
-    @RabbitListener(queues = {"LOCAL_KONGSI"})
-    public void LOCAL_KONGSI(Message message) {
-        execute(message,"LOCAL_KONGSI");
+//    @RabbitListener(queues = {"GATEWAY"})
+//    public void GATEWAY(Message message) {
+//        execute(message,"GATEWAY");
+//    }
+//    @RabbitListener(queues = {"OK_GATEWAY"})
+//    public void OK_GATEWAY(Message message) {
+//        execute(message,"OK_GATEWAY");
+//    }
+//    @RabbitListener(queues = {"KONGSI_CHECK"})
+//    public void KONGSI_CHECK(Message message) {
+//        execute(message,"KONGSI_CHECK");
+//    }
+//    @RabbitListener(queues = {"META_KONGSI"})
+//    public void META_KONGSI(Message message) {
+//        execute(message,"META_KONGSI");
+//    }
+//    @RabbitListener(queues = {"LOCAL_KONGSI"})
+//    public void LOCAL_KONGSI(Message message) {
+//        execute(message,"LOCAL_KONGSI");
+//    }
+
+    @RabbitListener(queues = {"GATEWAY","OK_GATEWAY","KONGSI_CHECK","META_KONGSI","LOCAL_KONGSI","BEFORE_KONGSI"})
+    public void SERVICE(Message message) {
+        execute(message,message.getMessageProperties().getConsumerQueue());
     }
 
     @RabbitListener(queues = {"_STOCK_HOLDER","_ELASTICSEARCH_INDEX","_STAFF_HOLDER"
@@ -76,6 +82,9 @@ public class RabbitMqListener {
             newsService.consume(message);
         } else if ("LOCAL_KONGSI".equalsIgnoreCase(queue)) {
             NewsService newsService = commandFactory.findService(LocalKongsiService.class);
+            newsService.consume(message);
+        }else if("BEFORE_KONGSI".equalsIgnoreCase(queue)){
+            NewsService newsService = commandFactory.findService(BeforeKongsiService.class);
             newsService.consume(message);
         } else {
 

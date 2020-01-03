@@ -1,6 +1,5 @@
 package com.tachyon.news.template.command;
 
-import com.tachyon.crawl.kind.parser.StaffReportParser;
 import com.tachyon.news.template.service.NewsService;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;

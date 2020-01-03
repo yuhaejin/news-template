@@ -1,16 +1,19 @@
 package com.tachyon.news.template.service;
 
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
+import com.tachyon.news.template.command.CommandFactory;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessageProperties;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -29,6 +32,8 @@ public class LocalKongsiService extends AbstractService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+    @Autowired
+    private CommandFactory commandFactory;
     @Autowired
     private Environment environment;
 
@@ -52,18 +57,17 @@ public class LocalKongsiService extends AbstractService {
             String code = docNoIsuCd.getIsuCd();
             String acptNo = docNoIsuCd.getAcptNo();
 
-
             RestTemplate restTemplate = new RestTemplate();
             Map<String,Object> result = restTemplate.getForObject(findKongsiApi(docNo,code,acptNo), Map.class);
             log.info("<<< "+result);
             if (templateMapper.findKongsiCount(docNo, code, acptNo) == 0) {
                 templateMapper.insertKongsiHolder(result);
             }
-            Map<String, Object> headers = new HashMap<>();
-            headers.put("__LOCAL_KONGSI", "YES");
-            requestBodyAndHeaders2(rabbitTemplate,"KONGSI_CHECK", key,headers );
+            NewsService kongsiCollector = commandFactory.findService(KongsiCollector.class);
+            MessageProperties messageProperties = new MessageProperties();
+            messageProperties.getHeaders().put("__LOCAL_KONGSI", "YES");
+            kongsiCollector.consume(new Message(key.getBytes(Charset.forName("UTF-8")),messageProperties));
 
-            log.info(key+" >>> KONGSI_CHECK");
         } catch (Exception e) {
             handleError(rabbitTemplate, message, e, log);
         }

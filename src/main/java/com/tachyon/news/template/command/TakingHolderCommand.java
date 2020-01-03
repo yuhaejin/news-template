@@ -1,6 +1,5 @@
 package com.tachyon.news.template.command;
 
-import com.tachyon.crawl.kind.model.Rumor;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.MyTakingParser;
 import com.tachyon.crawl.kind.parser.TableParser;
@@ -8,11 +7,13 @@ import com.tachyon.crawl.kind.parser.handler.TakingSelectorByPattern;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.crawl.kind.util.Tables;
+import com.tachyon.crawl.kind.util.Utils;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
 import com.tachyon.news.template.model.Taking;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -87,13 +88,15 @@ public class TakingHolderCommand extends BasicCommand {
         TableParser parser = new TableParser(new TakingSelectorByPattern());
         List<Table> tables = parser.parseSome(html, docUrl, new MyTakingParser());
         List<Map<String, Object>> takings = new ArrayList<>();
-        for (Table t : tables) {
-            if ("차임금".equalsIgnoreCase(t.getTitle())) {
-                takings.add(Tables.widTableToMap(t));
-            } else {
-                List<Map<String, Object>> maps = t.toMapList();
-                for (Map<String, Object> _map : maps) {
-                    takings.add(_map);
+        if (tables != null) {
+            for (Table t : tables) {
+                if ("차임금".equalsIgnoreCase(t.getTitle())) {
+                    takings.add(Tables.widTableToMap(t, false));
+                } else {
+                    List<Map<String, Object>> maps = t.toMapList();
+                    for (Map<String, Object> _map : maps) {
+                        takings.add(_map);
+                    }
                 }
             }
         }
@@ -104,26 +107,73 @@ public class TakingHolderCommand extends BasicCommand {
         }
 
         for (Map<String, Object> _map : takings) {
-            log.debug("<<< "+_map);
+            log.debug("<<< " + _map);
         }
-        Map<String, Taking> takingMap = aggregate(takings);
+        log.info("... " + docUrl);
+        Map<String, Taking> takingMap = aggregate(takings, key, docUrl);
         handleBeforeTaking(code, acptNo);
         for (String name : takingMap.keySet()) {
             Taking taking = takingMap.get(name);
-            log.info(taking.toString());
+            String result = taking.validate(key);
+            if ("OK".equalsIgnoreCase(result) == false) {
+                taking.setType("ERROR");
+                taking.setErrorMsg(result);
+                log.warn("INVALID " + result + " " + taking + " " + docUrl);
+            }else {
+                taking.setErrorMsg("");
+            }
+            //회사코드_성명_생년월일_자기자금_차입금_기타
+            if (fincTakingHolderCount(taking, code) == 0) {
+                insertTakingHolder(taking, docNo, code, acptNo);
+            } else {
+                log.info("SKIP 이미존재하는 취득 "+taking);
+            }
         }
+    }
 
+    private void insertTakingHolder(Taking taking, String docNo, String code, String acptNo) {
+        Map<String, Object> param = makeParam(taking, docNo, code, acptNo);
+        log.info("INSERT "+param);
+        templateMapper.insertTakingHolder(param);
+    }
+
+    private Map<String, Object> makeParam(Taking taking, String docNo, String code, String acptNo) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("name", taking.getName());
+        map.put("birth", taking.getBirth());
+        map.put("owner_capital", taking.getTaking());
+        map.put("borrowings", taking.getBorrowing());
+        map.put("etc", taking.getEtc());
+        map.put("sum", taking.getSum());
+        map.put("resource", StringUtils.abbreviate(taking.getResource(),200));
+        map.put("borrower", taking.getBorrower());
+        map.put("borrow_amount", taking.getBorrowingAmount());
+        map.put("borrow_period", taking.getBorrowingPeriod());
+        map.put("collateral", taking.getCollateral());
+        map.put("doc_no", docNo);
+        map.put("isu_cd", code);
+        map.put("acpt_no", acptNo);
+        map.put("acpt_dt", acptNo.substring(0,8));
+        map.put("type", taking.getType());
+        map.put("err_msg", StringUtils.abbreviate(taking.getErrorMsg(),100));
+        return map;
+    }
+
+    private int fincTakingHolderCount(Taking taking, String code) {
+        return templateMapper.fincTakingHolderCount(code,taking.getName(),taking.getBirth(),taking.getTaking(),taking.getBorrowing(),taking.getEtc());
     }
 
     private void handleBeforeTaking(String code, String acptNo) {
-        //        for (Kongsi.UrlInfo urlInfo : urlInfos) {
-//            String docNm = urlInfo.getDocNm();
-//            if (docNm.contains("정정") == false) {
-//                String docNo = urlInfo.getDocNo();
-//                log.info("정정이전공시 삭제 " + docNo + "_" + code + "_" + acptNo);
-//                templateMapper.deleteOverlapRumor(docNo, code, acptNo);
-//            }
-//        }
+        String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
+        log.info("이전TaskingHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+        if (StringUtils.isEmpty(_docNo) == false) {
+            deleteBeforeTakingHolder(templateMapper, code, _docNo);
+            log.info("이전TaskingHolder 삭제 code=" + code + " docNo=" + _docNo);
+        }
+    }
+
+    private void deleteBeforeTakingHolder(TemplateMapper templateMapper, String code, String docNo) {
+        templateMapper.deleteBeforeTakingHolder(code, docNo);
     }
 
     /**
@@ -133,56 +183,130 @@ public class TakingHolderCommand extends BasicCommand {
      * @param takings
      * @return
      */
-    private Map<String, Taking> aggregate(List<Map<String, Object>> takings) {
+    private Map<String, Taking> aggregate(List<Map<String, Object>> takings, String key, String docUrl) {
         Map<String, Taking> map = new LinkedHashMap<>();
-        findGeneral(map, takings);
-        aggregate(map, takings);
+        findGeneral(map, takings, key, docUrl);
+        aggregate(map, takings, key);
         return map;
     }
 
-    private void findGeneral(Map<String, Taking> map, List<Map<String, Object>> takings) {
+    /**
+     * 취득자금등의 개요 테이블 분석
+     *
+     * @param map
+     * @param takings
+     */
+    private void findGeneral(Map<String, Taking> map, List<Map<String, Object>> takings, String key, String docUrl) {
         for (Map<String, Object> _map : takings) {
             if ("개요".equalsIgnoreCase(findType(_map))) {
-                Taking taking = to(_map);
-                log.debug("<<< "+taking);
-                map.put(taking.findKey(), taking);
+                log.info(">>>> " + _map + " " + key + " " + docUrl);
+                Taking taking = toTaking(_map);
+                if (taking != null) {
+                    log.debug("<<< " + taking);
+                    taking.setType("개요");
+                    if ("-".equalsIgnoreCase(taking.getName())) {
+                        log.info("SKIP 이름이없음. " + taking);
+                    } else {
+                        map.put(taking.findKey(), taking);
+                    }
+                }
             }
         }
     }
 
-    private void aggregate(Map<String, Taking> map, List<Map<String, Object>> takings) {
+//    private String removeSpace(String s) {
+//        return StringUtils.remove(s, " ");
+//    }
+
+    private String modifyName(String s) {
+        s = StringUtils.remove(s, " ");
+        return Utils.removeBracketBrace(s);
+    }
+
+    /**
+     * 취득자금등의 개요 테이블이 아닌 테이블 정보 분석
+     *
+     * @param map
+     * @param takings
+     */
+    private void aggregate(Map<String, Taking> map, List<Map<String, Object>> takings, String key) {
         for (Map<String, Object> _map : takings) {
             String type = findType(_map);
-            if ("개요".equalsIgnoreCase(type) == false) {
-                if ("자기자금".equalsIgnoreCase(type)) {
-                    String name = findName(_map);
-                    String birth = findBirth(_map);
-                    String resource = findResource(_map);
-                    Taking taking = findTaking(map, name, birth);
-                    if (taking != null) {
-                        taking.setResource(resource);
+            if ("개요".equalsIgnoreCase(type)) {
+                continue;
+            }
+            log.info(">> " + _map);
+            if ("자기자금".equalsIgnoreCase(type)) {
+                String name = findName(_map);
+                String birth = findBirth(_map);
+                String resource = findResource(_map);
+                Taking taking = findTaking(map, modifyName(name), modifyName(birth));
+                if (taking != null) {
+                    taking.setType(Taking.MY);
+                    taking.setResource(resource);
+                    taking.setupGneral(Taking.MY);
+                } else {
+                    log.warn("개요정보를 찾을 수 없음. " + name + " " + birth + " " + key);
+                }
+
+            } else if ("차입금".equalsIgnoreCase(type)) {
+                String name = Utils.removeBracketBrace(Maps.getValue(_map, "차입자"));
+                String[] names = StringUtils.split(name, ",");
+                String borrower = Maps.getValue(_map, "차입처");
+                String borrowingPeriod = Maps.getValue(_map, "차입기간");
+                String collateral = Maps.getValue(_map, "담보내역");
+                if (names.length == 1) {
+                    String borrowingAmount = adjustPrice((Maps.getValue(_map, "차입금액")));
+                    Taking taking = null;
+                    if (map.size() == 1) {
+                        taking = findOneTaking(map);
+                    } else {
+                        taking = findTaking(map, modifyName(name));
                     }
-
-                } else if ("차입금".equalsIgnoreCase(type)) {
-                    String name = Maps.getValue(_map, "차입자");
-                    String borrower = Maps.getValue(_map, "차입처");
-                    String borrowingAmount = Maps.getValue(_map, "차입금액");
-                    String borrowingPeriod = Maps.getValue(_map, "차입기간");
-                    String collateral = Maps.getValue(_map, "담보내역");
-
-                    Taking taking = findTaking(map, name);
                     if (taking != null) {
+                        taking.setType(Taking.BORROWING);
                         taking.setBorrowingAmount(borrowingAmount);
                         taking.setBorrower(borrower);
                         taking.setBorrowingPeriod(borrowingPeriod);
                         taking.setCollateral(collateral);
+                        taking.setupGneral(Taking.BORROWING);
+                    } else {
+                        log.warn("개요정보를 찾을 수 없음. " + name + " " + key);
                     }
                 } else {
+                    for (String _name : names) {
+                        Taking taking = findTaking(map, modifyName(_name));
+                        if (taking != null) {
+                            taking.setType(Taking.BORROWING);
+                            // 차입금액은 두명의 합친금액이므로 설정하지 않음.
+                            taking.setBorrowingAmount(taking.getBorrowing());
+                            taking.setBorrower(borrower);
+                            taking.setBorrowingPeriod(borrowingPeriod);
+                            taking.setCollateral(collateral);
+                            taking.setupGneral(Taking.BORROWING);
+                        } else {
+                            log.warn("개요정보를 찾을 수 없음. " + name + " " + key);
+                        }
+
+                    }
 
                 }
 
+            } else {
+
             }
+
         }
+    }
+
+
+    private Taking findOneTaking(Map<String, Taking> map) {
+        for (String key : map.keySet()) {
+            Taking taking = map.get(key);
+            return taking;
+        }
+
+        return null;
     }
 
     private Taking findTaking(Map<String, Taking> map, String name) {
@@ -209,6 +333,7 @@ public class TakingHolderCommand extends BasicCommand {
         return null;
     }
 
+
     private String findResource(Map<String, Object> map) {
         return Maps.getValue(map, "취득자금등의조성경위및원천");
     }
@@ -221,16 +346,33 @@ public class TakingHolderCommand extends BasicCommand {
         return Maps.findValueOrKeys(_map, "생년월일");
     }
 
-    private Taking to(Map<String, Object> _map) {
+    private Taking toTaking(Map<String, Object> _map) {
         Taking taking = new Taking();
-        taking.setName(findName(_map));
-        taking.setBirth(findBirth(_map));
-        taking.setTaking(Maps.findValueOrKeys(_map, "자기자금"));
-        taking.setBorrowing(Maps.findValueOrKeys(_map, "차입금"));
-        taking.setEtc(Maps.findValueOrKeys(_map, "기타"));
-        taking.setSum(Maps.findValueOrKeys(_map, "계"));
+        String name = findName(_map);
+        taking.setName(modifyName(name));
+        taking.setBirth(removeSpace(findBirth(_map)));
+        taking.setTaking(adjustPrice(Maps.findValueOrKeys(_map, "자기자금")));
+        taking.setBorrowing(adjustPrice(Maps.findValueOrKeys(_map, "차입금")));
+        taking.setEtc(adjustPrice(Maps.findValueOrKeys(_map, "기타")));
+        taking.setSum(adjustPrice(Maps.findValueOrKeys(_map, "계")));
 
+        taking.setupGeneral();
         return taking;
+    }
+
+    private String removeSpace(String birth) {
+        return StringUtils.remove(birth, " ");
+    }
+
+    private String adjustPrice(String s) {
+        s = StringUtils.remove(s, ",");
+        s = StringUtils.remove(s, "-");
+        s = s.trim();
+        if ("".equalsIgnoreCase(s)) {
+            return "0";
+        } else {
+            return s;
+        }
     }
 
     /**

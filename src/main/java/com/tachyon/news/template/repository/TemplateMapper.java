@@ -148,4 +148,9 @@ public interface TemplateMapper {
 
     int findTakingCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
 
+    void deleteBeforeTakingHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+
+    int fincTakingHolderCount(@Param("isu_cd")String code, @Param("name")String name, @Param("birth")String birth, @Param("owner_capital")String taking, @Param("borrowings")String borrowing, @Param("etc")String etc);
+
+    void insertTakingHolder(Map<String, Object> param);
 }
