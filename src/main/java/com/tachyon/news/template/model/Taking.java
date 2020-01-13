@@ -5,8 +5,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
 import java.io.Serializable;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 @Slf4j
 public class Taking implements Serializable {
@@ -17,10 +17,10 @@ public class Taking implements Serializable {
     private String etc;
     private String sum;
     private String resource;            //취득자금 조성경위 및 원천
-    private String borrowingAmount;     //차입금액
-    private String borrower;            //차입처
-    private String borrowingPeriod;     //차입기간
-    private String collateral;          // 담보내역
+//    private String borrowingAmount;     //차입금액
+//    private String borrower;            //차입처
+//    private String borrowingPeriod;     //차입기간
+//    private String collateral;          // 담보내역
 
     private String type;                // 자기자금(MY),차입금(BORROWING)
 
@@ -30,6 +30,20 @@ public class Taking implements Serializable {
 
     private String[] generals = new String[3];
     private String errorMsg;
+    private String spot;
+
+    private List<Borrowing> borrowings;
+
+    public void addBorrowings(Borrowing borrowing) {
+        if (borrowings == null) {
+            borrowings = new ArrayList<>();
+        }
+        borrowings.add(borrowing);
+    }
+
+    public List<Borrowing> getBorrowings() {
+        return borrowings;
+    }
 
 
     public String getType() {
@@ -101,53 +115,6 @@ public class Taking implements Serializable {
         return resource;
     }
 
-    /**
-     * 차입금 테이블의 차임금액
-     *
-     * @param borrowingAmount
-     */
-    public void setBorrowingAmount(String borrowingAmount) {
-        this.borrowingAmount = borrowingAmount;
-    }
-
-    public String getBorrowingAmount() {
-        return borrowingAmount;
-    }
-
-    /**
-     * 차입자
-     *
-     * @param borrower
-     */
-    public void setBorrower(String borrower) {
-
-        this.borrower = borrower;
-    }
-
-    public String getBorrower() {
-        return borrower;
-    }
-
-    /**
-     * 차임기간
-     *
-     * @param borrowingPeriod
-     */
-    public void setBorrowingPeriod(String borrowingPeriod) {
-        this.borrowingPeriod = borrowingPeriod;
-    }
-
-    public String getBorrowingPeriod() {
-        return borrowingPeriod;
-    }
-
-    public void setCollateral(String collateral) {
-        this.collateral = collateral;
-    }
-
-    public String getCollateral() {
-        return collateral;
-    }
 
     @Override
     public String toString() {
@@ -159,11 +126,11 @@ public class Taking implements Serializable {
                 .append("etc", etc)
                 .append("sum", sum)
                 .append("resource", resource)
-                .append("borrowingAmount", borrowingAmount)
-                .append("borrower", borrower)
-                .append("borrowingPeriod", borrowingPeriod)
-                .append("collateral", collateral)
                 .append("type", type)
+                .append("generals", generals)
+                .append("errorMsg", errorMsg)
+                .append("spot", spot)
+                .append("borrowings", borrowings)
                 .toString();
     }
 
@@ -244,21 +211,11 @@ public class Taking implements Serializable {
     }
 
     private String checkBorrow(String key) {
-        if (isEmpty(borrower)) {
-            log.warn("차입금인데 차입처가 없음. " + name + " < " + key);
-            return "차입금인데 차입처가 없음";
-        }
-        if (isEmpty(borrowingAmount)) {
-            log.warn("차입금인데 차입금액정보가 없음. " + name + " < " + key);
-            return "차입금인데 차입금액정보가 없음. ";
-        }
-        if (isEmpty(borrowingPeriod)) {
-            log.warn("차입금인데 차입기간 없음. " + name + " < " + key);
-            return "차입금인데 차입기간 없음. ";
-        }
-        if (isEmpty(collateral)) {
-            log.warn("차입금인데 담보내역없음. " + name + " < " + key);
-            return "차입금인데 담보내역없음. ";
+        for (Borrowing borrowing : borrowings) {
+            String s = borrowing.validate(name, key);
+            if ("OK".equalsIgnoreCase(s)==false) {
+                return s;
+            }
         }
 
         return "OK";
@@ -303,5 +260,13 @@ public class Taking implements Serializable {
 
     public String getErrorMsg() {
         return errorMsg;
+    }
+
+    public void setSpot(String spot) {
+        this.spot = spot;
+    }
+
+    public String getSpot() {
+        return spot;
     }
 }

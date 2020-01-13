@@ -67,7 +67,7 @@ public class NewsJobs {
      * chat_id가 0보다 큰 것만 처리하게 쓰레드풀을 29개로 하여 순차적으로 처리하면 딱히 문제될 게 없어 보임.
      * 초당 30개 최대.
      */
-    @Scheduled(fixedDelay = 30000)
+//    @Scheduled(fixedDelay = 30000)
     public void handleNoGroupTelegramHolder() {
         if (myContext.isDev()) {
             return;

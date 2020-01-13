@@ -112,8 +112,10 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             String _docNo = findBeforeKongsi(templateMapper,code, acptNo);
             log.info("이전PerfHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
             if (StringUtils.isEmpty(_docNo) == false) {
-                deleteBeforePerfHolder(templateMapper, code, _docNo);
-                log.info("이전PerfHolder 삭제 code=" + code + " docNo=" + _docNo);
+                if (docNo.equalsIgnoreCase(_docNo) == false) {
+                    deleteBeforePerfHolder(templateMapper, code, _docNo);
+                    log.info("이전PerfHolder 삭제 code=" + code + " docNo=" + _docNo);
+                }
             }
         }
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP

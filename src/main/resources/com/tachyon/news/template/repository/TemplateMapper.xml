@@ -29,8 +29,8 @@
 
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -584,13 +584,13 @@
           and name = #{name}
           and birth=#{birth}
           and owner_capital=#{owner_capital}
-          and borrowings=#{borrowings}
+          and borrow_amount=#{borrow_amount}
           and etc=#{etc}
     </select>
 
     <insert id="insertTakingHolder" parameterType="map">
-        INSERT INTO takingholder (acpt_dt,name, birth, owner_capital, borrowings, etc, sum,resource,borrower,borrow_amount,borrow_period,collateral,doc_no,isu_cd,acpt_no,type,err_msg)
-        VALUES ( #{acpt_dt},#{name}, #{birth}, #{owner_capital}, #{borrowings}, #{etc}, #{sum}, #{resource},#{borrower},#{borrow_amount},#{borrow_period},#{collateral},#{doc_no},#{isu_cd},#{acpt_no},#{type},#{err_msg})
+        INSERT INTO takingholder (acpt_dt,name, birth, owner_capital, borrowings, etc, sum,resource,borrower,borrow_amount,borrow_period,collateral,doc_no,isu_cd,acpt_no,type,err_msg,spot)
+        VALUES ( #{acpt_dt},#{name}, #{birth}, #{owner_capital}, #{borrowings}, #{etc}, #{sum}, #{resource},#{borrower},#{borrow_amount},#{borrow_period},#{collateral},#{doc_no},#{isu_cd},#{acpt_no},#{type},#{err_msg},#{spot})
     </insert>
 </mapper>
 

@@ -2,6 +2,7 @@ package com.tachyon.news.template.command;
 
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.MyTakingParser;
+import com.tachyon.crawl.kind.parser.MyTakingParser2;
 import com.tachyon.crawl.kind.parser.TableParser;
 import com.tachyon.crawl.kind.parser.handler.TakingSelectorByPattern;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
@@ -9,6 +10,7 @@ import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.crawl.kind.util.Tables;
 import com.tachyon.crawl.kind.util.Utils;
 import com.tachyon.news.template.config.MyContext;
+import com.tachyon.news.template.model.Borrowing;
 import com.tachyon.news.template.model.DocNoIsuCd;
 import com.tachyon.news.template.model.Taking;
 import com.tachyon.news.template.repository.TemplateMapper;
@@ -84,8 +86,8 @@ public class TakingHolderCommand extends BasicCommand {
             log.error("공시Html을 수집할 수 없음. " + key + " " + docUrl);
             return;
         }
-
-        TableParser parser = new TableParser(new TakingSelectorByPattern());
+        TakingSelectorByPattern selector = new TakingSelectorByPattern();
+        TableParser parser = new TableParser(selector);
         List<Table> tables = parser.parseSome(html, docUrl, new MyTakingParser());
         List<Map<String, Object>> takings = new ArrayList<>();
         if (tables != null) {
@@ -107,37 +109,68 @@ public class TakingHolderCommand extends BasicCommand {
         }
 
         for (Map<String, Object> _map : takings) {
-            log.debug("<<< " + _map);
+            log.info("<<< " + _map);
         }
+        Taking _taking = findReporter(selector, html, docUrl);
         log.info("... " + docUrl);
         Map<String, Taking> takingMap = aggregate(takings, key, docUrl);
-        handleBeforeTaking(code, acptNo);
+        handleBeforeTaking(code, acptNo, docNo);
         for (String name : takingMap.keySet()) {
             Taking taking = takingMap.get(name);
+            String birth = taking.getBirth();
+            if (_taking != null) {
+                if (name.equalsIgnoreCase(_taking.getName()) && birth.equalsIgnoreCase(_taking.getBirth())) {
+                    taking.setSpot(_taking.getSpot());
+                }
+            }
             String result = taking.validate(key);
             if ("OK".equalsIgnoreCase(result) == false) {
                 taking.setType("ERROR");
                 taking.setErrorMsg(result);
                 log.warn("INVALID " + result + " " + taking + " " + docUrl);
-            }else {
+            } else {
                 taking.setErrorMsg("");
             }
             //회사코드_성명_생년월일_자기자금_차입금_기타
-            if (fincTakingHolderCount(taking, code) == 0) {
-                insertTakingHolder(taking, docNo, code, acptNo);
-            } else {
-                log.info("SKIP 이미존재하는 취득 "+taking);
+            List<Borrowing> borrowings = taking.getBorrowings();
+            if (borrowings != null) {
+                for (Borrowing borrowing : borrowings) {
+                    if (fincTakingHolderCount(taking,borrowing, code) == 0) {
+                        insertTakingHolder(taking,borrowing, docNo, code, acptNo);
+                    } else {
+                        log.info("SKIP 이미존재하는 취득 " + taking+" "+borrowing);
+                    }
+                }
             }
         }
     }
 
-    private void insertTakingHolder(Taking taking, String docNo, String code, String acptNo) {
-        Map<String, Object> param = makeParam(taking, docNo, code, acptNo);
-        log.info("INSERT "+param);
+
+    private Taking findReporter(TakingSelectorByPattern selector, String html, String docUrl) throws Exception {
+        selector.setKeywrods(new String[]{"대량보유자", "사항"});
+        TableParser parser = new TableParser(selector);
+        List<Table> tables = parser.parseSome(html, docUrl, new MyTakingParser2());
+        for (Table table : tables) {
+            if ("보고자개요".equalsIgnoreCase(table.getTitle())) {
+                Map<String, Object> map = Tables.widTableToMap(table);
+                Taking taking = new Taking();
+                taking.setSpot(Maps.findValue(map, "직업"));
+                taking.setName(Maps.findValue(map, "성명(명칭)"));
+                taking.setBirth(Maps.findValue(map, "생년월일"));
+                return taking;
+            }
+        }
+
+        return null;
+    }
+
+    private void insertTakingHolder(Taking taking,Borrowing borrowing, String docNo, String code, String acptNo) {
+        Map<String, Object> param = makeParam(taking,borrowing, docNo, code, acptNo);
+        log.info("INSERT " + param);
         templateMapper.insertTakingHolder(param);
     }
 
-    private Map<String, Object> makeParam(Taking taking, String docNo, String code, String acptNo) {
+    private Map<String, Object> makeParam(Taking taking, Borrowing borrowing,String docNo, String code, String acptNo) {
         Map<String, Object> map = new HashMap<>();
         map.put("name", taking.getName());
         map.put("birth", taking.getBirth());
@@ -145,30 +178,36 @@ public class TakingHolderCommand extends BasicCommand {
         map.put("borrowings", taking.getBorrowing());
         map.put("etc", taking.getEtc());
         map.put("sum", taking.getSum());
-        map.put("resource", StringUtils.abbreviate(taking.getResource(),200));
-        map.put("borrower", taking.getBorrower());
-        map.put("borrow_amount", taking.getBorrowingAmount());
-        map.put("borrow_period", taking.getBorrowingPeriod());
-        map.put("collateral", taking.getCollateral());
+        map.put("resource", StringUtils.abbreviate(taking.getResource(), 200));
+        map.put("borrower", borrowing.getBorrower());
+        map.put("borrow_amount", borrowing.getBorrowingAmount());
+        map.put("borrow_period", borrowing.getBorrowingPeriod());
+        map.put("collateral", borrowing.getCollateral());
         map.put("doc_no", docNo);
         map.put("isu_cd", code);
         map.put("acpt_no", acptNo);
-        map.put("acpt_dt", acptNo.substring(0,8));
+        map.put("acpt_dt", acptNo.substring(0, 8));
         map.put("type", taking.getType());
-        map.put("err_msg", StringUtils.abbreviate(taking.getErrorMsg(),100));
+        map.put("spot", taking.getSpot());
+        map.put("err_msg", StringUtils.abbreviate(taking.getErrorMsg(), 100));
         return map;
     }
 
-    private int fincTakingHolderCount(Taking taking, String code) {
-        return templateMapper.fincTakingHolderCount(code,taking.getName(),taking.getBirth(),taking.getTaking(),taking.getBorrowing(),taking.getEtc());
+    private int fincTakingHolderCount(Taking taking,Borrowing borrowing, String code) {
+        int count = templateMapper.fincTakingHolderCount(code, taking.getName(), taking.getBirth(), taking.getTaking(), borrowing.getBorrowingAmount(), taking.getEtc());
+        log.info("TAKINGCOUNT " + count + " " + taking.getName());
+        return count;
     }
 
-    private void handleBeforeTaking(String code, String acptNo) {
+    private void handleBeforeTaking(String code, String acptNo, String docNo) {
         String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
         log.info("이전TaskingHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+
         if (StringUtils.isEmpty(_docNo) == false) {
-            deleteBeforeTakingHolder(templateMapper, code, _docNo);
-            log.info("이전TaskingHolder 삭제 code=" + code + " docNo=" + _docNo);
+            if (docNo.equalsIgnoreCase(_docNo) == false) {
+                deleteBeforeTakingHolder(templateMapper, code, _docNo);
+                log.info("이전TaskingHolder 삭제 code=" + code + " docNo=" + _docNo);
+            }
         }
     }
 
@@ -251,6 +290,10 @@ public class TakingHolderCommand extends BasicCommand {
 
             } else if ("차입금".equalsIgnoreCase(type)) {
                 String name = Utils.removeBracketBrace(Maps.getValue(_map, "차입자"));
+                if ("0".equalsIgnoreCase(name)) {
+                    continue;
+                }
+
                 String[] names = StringUtils.split(name, ",");
                 String borrower = Maps.getValue(_map, "차입처");
                 String borrowingPeriod = Maps.getValue(_map, "차입기간");
@@ -265,10 +308,12 @@ public class TakingHolderCommand extends BasicCommand {
                     }
                     if (taking != null) {
                         taking.setType(Taking.BORROWING);
-                        taking.setBorrowingAmount(borrowingAmount);
-                        taking.setBorrower(borrower);
-                        taking.setBorrowingPeriod(borrowingPeriod);
-                        taking.setCollateral(collateral);
+                        Borrowing borrowing = new Borrowing();
+                        borrowing.setBorrower(borrower);
+                        borrowing.setBorrowingPeriod(borrowingPeriod);
+                        borrowing.setBorrowingAmount(borrowingAmount);
+                        borrowing.setCollateral(collateral);
+                        taking.addBorrowings(borrowing);
                         taking.setupGneral(Taking.BORROWING);
                     } else {
                         log.warn("개요정보를 찾을 수 없음. " + name + " " + key);
@@ -277,12 +322,15 @@ public class TakingHolderCommand extends BasicCommand {
                     for (String _name : names) {
                         Taking taking = findTaking(map, modifyName(_name));
                         if (taking != null) {
+                            String borrowingAmount = adjustPrice((Maps.getValue(_map, "차입금액")));
                             taking.setType(Taking.BORROWING);
                             // 차입금액은 두명의 합친금액이므로 설정하지 않음.
-                            taking.setBorrowingAmount(taking.getBorrowing());
-                            taking.setBorrower(borrower);
-                            taking.setBorrowingPeriod(borrowingPeriod);
-                            taking.setCollateral(collateral);
+                            Borrowing borrowing = new Borrowing();
+                            borrowing.setBorrower(borrower);
+                            borrowing.setBorrowingPeriod(borrowingPeriod);
+                            borrowing.setBorrowingAmount(borrowingAmount);
+                            borrowing.setCollateral(collateral);
+                            taking.addBorrowings(borrowing);
                             taking.setupGneral(Taking.BORROWING);
                         } else {
                             log.warn("개요정보를 찾을 수 없음. " + name + " " + key);

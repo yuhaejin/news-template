@@ -90,20 +90,23 @@ public class NewsConfig {
 
             @Override
             public void beforeBulk(long l, BulkRequest bulkRequest) {
-                count = count + bulkRequest.numberOfActions();
-                log.info("indexing...  accumulatedCount=" + count + " size(mb)=" + bulkRequest.estimatedSizeInBytes() / (1024 * 1024) + " acionts=" + bulkRequest.numberOfActions());
+//                count = count + bulkRequest.numberOfActions();
+//                log.info("indexing...  accumulatedCount=" + count + " size(mb)=" + bulkRequest.estimatedSizeInBytes() / (1024 * 1024) + " acionts=" + bulkRequest.numberOfActions());
             }
 
             @Override
             public void afterBulk(long l, BulkRequest bulkRequest, BulkResponse bulkResponse) {
-                if (bulkResponse.hasFailures()) {
-                    for (BulkItemResponse bulkItemResponse : bulkResponse) {
-                        if (bulkItemResponse.isFailed()) {
-                            BulkItemResponse.Failure failure = bulkItemResponse.getFailure();
-                            log.error(bulkItemResponse.getOpType().toString() + " " + failure.toString());
-                        }
-                    }
-                }
+//                if (bulkResponse.hasFailures()) {
+//                    for (BulkItemResponse bulkItemResponse : bulkResponse) {
+//                        if (bulkItemResponse.isFailed()) {
+//                            BulkItemResponse.Failure failure = bulkItemResponse.getFailure();
+//                            log.error(bulkItemResponse.getOpType().toString() + " " + failure.toString());
+//                        }
+//                    }
+//                }
+//
+                count = count + bulkRequest.numberOfActions();
+                log.info("indexed...  accumulatedCount=" + count + " size(mb)=" + bulkRequest.estimatedSizeInBytes() / (1024 * 1024) + " acionts=" + bulkRequest.numberOfActions());
             }
 
             @Override

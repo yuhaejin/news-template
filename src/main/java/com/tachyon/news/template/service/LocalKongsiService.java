@@ -82,7 +82,7 @@ public class LocalKongsiService extends AbstractService {
         return strings[0];
     }
     private String findKongsiApi(String docNo, String code, String acptNo) {
-        return "http://localhost:8080/api/v1/kongsi?docNo=" + docNo + "&isuCd=" + code + "&acptNo=" + acptNo;
+        return "https://tmr.tachyonnews.com/api/v1/kongsi?docNo=" + docNo + "&isuCd=" + code + "&acptNo=" + acptNo;
     }
 
 

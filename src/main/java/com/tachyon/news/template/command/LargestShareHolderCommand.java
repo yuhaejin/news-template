@@ -100,8 +100,10 @@ public class LargestShareHolderCommand extends BasicCommand {
                     String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
                     log.info("이전LargestStockHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
                     if (StringUtils.isEmpty(_docNo) == false) {
-                        deleteBeforeLargestStockHolder(templateMapper, code, _docNo);
-                        log.info("이전LargestStockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                        if (docNo.equalsIgnoreCase(_docNo) == false) {
+                            deleteBeforeLargestStockHolder(templateMapper, code, _docNo);
+                            log.info("이전LargestStockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                        }
                     }
                 }
             }

@@ -113,8 +113,11 @@ public class StaffReportCommand extends BasicCommand {
             if (docNm.contains("정정")) {
                 String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
                 if (StringUtils.isEmpty(_docNo) == false) {
-                    deleteBeforeStaffHolder(templateMapper, code, _docNo);
-                    log.info("이전 StaffHolder 삭제 code=" + code + " docNo=" + _docNo);
+                    if (docNo.equalsIgnoreCase(_docNo) == false) {
+
+                        deleteBeforeStaffHolder(templateMapper, code, _docNo);
+                        log.info("이전 StaffHolder 삭제 code=" + code + " docNo=" + _docNo);
+                    }
                 }
             }
 

@@ -133,9 +133,11 @@ public class StockHolderCommand extends BasicCommand {
                             String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
                             log.info("이전StockHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
                             if (StringUtils.isEmpty(_docNo) == false) {
-                                deleteBeforeStockHolder(templateMapper, code, _docNo);
-                                log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
-                                DELETE.put(_docNo, _docNo);
+                                if (docNo.equalsIgnoreCase(_docNo) == false) {
+                                    deleteBeforeStockHolder(templateMapper, code, _docNo);
+                                    log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                                    DELETE.put(_docNo, _docNo);
+                                }
                             }
                         }
                     }
@@ -165,6 +167,8 @@ public class StockHolderCommand extends BasicCommand {
             setupName(changes,myContext);
             setupPrice(changes,codeNm);
             log.info("주식거래내역 ... " + changes.size());
+            setupBistowal(changes);
+
             int stockCount = 0;
             for (Change change : changes) {
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
@@ -220,6 +224,110 @@ public class StockHolderCommand extends BasicCommand {
 
         log.info("done " + key);
     }
+
+    private String nvl(String s) {
+        if (s == null) {
+            return "";
+        } else {
+            return s;
+        }
+    }
+    /**
+     * //TODO
+     * 증여, 수증 데이터의 증여자,수증자정보가 있는 비고 정보를 보정함.
+     * 1. chagnes 리스트에 증여, 수증 정보가 모두 있는 경우에만 해당
+     * 2. 비고란에 증여자,수증자 정보가 없는 경우에만 해당.
+     * 3. 증여, 수증 정보인 데이터에서 증감이 동일한 데이터에서 증여자와 수여자 정보를 찾을 수 있다.
+     *
+     * @param changes
+     */
+    private void setupBistowal(List<Change> changes) {
+        List<Change> list = findPlusMinusChanges(changes);
+        List<String> names = findNames(list);
+        if (list.size() > 0) {
+            for (Change change : list) {
+                String etc = change.getEtc();
+                etc = nvl(etc);
+
+                // 비고란에 잘못된 데이터..
+                if (hasName(etc, names)==false) {
+                    log.debug("증여, 수증 비고의 다른 패턴임.. "+etc);
+                    String type = change.getStockType();
+                    Long changeAmount = change.getChangeAmount();
+                    if (type.contains("증여")) {
+                        Change c = findMinusChange(changes, changeAmount, "수증");
+                        if (c != null) {
+                            log.debug(etc + " " + c.getName());
+                            change.setEtc2(c.getName());
+                        } else {
+                            log.warn("수증 정보를 찾지 못함. "+change);
+                        }
+                    } else if (type.contains("수증")) {
+                        Change c = findMinusChange(changes, changeAmount, "증여");
+                        if (c != null) {
+                            log.debug(etc + " " + c.getName());
+                            change.setEtc2(c.getName());
+                        } else {
+                            log.warn("증여 정보를 찾지 못함. "+change);
+                        }
+                    } else {
+                        // 이런 경우는 없으.ㅁ
+                    }
+                }else {
+                    log.debug("증여, 수증 비고의 기본 패턴임.. "+etc);
+                }
+                // etc2의 값이 없다고 하면 etc로 설정함.
+                if (isEmpty(change.getEtc2())) {
+                    change.setEtc2(etc);
+                }
+
+                log.info(etc+" ==> "+change.getEtc2());
+            }
+        }
+    }
+
+    private Change findMinusChange(List<Change> changes, Long changeAmount, String type) {
+        for (Change change : changes) {
+            log.debug(change+" << "+changeAmount+" << "+type);
+            if (change.getStockType().contains(type)) {
+                if (Math.abs(change.getChangeAmount()) == Math.abs(changeAmount)) {
+                    return change;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean hasName(String etc, List<String> names) {
+        for (String name : names) {
+            if (etc.contains(name)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private List<String> findNames(List<Change> list) {
+        List<String> strings = new ArrayList<>();
+        for (Change change : list) {
+            strings.add(change.getName());
+        }
+
+        return strings;
+    }
+
+    private List<Change> findPlusMinusChanges(List<Change> changes) {
+        List<Change> changes1 = new ArrayList<>();
+        for (Change change : changes) {
+            String stockType = change.getStockType();
+            if (StringUtils.containsAny(stockType, "증여", "수증")) {
+                changes1.add(change);
+            }
+        }
+        return changes1;
+    }
+
+
 
     private boolean hasEmptyValue(Change change) {
         if (change.getBefore() == 0 && change.getAfter() == 0) {

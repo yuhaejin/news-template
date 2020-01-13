@@ -9,11 +9,11 @@
         <appender-ref ref="STDOUT"/>
     </root>
     <logger name="com.tachyon.crawl.kind" additivity="false">
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <appender-ref ref="STDOUT"/>
     </logger>
     <logger name="com.tachyon.news.template" additivity="false">
-        <level value="INFO"/>
+        <level value="DEBUG"/>
         <appender-ref ref="STDOUT"/>
     </logger>
     <logger name="org.apache" additivity="false">
