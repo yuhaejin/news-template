@@ -33,6 +33,7 @@ public class Taking implements Serializable {
     private String spot;
 
     private List<Borrowing> borrowings;
+    private String unit;
 
     public void addBorrowings(Borrowing borrowing) {
         if (borrowings == null) {
@@ -131,6 +132,7 @@ public class Taking implements Serializable {
                 .append("errorMsg", errorMsg)
                 .append("spot", spot)
                 .append("borrowings", borrowings)
+                .append("unit", unit)
                 .toString();
     }
 
@@ -268,5 +270,13 @@ public class Taking implements Serializable {
 
     public String getSpot() {
         return spot;
+    }
+
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
+
+    public String getUnit() {
+        return unit;
     }
 }

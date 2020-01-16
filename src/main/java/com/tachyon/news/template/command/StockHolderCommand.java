@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
@@ -164,18 +165,16 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
 
+            log.info("주식거래내역 ... " + changes.size());
             setupName(changes,myContext);
             setupPrice(changes,codeNm);
-            log.info("주식거래내역 ... " + changes.size());
+            setupRepresentativeName(changes);
             setupBistowal(changes);
-
             int stockCount = 0;
             for (Change change : changes) {
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
                     log.info("거래내역에 이름이 없어 SKIP " + change);
                 } else {
-                    //대표투자자명으로 변경함.
-                    modifyRepresentativeName(change);
                     log.debug(change.toString());
                     if (isBirthdayUpdate(message)) {
                         if (findStockHolder(templateMapper, code, change)) {
@@ -207,6 +206,8 @@ public class StockHolderCommand extends BasicCommand {
                         }
                     }
 
+                    handleGiveNTake(change);
+
                 }
             }
 
@@ -221,8 +222,75 @@ public class StockHolderCommand extends BasicCommand {
             log.error("기초공시가 없음  docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
         }
 
-
         log.info("done " + key);
+    }
+    private int findGiveNtake(Map<String, Object> param) {
+        return templateMapper.findGiveNtake(param);
+    }
+    /**
+     * 증여, 수증 데이터 처리.
+     * @param change
+     */
+    private void handleGiveNTake(Change change) {
+        if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
+            Map<String, Object> param = findParam(change);
+            if (findGiveNtake(param) == 0) {
+                insertParam(change, param);
+                templateMapper.insertGiveNTake(param);
+            } else {
+                log.info("SKIP 이미존재함 "+change);
+            }
+        }
+    }
+    private Map<String, Object> findParam(Change change) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("isu_cd", change.getIsuCd());
+        param.put("change_date", modifyDate(change.getDateTime()));
+        param.put("name", change.getName());
+        param.put("change_amount", change.getChangeAmount()+"");
+        String stockType = change.getStockType();
+        if (stockType.contains("증여")) {
+            param.put("give_take_type", "GIVE");
+        } else if (stockType.contains("수증")) {
+            param.put("give_take_type", "TAKE");
+        } else {
+            param.put("give_take_type", "WRONG");
+        }
+
+        return param;
+    }
+
+
+    private void insertParam(Change change, Map<String, Object> param ) {
+        param.put("birth", change.getBirthDay());
+        param.put("price", change.getPrice());
+        param.put("price2", change.getPrice2());
+        param.put("before_amount", change.getBefore());
+        param.put("after_amount", change.getAfter());
+        param.put("stock_type", change.getStockType());
+        param.put("stock_method", change.getStockMethod());
+        param.put("etc", change.getEtc());
+        param.put("target", change.getTarget());
+        param.put("target_type", change.getTargetType());
+        param.put("doc_no", change.getDocNo());
+        param.put("acpt_no", change.getAcptNo());
+        param.put("acpt_dt", change.getAcptNo().substring(0,8));
+
+    }
+    private String modifyDate(Long date) {
+        return new SimpleDateFormat("yyyyMMdd").format(new Date(date));
+    }
+    /**
+     * 대표이름으로 변경함.
+     * @param changes
+     */
+    private void setupRepresentativeName(List<Change> changes) {
+        for (Change change : changes) {
+            if (StringUtils.isEmpty(change.getName())) {
+                continue;
+            }
+            modifyRepresentativeName(change);
+        }
     }
 
     private String nvl(String s) {
@@ -233,7 +301,6 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
     /**
-     * //TODO
      * 증여, 수증 데이터의 증여자,수증자정보가 있는 비고 정보를 보정함.
      * 1. chagnes 리스트에 증여, 수증 정보가 모두 있는 경우에만 해당
      * 2. 비고란에 증여자,수증자 정보가 없는 경우에만 해당.
@@ -250,35 +317,45 @@ public class StockHolderCommand extends BasicCommand {
                 etc = nvl(etc);
 
                 // 비고란에 잘못된 데이터..
-                if (hasName(etc, names)==false) {
+//                if (hasName(etc, names)==false) {
                     log.debug("증여, 수증 비고의 다른 패턴임.. "+etc);
                     String type = change.getStockType();
                     Long changeAmount = change.getChangeAmount();
+                    Change c = null;
                     if (type.contains("증여")) {
-                        Change c = findMinusChange(changes, changeAmount, "수증");
-                        if (c != null) {
-                            log.debug(etc + " " + c.getName());
-                            change.setEtc2(c.getName());
-                        } else {
-                            log.warn("수증 정보를 찾지 못함. "+change);
-                        }
-                    } else if (type.contains("수증")) {
-                        Change c = findMinusChange(changes, changeAmount, "증여");
-                        if (c != null) {
-                            log.debug(etc + " " + c.getName());
-                            change.setEtc2(c.getName());
-                        } else {
-                            log.warn("증여 정보를 찾지 못함. "+change);
-                        }
+                        c = findMinusChange(changes, changeAmount, "수증");
                     } else {
-                        // 이런 경우는 없으.ㅁ
+                        c = findMinusChange(changes, changeAmount, "증여");
                     }
-                }else {
-                    log.debug("증여, 수증 비고의 기본 패턴임.. "+etc);
-                }
+
+                    if (c != null) {
+                        log.debug(etc + " " + c.getName());
+                        change.setEtc2(c.getName());
+                        change.setTarget(c.getName());
+                        if (isCompany(c)) {
+                            log.info("company "+c);
+                            change.setTargetType("COMPANY");
+                        } else {
+                            if (isRelative(c)) {
+                                log.info("RELATIVE "+c);
+                                change.setTargetType("RELATIVE");
+                            } else {
+                                log.info("STAFF "+c);
+                                change.setTargetType("STAFF");
+                            }
+                        }
+
+                    } else {
+                        log.warn("수증 정보를 찾지 못함. "+change);
+                    }
+
+//                }else {
+//                    log.debug("증여, 수증 비고의 기본 패턴임.. "+etc);
+//                }
                 // etc2의 값이 없다고 하면 etc로 설정함.
                 if (isEmpty(change.getEtc2())) {
                     change.setEtc2(etc);
+
                 }
 
                 log.info(etc+" ==> "+change.getEtc2());
@@ -286,6 +363,33 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
+    private boolean isRelative(Change target) {
+        String isuCd = target.getIsuCd();
+        String name = target.getName();
+        String birth = target.getBirthDay();
+        Map<String, Object> param = new HashMap<>();
+        param.put("name", name);
+        param.put("birth", birth);
+        param.put("isu_cd", isuCd);
+        if (templateMapper.findRelativeHodlerSize(param) > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean isCompany(Change change) {
+        String birth = change.getBirthDay();
+        if (birth.length() == 6 && StringUtils.isNumeric(birth)) {
+            return false;
+        } else {
+            if (birth.contains("*")) {
+                return false;
+            } else {
+                return true;
+            }
+        }
+    }
     private Change findMinusChange(List<Change> changes, Long changeAmount, String type) {
         for (Change change : changes) {
             log.debug(change+" << "+changeAmount+" << "+type);

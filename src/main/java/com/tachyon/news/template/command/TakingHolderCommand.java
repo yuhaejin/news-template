@@ -97,6 +97,7 @@ public class TakingHolderCommand extends BasicCommand {
                 } else {
                     List<Map<String, Object>> maps = t.toMapList();
                     for (Map<String, Object> _map : maps) {
+                        _map.put("UNIT", t.getUnit());
                         takings.add(_map);
                     }
                 }
@@ -403,7 +404,7 @@ public class TakingHolderCommand extends BasicCommand {
         taking.setBorrowing(adjustPrice(Maps.findValueOrKeys(_map, "차입금")));
         taking.setEtc(adjustPrice(Maps.findValueOrKeys(_map, "기타")));
         taking.setSum(adjustPrice(Maps.findValueOrKeys(_map, "계")));
-
+        taking.setUnit(Maps.getValue(_map, "UNIT"));
         taking.setupGeneral();
         return taking;
     }
