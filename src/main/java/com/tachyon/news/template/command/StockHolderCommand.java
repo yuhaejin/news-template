@@ -157,7 +157,7 @@ public class StockHolderCommand extends BasicCommand {
                         // 이름이 합계이면 skip..
                         continue;
                     }
-                    if(hasEmptyValue(change)){
+                    if (hasEmptyValue(change)) {
                         continue;
                     }
 
@@ -166,8 +166,8 @@ public class StockHolderCommand extends BasicCommand {
             }
 
             log.info("주식거래내역 ... " + changes.size());
-            setupName(changes,myContext);
-            setupPrice(changes,codeNm);
+            setupName(changes, myContext);
+            setupPrice(changes, codeNm);
             setupRepresentativeName(changes);
             setupBistowal(changes);
             int stockCount = 0;
@@ -183,13 +183,13 @@ public class StockHolderCommand extends BasicCommand {
                                 log.info("updateStockHolderBirthDay " + _map);
                                 updateStockHolderBirthDay(templateMapper, _map);
                             } else {
-                                log.info("SKIP 생일파싱이 동일함 "+_map);
+                                log.info("SKIP 생일파싱이 동일함 " + _map);
                             }
                         }
                     } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
-                        if (hasDuplicateStockHolder(templateMapper, docNo,code,acptNo,docUrl, change,tempRptNm)) {
+                        if (hasDuplicateStockHolder(templateMapper, docNo, code, acptNo, docUrl, change, tempRptNm)) {
                             // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
 
                             log.info("ALREADY StockHodler " + change);
@@ -224,11 +224,14 @@ public class StockHolderCommand extends BasicCommand {
 
         log.info("done " + key);
     }
+
     private int findGiveNtake(Map<String, Object> param) {
         return templateMapper.findGiveNtake(param);
     }
+
     /**
      * 증여, 수증 데이터 처리.
+     *
      * @param change
      */
     private void handleGiveNTake(Change change) {
@@ -238,30 +241,41 @@ public class StockHolderCommand extends BasicCommand {
                 insertParam(change, param);
                 templateMapper.insertGiveNTake(param);
             } else {
-                log.info("SKIP 이미존재함 "+change);
+                log.info("SKIP 이미존재함 " + change);
             }
         }
     }
+
     private Map<String, Object> findParam(Change change) {
         Map<String, Object> param = new HashMap<>();
         param.put("isu_cd", change.getIsuCd());
         param.put("change_date", modifyDate(change.getDateTime()));
         param.put("name", change.getName());
-        param.put("change_amount", change.getChangeAmount()+"");
+        param.put("change_amount", change.getChangeAmount() + "");
         String stockType = change.getStockType();
         if (stockType.contains("증여")) {
-            param.put("give_take_type", "GIVE");
+
+            if (stockType.contains("취소")) {
+                param.put("give_take_type", "GC");
+            } else {
+                param.put("give_take_type", "G");
+            }
+
         } else if (stockType.contains("수증")) {
-            param.put("give_take_type", "TAKE");
+            if (stockType.contains("취소")) {
+                param.put("give_take_type", "TC");
+            } else {
+                param.put("give_take_type", "T");
+            }
         } else {
-            param.put("give_take_type", "WRONG");
+            param.put("give_take_type", "NG");
         }
 
         return param;
     }
 
 
-    private void insertParam(Change change, Map<String, Object> param ) {
+    private void insertParam(Change change, Map<String, Object> param) {
         param.put("birth", change.getBirthDay());
         param.put("price", change.getPrice());
         param.put("price2", change.getPrice2());
@@ -274,14 +288,17 @@ public class StockHolderCommand extends BasicCommand {
         param.put("target_type", change.getTargetType());
         param.put("doc_no", change.getDocNo());
         param.put("acpt_no", change.getAcptNo());
-        param.put("acpt_dt", change.getAcptNo().substring(0,8));
+        param.put("acpt_dt", change.getAcptNo().substring(0, 8));
 
     }
+
     private String modifyDate(Long date) {
         return new SimpleDateFormat("yyyyMMdd").format(new Date(date));
     }
+
     /**
      * 대표이름으로 변경함.
+     *
      * @param changes
      */
     private void setupRepresentativeName(List<Change> changes) {
@@ -300,6 +317,7 @@ public class StockHolderCommand extends BasicCommand {
             return s;
         }
     }
+
     /**
      * 증여, 수증 데이터의 증여자,수증자정보가 있는 비고 정보를 보정함.
      * 1. chagnes 리스트에 증여, 수증 정보가 모두 있는 경우에만 해당
@@ -318,36 +336,36 @@ public class StockHolderCommand extends BasicCommand {
 
                 // 비고란에 잘못된 데이터..
 //                if (hasName(etc, names)==false) {
-                    log.debug("증여, 수증 비고의 다른 패턴임.. "+etc);
-                    String type = change.getStockType();
-                    Long changeAmount = change.getChangeAmount();
-                    Change c = null;
-                    if (type.contains("증여")) {
-                        c = findMinusChange(changes, changeAmount, "수증");
-                    } else {
-                        c = findMinusChange(changes, changeAmount, "증여");
-                    }
+                log.debug("증여, 수증 비고의 다른 패턴임.. " + etc);
+                String type = change.getStockType();
+                Long changeAmount = change.getChangeAmount();
+                Change c = null;
+                if (type.contains("증여")) {
+                    c = findMinusChange(changes, changeAmount, "수증");
+                } else {
+                    c = findMinusChange(changes, changeAmount, "증여");
+                }
 
-                    if (c != null) {
-                        log.debug(etc + " " + c.getName());
-                        change.setEtc2(c.getName());
-                        change.setTarget(c.getName());
-                        if (isCompany(c)) {
-                            log.info("company "+c);
-                            change.setTargetType("COMPANY");
+                if (c != null) {
+                    log.debug(etc + " " + c.getName());
+                    change.setEtc2(c.getName());
+                    change.setTarget(c.getName());
+                    if (isCompany(c)) {
+                        log.info("company " + c);
+                        change.setTargetType("COMPANY");
+                    } else {
+                        if (isRelative(c)) {
+                            log.info("RELATIVE " + c);
+                            change.setTargetType("RELATIVE");
                         } else {
-                            if (isRelative(c)) {
-                                log.info("RELATIVE "+c);
-                                change.setTargetType("RELATIVE");
-                            } else {
-                                log.info("STAFF "+c);
-                                change.setTargetType("STAFF");
-                            }
+                            log.info("STAFF " + c);
+                            change.setTargetType("STAFF");
                         }
-
-                    } else {
-                        log.warn("수증 정보를 찾지 못함. "+change);
                     }
+
+                } else {
+                    log.warn("수증 정보를 찾지 못함. " + change);
+                }
 
 //                }else {
 //                    log.debug("증여, 수증 비고의 기본 패턴임.. "+etc);
@@ -358,7 +376,7 @@ public class StockHolderCommand extends BasicCommand {
 
                 }
 
-                log.info(etc+" ==> "+change.getEtc2());
+                log.info(etc + " ==> " + change.getEtc2());
             }
         }
     }
@@ -390,9 +408,10 @@ public class StockHolderCommand extends BasicCommand {
             }
         }
     }
+
     private Change findMinusChange(List<Change> changes, Long changeAmount, String type) {
         for (Change change : changes) {
-            log.debug(change+" << "+changeAmount+" << "+type);
+            log.debug(change + " << " + changeAmount + " << " + type);
             if (change.getStockType().contains(type)) {
                 if (Math.abs(change.getChangeAmount()) == Math.abs(changeAmount)) {
                     return change;
@@ -432,7 +451,6 @@ public class StockHolderCommand extends BasicCommand {
     }
 
 
-
     private boolean hasEmptyValue(Change change) {
         if (change.getBefore() == 0 && change.getAfter() == 0) {
             return true;
@@ -459,20 +477,21 @@ public class StockHolderCommand extends BasicCommand {
             return longs.size();
         }
     }
+
     /**
      * 최대주주등소유주식변동신고서 스크래핑한 데이터중에 처리일시가 잘못되어 중복되어 나왔는데 이걸 방지하기 위한 로직임.
      * 두개의 제한 조건이 들어감
      * 1. 동일한 공시에서는 처리일시까지 넣어 중복 데이터를 찾는다.
      * 2. 다른 공시에서의 처리
-     *  - 처리일시가 같으면 단가는 빼고 중복데이터틑 찾는다.
-     *  - 처리일시가 다르면 단가는 넣고 중복데이터를 찾는다.
+     * - 처리일시가 같으면 단가는 빼고 중복데이터틑 찾는다.
+     * - 처리일시가 다르면 단가는 넣고 중복데이터를 찾는다.
      *
      * @param templateMapper
      * @param code
      * @param change
      * @return
      */
-    private boolean hasDuplicateStockHolder(TemplateMapper templateMapper, String docNo,String code,String acptNo, String docUrl, Change change,String tempRptNm) {
+    private boolean hasDuplicateStockHolder(TemplateMapper templateMapper, String docNo, String code, String acptNo, String docUrl, Change change, String tempRptNm) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
         param.put("temp_rpt_nm", tempRptNm);
         param.put("doc_url", docUrl);
@@ -484,17 +503,17 @@ public class StockHolderCommand extends BasicCommand {
         int count = countList(seqs);
         if (count > 0) {
             Long l = seqs.get(0);
-            log.info("SEQ1 "+l+" "+count);
+            log.info("SEQ1 " + l + " " + count);
             param.put("stock_seq", l);
             // 중북된 공시는 stockdupholder insert함
             handleDupStock(templateMapper, param);
             return true;
-        }else {
+        } else {
             seqs = templateMapper.findDupStockSeqOnOtherKind(param);
             count = countList(seqs);
             if (count > 0) {
                 Long l = seqs.get(0);
-                log.info("SEQ2 "+l+" "+count);
+                log.info("SEQ2 " + l + " " + count);
                 param.put("stock_seq", l);
                 // 중북된 공시는 stockdupholder insert함
                 handleDupStock(templateMapper, param);
@@ -517,11 +536,12 @@ public class StockHolderCommand extends BasicCommand {
     /**
      * 거래내약 중복된 공시 정보를 수집함.
      * 중복되지 않은 공시만 입력함.
+     *
      * @param templateMapper
      * @param param
      */
-    private void handleDupStock(TemplateMapper templateMapper,Map<String, Object> param) {
-        if (templateMapper.findDupStockCount(param) ==0 ) {
+    private void handleDupStock(TemplateMapper templateMapper, Map<String, Object> param) {
+        if (templateMapper.findDupStockCount(param) == 0) {
             templateMapper.insertDupStock(param);
         }
     }
@@ -631,12 +651,8 @@ public class StockHolderCommand extends BasicCommand {
                 Integer price = null;
                 if (isPreferredStock(change)) {
                     // 우선주 회사코드 필요
-                    String preferredCode = findPreferred(codeNm);
-                    if (isEmpty(preferredCode)) {
-                        price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
-                    } else {
-                        price = templateMapper.findClose(preferredCode, new Timestamp(change.getDateTime()));
-                    }
+                    String preferredCode = findPreferredCode(change.getIsuCd());
+                    price = templateMapper.findClose(preferredCode, new Timestamp(change.getDateTime()));
                 } else {
                     price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
                 }
@@ -651,9 +667,14 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
+    private String findPreferredCode(String code) {
+        return code.substring(0, code.length() - 1) + "5";
+    }
+
     /**
      * TODO
      * 회사명으로 우선주 회사 찾기
+     *
      * @param codeNm
      * @return
      */
@@ -665,12 +686,13 @@ public class StockHolderCommand extends BasicCommand {
     /**
      * TODO 변경가능.
      * 우선주인지 여부 확인
+     *
      * @param change
      * @return
      */
     private boolean isPreferredStock(Change change) {
         String stockMethod = change.getStockMethod();
-        if (StringUtils.equalsAny(stockMethod, "종류주식", "우선주","자동전환우선주")) {
+        if (StringUtils.equalsAny(stockMethod, "종류주식", "우선주", "자동전환우선주")) {
             return true;
         } else {
             return false;

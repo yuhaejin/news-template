@@ -486,8 +486,12 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
         return false;
     }
-
-
+    String findDocNm(Map<String, Object> map) {
+        return Maps.getValue(map, "doc_nm");
+    }
+    String findDocUrl(Map<String, Object> map) {
+        return Maps.getValue(map, "doc_url");
+    }
 }
 
 

@@ -279,4 +279,8 @@ public class Taking implements Serializable {
     public String getUnit() {
         return unit;
     }
+
+    public void setupUnit() {
+
+    }
 }

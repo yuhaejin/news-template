@@ -173,15 +173,16 @@ public class TakingHolderCommand extends BasicCommand {
 
     private Map<String, Object> makeParam(Taking taking, Borrowing borrowing,String docNo, String code, String acptNo) {
         Map<String, Object> map = new HashMap<>();
+        String unit = taking.getUnit();
         map.put("name", taking.getName());
         map.put("birth", taking.getBirth());
-        map.put("owner_capital", taking.getTaking());
-        map.put("borrowings", taking.getBorrowing());
-        map.put("etc", taking.getEtc());
-        map.put("sum", taking.getSum());
+        map.put("owner_capital", modifyWithUnit(taking.getTaking(),unit));
+        map.put("borrowings", modifyWithUnit(taking.getBorrowing(),unit));
+        map.put("etc", modifyWithUnit(taking.getEtc(),unit));
+        map.put("sum", modifyWithUnit(taking.getSum(),unit));
         map.put("resource", StringUtils.abbreviate(taking.getResource(), 200));
         map.put("borrower", borrowing.getBorrower());
-        map.put("borrow_amount", borrowing.getBorrowingAmount());
+        map.put("borrow_amount", modifyWithUnit(borrowing.getBorrowingAmount(),borrowing.getUnit()));
         map.put("borrow_period", borrowing.getBorrowingPeriod());
         map.put("collateral", borrowing.getCollateral());
         map.put("doc_no", docNo);
@@ -194,6 +195,41 @@ public class TakingHolderCommand extends BasicCommand {
         return map;
     }
 
+    private String modifyWithUnit(String value, String unit) {
+        String result = "";
+        value = value.trim();
+        if ("-".equalsIgnoreCase(value) || isEmpty(value) || "0".equalsIgnoreCase(value)) {
+            result = value;
+        } else {
+            if (unit == null) {
+                result = value;
+            } else if ("원".equalsIgnoreCase(unit)) {
+                result = value;
+            } else {
+                if ("천원".equalsIgnoreCase(unit)) {
+                    result = value + "000";
+                } else if ("만원".equalsIgnoreCase(unit)) {
+                    result = value + "0000";
+                } else if ("백만원".equalsIgnoreCase(unit)) {
+                    result = value + "000000";
+                } else if ("천만원".equalsIgnoreCase(unit)) {
+                    result = value + "0000000";
+                } else if ("억원".equalsIgnoreCase(unit)) {
+                    result = value + "00000000";
+                } else if ("십억원".equalsIgnoreCase(unit)) {
+                    result = value + "000000000";
+                } else if ("백억원".equalsIgnoreCase(unit)) {
+                    result = value + "0000000000";
+                } else if ("천억원".equalsIgnoreCase(unit)) {
+                    result = value + "00000000000";
+                } else {
+                    result = value + unit;
+                }
+            }
+        }
+        log.debug(value+ " ==> "+result+" with "+unit);
+        return result;
+    }
     private int fincTakingHolderCount(Taking taking,Borrowing borrowing, String code) {
         int count = templateMapper.fincTakingHolderCount(code, taking.getName(), taking.getBirth(), taking.getTaking(), borrowing.getBorrowingAmount(), taking.getEtc());
         log.info("TAKINGCOUNT " + count + " " + taking.getName());
@@ -299,6 +335,7 @@ public class TakingHolderCommand extends BasicCommand {
                 String borrower = Maps.getValue(_map, "차입처");
                 String borrowingPeriod = Maps.getValue(_map, "차입기간");
                 String collateral = Maps.getValue(_map, "담보내역");
+                String unit = Maps.getValue(_map, "UNIT");
                 if (names.length == 1) {
                     String borrowingAmount = adjustPrice((Maps.getValue(_map, "차입금액")));
                     Taking taking = null;
@@ -314,6 +351,8 @@ public class TakingHolderCommand extends BasicCommand {
                         borrowing.setBorrowingPeriod(borrowingPeriod);
                         borrowing.setBorrowingAmount(borrowingAmount);
                         borrowing.setCollateral(collateral);
+                        borrowing.setUnit(unit);
+
                         taking.addBorrowings(borrowing);
                         taking.setupGneral(Taking.BORROWING);
                     } else {
@@ -331,6 +370,7 @@ public class TakingHolderCommand extends BasicCommand {
                             borrowing.setBorrowingPeriod(borrowingPeriod);
                             borrowing.setBorrowingAmount(borrowingAmount);
                             borrowing.setCollateral(collateral);
+                            borrowing.setUnit(unit);
                             taking.addBorrowings(borrowing);
                             taking.setupGneral(Taking.BORROWING);
                         } else {
@@ -406,6 +446,7 @@ public class TakingHolderCommand extends BasicCommand {
         taking.setSum(adjustPrice(Maps.findValueOrKeys(_map, "계")));
         taking.setUnit(Maps.getValue(_map, "UNIT"));
         taking.setupGeneral();
+        taking.setupUnit();
         return taking;
     }
 

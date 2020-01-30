@@ -17,7 +17,7 @@ public interface TemplateMapper {
 
     List<Map<String, Object>> findBeforeKongsi(@Param("isuCd")String code, @Param("acptNo")String acptNo);
 
-    void deleteBeforeStockHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
+    void deleteBeforeStockHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
 
     String findName(String name);
@@ -82,11 +82,11 @@ public interface TemplateMapper {
 
     void insertLargestStockHolder(Map<String, Object> param);
 
-    void deleteBeforeLargestStockHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
+    void deleteBeforeLargestStockHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     int findLargestStockHolderCount(Map<String, Object> keyParam);
 
-    void deleteBeforeRelativeHolder(@Param("isuCd")String code, @Param("docNo")String docNo);
+    void deleteBeforeRelativeHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     void insertRelativeHolder(Map<String, Object> param);
 
@@ -130,7 +130,7 @@ public interface TemplateMapper {
 
     String findCode(String codeNm);
 
-    void deleteBeforePerfHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code);
+    void deleteBeforePerfHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     int findDuplicatePerf(Map<String, Object> param);
 
@@ -157,4 +157,10 @@ public interface TemplateMapper {
     int findGiveNtake(Map<String, Object> param);
 
     void insertGiveNTake(Map<String, Object> param);
+
+    void deleteBeforeMyStockHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+
+    int findMyStockCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+
+    void insertMyStock(Map<String, Object> param);
 }

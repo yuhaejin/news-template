@@ -15,8 +15,15 @@ public class Borrowing implements Serializable {
     private String collateral;          // 담보내역
 
     private String errorMsg;
+    private String unit;
 
+    public String getUnit() {
+        return unit;
+    }
 
+    public void setUnit(String unit) {
+        this.unit = unit;
+    }
 
     public String getErrorMsg() {
         return errorMsg;

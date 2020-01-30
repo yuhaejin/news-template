@@ -54,8 +54,8 @@
     <delete id="deleteBeforeStockHolder" parameterType="map">
         delete
         from stockholder
-        where isu_cd = #{isuCd}
-          and doc_no = #{docNo}
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
     </delete>
 
     <select id="findName" parameterType="string" resultType="string">
@@ -299,8 +299,8 @@
     <delete id="deleteBeforeLargestStockHolder" parameterType="map">
         delete
         from largeststockholder
-        where isu_cd = #{isuCd}
-          and doc_no = #{docNo}
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
     </delete>
     <insert id="insertLargestStockHolder" parameterType="map">
         INSERT INTO largeststockholder (name, birthday, isu_cd, changedate, gender, homeabroad, relation, doubleup1, doubleup2, generalstockcnt, generalratio, kindstockcnt, kindratio, stockdepositorycnt, stockdepositoryratio, firststockratio, doc_no,
@@ -322,8 +322,8 @@
     <delete id="deleteBeforeRelativeHolder" parameterType="map">
         delete
         from relativeholder
-        where isu_cd = #{isuCd}
-          and doc_no = #{docNo}
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
     </delete>
 
     <select id="findRelativeHolderCount" resultType="int" parameterType="map">
@@ -610,6 +610,26 @@
         INSERT INTO givetakeholder (isu_cd, change_date, name, change_amount, give_take_type, birth, price, price2, before_amount, after_amount, stock_type, etc, target, target_type,doc_no,acpt_no,stock_method,acpt_dt)
         VALUES (#{isu_cd}, #{change_date}, #{name}, #{change_amount}, #{give_take_type}, #{birth}, #{price}, #{price2}, #{before_amount}, #{after_amount}, #{stock_type}, #{etc}, #{target}, #{target_type},#{doc_no},#{acpt_no},#{stock_method},#{acpt_dt})
     </insert>
+    <select id="findMyStockCount" parameterType="map" resultType="int">
+        select count(a.seq)
+        from mystockholder a
+        where 1 = 1
+          and a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+    </select>
 
+    <insert id="insertMyStock" parameterType="map">
+        INSERT INTO mystockholder (doc_no,isu_cd,acpt_no,acpt_dt,company,stock_count_gen,stock_count_etc,stock_amount_gen,stock_amount_etc,start_period,end_period,start_period2,end_period2,purpose,method,dispose_method1,dispose_method2,dispose_method3,dispose_method4,before_my_gen_count,before_my_gen_ratio,before_my_etc_count,before_my_etc_ratio,before_etc_gen_count,before_etc_gen_ratio,before_etc_etc_count,before_etc_etc_ratio,decision_date,agency,target_stock_gen_price,target_stock_etc_price,type)
+        VALUES (#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{company},#{stock_count_gen},#{stock_count_etc},#{stock_amount_gen},#{stock_amount_etc},#{start_period},#{end_period},#{start_period2},#{end_period2},#{purpose},#{method},#{dispose_method1},#{dispose_method2},#{dispose_method3},#{dispose_method4},#{before_my_gen_count},#{before_my_gen_ratio},#{before_my_etc_count},#{before_my_etc_ratio},#{before_etc_gen_count},#{before_etc_gen_ratio},#{before_etc_etc_count},#{before_etc_etc_ratio},#{decision_date},#{agency},#{target_stock_gen_price},#{target_stock_etc_price},#{type})
+    </insert>
+
+<!--    deleteBeforeMyStockHolder-->
+    <delete id="deleteBeforeMyStockHolder" parameterType="map">
+        delete
+        from mystockholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
 </mapper>
 

@@ -186,7 +186,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
     }
 
     private void deleteBeforePerfHolder(TemplateMapper templateMapper, String code, String docNo) {
-        templateMapper.deleteBeforePerfHolder(docNo, code);
+        templateMapper.deleteBeforePerfHolder(code, docNo);
     }
 
 
