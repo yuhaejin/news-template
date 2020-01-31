@@ -602,13 +602,14 @@
           and a.change_date = #{change_date}
           and a.name = #{name}
           and a.change_amount = #{change_amount}
+          and a.before_amount = #{before_amount}
           and a.give_take_type = #{give_take_type}
 
     </select>
 
     <insert id="insertGiveNTake" parameterType="map">
-        INSERT INTO givetakeholder (isu_cd, change_date, name, change_amount, give_take_type, birth, price, price2, before_amount, after_amount, stock_type, etc, target, target_type,doc_no,acpt_no,stock_method,acpt_dt)
-        VALUES (#{isu_cd}, #{change_date}, #{name}, #{change_amount}, #{give_take_type}, #{birth}, #{price}, #{price2}, #{before_amount}, #{after_amount}, #{stock_type}, #{etc}, #{target}, #{target_type},#{doc_no},#{acpt_no},#{stock_method},#{acpt_dt})
+        INSERT INTO givetakeholder (isu_cd, change_date, name, change_amount, give_take_type, birth, price, price2, before_amount, after_amount, stock_type, etc, target, target_type,doc_no,acpt_no,stock_method,acpt_dt,gender,nationality,relation)
+        VALUES (#{isu_cd}, #{change_date}, #{name}, #{change_amount}, #{give_take_type}, #{birth}, #{price}, #{price2}, #{before_amount}, #{after_amount}, #{stock_type}, #{etc}, #{target}, #{target_type},#{doc_no},#{acpt_no},#{stock_method},#{acpt_dt},#{gender},#{nationality},#{relation})
     </insert>
     <select id="findMyStockCount" parameterType="map" resultType="int">
         select count(a.seq)

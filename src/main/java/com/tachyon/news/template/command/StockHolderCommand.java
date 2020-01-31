@@ -252,9 +252,9 @@ public class StockHolderCommand extends BasicCommand {
         param.put("change_date", modifyDate(change.getDateTime()));
         param.put("name", change.getName());
         param.put("change_amount", change.getChangeAmount() + "");
+        param.put("before_amount", change.getBefore() + "");
         String stockType = change.getStockType();
         if (stockType.contains("증여")) {
-
             if (stockType.contains("취소")) {
                 param.put("give_take_type", "GC");
             } else {
@@ -289,6 +289,10 @@ public class StockHolderCommand extends BasicCommand {
         param.put("doc_no", change.getDocNo());
         param.put("acpt_no", change.getAcptNo());
         param.put("acpt_dt", change.getAcptNo().substring(0, 8));
+        param.put("gender", change.getGender());
+        param.put("nationality", change.getNationality());
+        param.put("relation", change.getRelation());
+
 
     }
 
@@ -330,10 +334,27 @@ public class StockHolderCommand extends BasicCommand {
         List<Change> list = findPlusMinusChanges(changes);
         List<String> names = findNames(list);
         if (list.size() > 0) {
+//            if (hasOneGive(list)) {
+//                Change oneGiver = findOneGiver(list);
+//                setupOneGiver(list, oneGiver);
+//                if (list.size() == 2) {
+//                    setupOneTaker(list, oneGiver);
+//                }
+//
+//            } else if (hasOneCancelGiver(list)) {
+//                Change oneGiver = findOneCancelGiver(list);
+//                setupOneGiver(list, oneGiver);
+//                if (list.size() == 2) {
+//                    setupOneTaker(list, oneGiver);
+//                }
+//            } else {
+//
+//            }
+
+
             for (Change change : list) {
                 String etc = change.getEtc();
                 etc = nvl(etc);
-
                 // 비고란에 잘못된 데이터..
 //                if (hasName(etc, names)==false) {
                 log.debug("증여, 수증 비고의 다른 패턴임.. " + etc);
@@ -350,18 +371,7 @@ public class StockHolderCommand extends BasicCommand {
                     log.debug(etc + " " + c.getName());
                     change.setEtc2(c.getName());
                     change.setTarget(c.getName());
-                    if (isCompany(c)) {
-                        log.info("company " + c);
-                        change.setTargetType("COMPANY");
-                    } else {
-                        if (isRelative(c)) {
-                            log.info("RELATIVE " + c);
-                            change.setTargetType("RELATIVE");
-                        } else {
-                            log.info("STAFF " + c);
-                            change.setTargetType("STAFF");
-                        }
-                    }
+                    setupTargetType(change, c);
 
                 } else {
                     log.warn("수증 정보를 찾지 못함. " + change);
@@ -381,6 +391,94 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
+    private void setupOneTaker(List<Change> list, Change oneGiver) {
+        for (Change change : list) {
+            String type = change.getStockType();
+            if (type.contains("수증")) {
+                oneGiver.setEtc2(change.getName());
+                oneGiver.setTarget(change.getName());
+                setupTargetType(oneGiver, change);
+            }
+        }
+    }
+
+    private void setupOneGiver( List<Change> list,Change oneGiver) {
+        for (Change change : list) {
+            String type = change.getStockType();
+            if (type.contains("수증")) {
+                change.setEtc2(oneGiver.getName());
+                change.setTarget(oneGiver.getName());
+                setupTargetType(change, oneGiver);
+            }
+        }
+    }
+    private Change findOneCancelGiver(List<Change> list) {
+        for (Change change : list) {
+            String stockType = change.getStockType();
+            if ("증여취소(+)".equalsIgnoreCase(stockType)) {
+                return change;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean hasOneCancelGiver(List<Change> list) {
+        int count = 0;
+        for (Change change : list) {
+            String stockType = change.getStockType();
+            if ("증여취소(+)".equalsIgnoreCase(stockType)) {
+                count++;
+            }
+        }
+
+        if (count == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private void setupTargetType(Change change,Change c) {
+        if (isCompany(c)) {
+            log.info("company " + c);
+            change.setTargetType("COMPANY");
+        } else {
+            if (isRelative(c)) {
+                log.info("RELATIVE " + c);
+                change.setTargetType("RELATIVE");
+            } else {
+                log.info("STAFF " + c);
+                change.setTargetType("STAFF");
+            }
+        }
+    }
+    private Change findOneGiver(List<Change> list) {
+        for (Change change : list) {
+            String stockType = change.getStockType();
+            if ("증여(-)".equalsIgnoreCase(stockType)) {
+                return change;
+            }
+        }
+
+        return null;
+    }
+
+    private boolean hasOneGive(List<Change> list) {
+        int count = 0;
+        for (Change change : list) {
+            String stockType = change.getStockType();
+            if ("증여(-)".equalsIgnoreCase(stockType)) {
+                count++;
+            }
+        }
+
+        if (count == 1) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     private boolean isRelative(Change target) {
         String isuCd = target.getIsuCd();
         String name = target.getName();
@@ -443,7 +541,7 @@ public class StockHolderCommand extends BasicCommand {
         List<Change> changes1 = new ArrayList<>();
         for (Change change : changes) {
             String stockType = change.getStockType();
-            if (StringUtils.containsAny(stockType, "증여", "수증")) {
+            if (StringUtils.containsAny(stockType, "증여(-)", "수증(+)","증여취소(+)","수증취소(-)")) {
                 changes1.add(change);
             }
         }
