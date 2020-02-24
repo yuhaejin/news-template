@@ -163,4 +163,13 @@ public interface TemplateMapper {
     int findMyStockCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
 
     void insertMyStock(Map<String, Object> param);
+
+    int findSupplyContractCount(@Param("contract_gubun")String contractGubun, @Param("isu_cd")String code, @Param("action_type")String actionYype,@Param("do_date")String doDate);
+
+    void deleteBeforeContractHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+
+    void insertSupplyContract(Map<String, Object> param);
+
+    Map<String, Object> findNewerStockHolder(@Param("isu_cd")String isuCd, @Param("owner_name")String name, @Param("change_date")Timestamp timestamp);
+
 }

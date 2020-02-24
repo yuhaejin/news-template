@@ -492,6 +492,22 @@ public abstract class BasicCommand extends BaseObject implements Command {
     String findDocUrl(Map<String, Object> map) {
         return Maps.getValue(map, "doc_url");
     }
+
+    String toYYMM(String s) {
+        return s.substring(0, 4);
+    }
+    boolean isBirthDay(String s) {
+        if (isEmpty(s)) {
+            return false;
+        } else {
+            if (s.length() == 6) {
+                if (StringUtils.isNumeric(s)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 }
 
 

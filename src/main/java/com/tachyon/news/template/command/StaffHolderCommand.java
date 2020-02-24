@@ -11,6 +11,7 @@ import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -105,8 +106,18 @@ public class StaffHolderCommand extends BasicCommand {
             // 예전 공시는 생년월일까지 있으나 요즘 공시는 생년월까지 있어 아래처럼 작업한다.
             String birthDay = BizUtils.parseBirthDay2_2(staff.getBirthDay());
             staff.setBirthDay(birthDay);
+            if (isBirthDay(birthDay)) {
+                staff.setBirthYm(toStaffYYMM(birthDay));
+            } else {
+                staff.setBirthYm(birthDay);
+            }
         }
     }
+
+    private String toStaffYYMM(String birth) {
+        return birth.substring(2);
+    }
+
 
 
     boolean isConvertingBirthday(Message message) {

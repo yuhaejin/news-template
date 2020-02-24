@@ -118,4 +118,9 @@ public class RabbitMqRouteConfig {
     Queue _MY_STOCK() {
         return QueueBuilder.durable("_MY_STOCK").build();
     }
+    @Bean
+    Queue _CONTRACT() {
+        return QueueBuilder.durable("_CONTRACT").build();
+    }
+
 }

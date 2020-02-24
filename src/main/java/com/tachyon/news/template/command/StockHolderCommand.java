@@ -166,12 +166,20 @@ public class StockHolderCommand extends BasicCommand {
             }
 
             log.info("주식거래내역 ... " + changes.size());
+
             setupName(changes, myContext);
             setupPrice(changes, codeNm);
             setupRepresentativeName(changes);
             setupBistowal(changes);
+            setupBirthYm(changes);
             int stockCount = 0;
             for (Change change : changes) {
+                // 신규보고인데... 실제로는 아닌 경우는 SKIP..
+                if (checkFakeNewReport(change)) {
+                    log.info("Fake신규보고 SKIP " + change);
+                    continue;
+                }
+
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
                     log.info("거래내역에 이름이 없어 SKIP " + change);
                 } else {
@@ -223,6 +231,55 @@ public class StockHolderCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    /**
+     * 신규보고인데 실제로는 아닌 경우 확인
+     * 이전 거래가 없으면 false
+     * 이전 거래가 있는데 마지막 거래액이 0 이면 false
+     * 나머지 true (fake신규보고)
+     *
+     * @param change
+     * @return
+     */
+    private boolean checkFakeNewReport(Change change) {
+        log.info("checkFakeNewReport " + change);
+        String stockType = change.getStockType();
+        String etc = change.getEtc();
+        if (isEmpty(stockType)==false && stockType.contains("신규보고")) {
+            if (isEmpty(etc)==false && etc.contains("기존보유")) {
+                return true;
+            } else {
+                // 이전 거래 찾기...
+                Map<String, Object> map = templateMapper.findNewerStockHolder(change.getIsuCd(), change.getName(), new Timestamp(change.getDateTime()));
+                log.debug("checkFakeNewReport " + map);
+                if (map == null) {
+                    // 이전 거래가 없으면 fake는 아님.
+                    return false;
+                } else {
+                    Long after = Maps.getLongValue(map, "after_amt");
+                    if (after == 0) {
+                        // 이전 거래가 있었지만 모두 처리한 상태이후 거래하는 거라 fake 아님..
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void setupBirthYm(List<Change> changes) {
+        for (Change change : changes) {
+            String birthDay = change.getBirthDay();
+            if (isBirthDay(birthDay)) {
+                change.setBirthYm(toYYMM(birthDay));
+            } else {
+                change.setBirthYm(birthDay);
+            }
+        }
     }
 
     private int findGiveNtake(Map<String, Object> param) {
@@ -402,7 +459,7 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private void setupOneGiver( List<Change> list,Change oneGiver) {
+    private void setupOneGiver(List<Change> list, Change oneGiver) {
         for (Change change : list) {
             String type = change.getStockType();
             if (type.contains("수증")) {
@@ -412,6 +469,7 @@ public class StockHolderCommand extends BasicCommand {
             }
         }
     }
+
     private Change findOneCancelGiver(List<Change> list) {
         for (Change change : list) {
             String stockType = change.getStockType();
@@ -439,7 +497,7 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private void setupTargetType(Change change,Change c) {
+    private void setupTargetType(Change change, Change c) {
         if (isCompany(c)) {
             log.info("company " + c);
             change.setTargetType("COMPANY");
@@ -453,6 +511,7 @@ public class StockHolderCommand extends BasicCommand {
             }
         }
     }
+
     private Change findOneGiver(List<Change> list) {
         for (Change change : list) {
             String stockType = change.getStockType();
@@ -479,6 +538,7 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
     private boolean isRelative(Change target) {
         String isuCd = target.getIsuCd();
         String name = target.getName();
@@ -541,7 +601,7 @@ public class StockHolderCommand extends BasicCommand {
         List<Change> changes1 = new ArrayList<>();
         for (Change change : changes) {
             String stockType = change.getStockType();
-            if (StringUtils.containsAny(stockType, "증여(-)", "수증(+)","증여취소(+)","수증취소(-)")) {
+            if (StringUtils.containsAny(stockType, "증여(-)", "수증(+)", "증여취소(+)", "수증취소(-)")) {
                 changes1.add(change);
             }
         }

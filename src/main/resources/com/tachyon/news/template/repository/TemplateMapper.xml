@@ -29,8 +29,8 @@
 
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -65,9 +65,9 @@
     </select>
 
     <insert id="insertStaffHolder" parameterType="map">
-        INSERT INTO staffholder (kongsi_day, name, gender, birth_day, spot, regi_officer_yn, full_time_yn, responsibilities, major_career, voting_stock, no_voting_stock, service_duration, expiration_date, isu_cd, doc_no, doc_url, acpt_no)
+        INSERT INTO staffholder (kongsi_day, name, gender, birth_day, spot, regi_officer_yn, full_time_yn, responsibilities, major_career, voting_stock, no_voting_stock, service_duration, expiration_date, isu_cd, doc_no, doc_url, acpt_no,birth_ym)
         VALUES (#{kongsi_day}, #{name}, #{gender}, #{birth_day}, #{spot}, #{regi_officer_yn}, #{full_time_yn}, #{responsibilities}, #{major_career}, #{voting_stock}, #{no_voting_stock}, #{service_duration}, #{expiration_date}, #{isu_cd}, #{doc_no},
-                #{doc_url}, #{acpt_no})
+                #{doc_url}, #{acpt_no},#{birth_ym})
     </insert>
 
 
@@ -632,5 +632,58 @@
         where isu_cd = #{isu_cd}
           and doc_no = #{doc_no}
     </delete>
+
+<!--    deleteBeforeContractHolder-->
+    <delete id="deleteBeforeContractHolder" parameterType="map">
+        delete
+        from contractholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findSupplyContractCount-->
+    <select id="findSupplyContractCount" parameterType="map" resultType="int">
+        select count(a.seq)
+        from contractholder a
+        where 1 = 1
+          and a.contract_gubun = #{contract_gubun}
+          and a.action_type = #{action_type}
+          and a.do_date = #{do_date}
+          and a.isu_cd = #{isu_cd}
+    </select>
+<!--    insertSupplyContract-->
+    <insert id="insertSupplyContract" parameterType="map">
+        INSERT INTO contractholder (action_type,contract_gubun,contract_name,contents1,contents2,contents3,contents4,contents5,contents6,contents7,target,relation_with_company,sales_area,contract_start_date,contract_end_date,contract_condition,termination_reason,do_date,reservation_reason,reservation_period,etc,doc_no,isu_cd,acpt_no,acpt_dt,contract_date)
+        VALUES (#{action_type},#{contract_gubun},#{contract_name},#{contents1},#{contents2},#{contents3},#{contents4},#{contents5},#{contents6},#{contents7},#{target},#{relation_with_company},#{sales_area},#{contract_start_date},#{contract_end_date},#{contract_condition},#{termination_reason},#{do_date},#{reservation_reason},#{reservation_period},#{etc},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{contract_date})
+    </insert>
+
+<!--    findNewerStockHolder-->
+    <select id="findNewerStockHolder" resultType="map" parameterType="map">
+        <![CDATA[
+        select
+            a.before_amt,
+            a.after_amt,
+            a.seq,
+            a.change_date
+        from stockholder a, (select
+                                 doc_no,
+                                 isu_cd,
+                                 acpt_no,
+                                 owner_name,
+                                 change_date
+                             from stockholder
+                             where isu_cd = #{isu_cd}
+                               and owner_name = #{owner_name}
+                               and change_date < #{change_date}
+                             order by change_date desc
+                                 limit 1) b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.owner_name = b.owner_name
+          and a.change_date = b.change_date
+        order by a.after_amt
+            limit 1
+        ]]>
+    </select>
 </mapper>
 
