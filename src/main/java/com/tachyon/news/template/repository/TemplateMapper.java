@@ -172,4 +172,13 @@ public interface TemplateMapper {
 
     Map<String, Object> findNewerStockHolder(@Param("isu_cd")String isuCd, @Param("owner_name")String name, @Param("change_date")Timestamp timestamp);
 
+    void deleteBeforeTouchHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+
+    int findTouchHolderCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+
+    void insertTouchHolder(Map<String, Object> param);
+
+    int findBeforeStock(@Param("before_date")String beforeDate, @Param("now_date")String nowDate);
+
+    void compressStockHolder(Long seq);
 }

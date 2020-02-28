@@ -82,6 +82,7 @@ public class RabbitMqRouteConfig {
         return QueueBuilder.durable("_ROMOR_HOLDER").build();
     }
 
+
     @Bean
     Queue _LARGEST_SHARE_HOLDER() {
         return QueueBuilder.durable("_LARGEST_SHARE_HOLDER").build();
@@ -94,16 +95,19 @@ public class RabbitMqRouteConfig {
 
     /**
      * 잠정적인 영업실적
+     *
      * @return
      */
     @Bean
     Queue _PROVISIONAL_PERF() {
         return QueueBuilder.durable("_PROVISIONAL_PERF").build();
     }
+
     @Bean
     Queue LOCAL_KONGSI() {
         return QueueBuilder.durable("LOCAL_KONGSI").build();
     }
+
     //_TAKING
     @Bean
     Queue _TAKING() {
@@ -114,13 +118,19 @@ public class RabbitMqRouteConfig {
     Queue BEFORE_KONGSI() {
         return QueueBuilder.durable("BEFORE_KONGSI").build();
     }
+
     @Bean
     Queue _MY_STOCK() {
         return QueueBuilder.durable("_MY_STOCK").build();
     }
+
     @Bean
     Queue _CONTRACT() {
         return QueueBuilder.durable("_CONTRACT").build();
     }
 
+    @Bean
+    Queue _TOUCH() {
+        return QueueBuilder.durable("_TOUCH").build();
+    }
 }

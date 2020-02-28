@@ -39,8 +39,6 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(AccessHolderCommand.class);
         }else if ("_KEYWORD_NOTIFICATION".equalsIgnoreCase(routingKey)) {
             return findCommand(KeywordKongsiCollectorCommand.class);
-//        } else if ("_TELEGRAM".equalsIgnoreCase(routingKey)) {
-//            return findCommand(TelegramCommand.class);
         } else if("_ROMOR_HOLDER".equalsIgnoreCase(routingKey)){
             return findCommand(RumorHolderCommand.class);
         } else if("_LARGEST_SHARE_HOLDER".equalsIgnoreCase(routingKey)){
@@ -57,8 +55,9 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(MyStockCommand.class);
         }else if("_CONTRACT".equalsIgnoreCase(routingKey)){
             return findCommand(ContractCommand.class);
+        }else if("_TOUCH".equalsIgnoreCase(routingKey)){
+            return findCommand(TouchCommand.class);
         }else {
-//
             return findCommand(DummyCommand.class);
         }
     }

@@ -492,7 +492,9 @@ public abstract class BasicCommand extends BaseObject implements Command {
     String findDocUrl(Map<String, Object> map) {
         return Maps.getValue(map, "doc_url");
     }
-
+    String findRptNm(Map<String, Object> map) {
+        return Maps.getValue(map, "rpt_nm");
+    }
     String toYYMM(String s) {
         return s.substring(0, 4);
     }
@@ -507,6 +509,16 @@ public abstract class BasicCommand extends BaseObject implements Command {
             }
             return false;
         }
+    }
+
+    String findDocRow(String filePath, String docUrl, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
+        // 파일시스템에 있는지 확인
+        File file = new File(filePath);
+        if (file.exists()) {
+            return FileUtils.readFileToString(file, "UTF-8");
+        }
+
+        return findDocRow(docUrl, loadBalancerCommandHelper);
     }
 }
 

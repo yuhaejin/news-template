@@ -123,7 +123,6 @@ public class StockHolderCommand extends BasicCommand {
                     table.findStock(docUrl, docNo, docNm, FILTER, tnsDt, rptNm, acptNo);
                 }
             }
-
             if (table != null) {
                 if (isChangeKongsi(rptNm)) {
                     if (table.getBodies() == null || table.getBodies().size() == 0) {
@@ -173,6 +172,13 @@ public class StockHolderCommand extends BasicCommand {
             setupBistowal(changes);
             setupBirthYm(changes);
             int stockCount = 0;
+
+            boolean isCompressedData = findCompressedData(changes,rptNm,docUrl,docRaw);
+            if (isCompressedData) {
+                log.info("압축된 StockData " + docUrl);
+            } else {
+                log.debug("압축된 StockData가 아님. "+docUrl);
+            }
             for (Change change : changes) {
                 // 신규보고인데... 실제로는 아닌 경우는 SKIP..
                 if (checkFakeNewReport(change)) {
@@ -197,14 +203,22 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
-                        if (hasDuplicateStockHolder(templateMapper, docNo, code, acptNo, docUrl, change, tempRptNm)) {
+                        Long seq = hasDuplicateStockHolder(templateMapper, docNo, code, acptNo, docUrl, change, tempRptNm);
+                        if (seq!=null) {
                             // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
-
                             log.info("ALREADY StockHodler " + change);
+                            if (isCompressedData) {
+                                log.info("Compress StockData "+seq);
+                                compressStockHolder(templateMapper,seq);
+                            }
 
                         } else {
                             log.info("INSERT ... " + change);
-                            insertStockHolder(templateMapper, change.paramStockHolder(code, acptNo));
+                            Map<String, Object> param = change.paramStockHolder(code, acptNo);
+                            setupCompressed(param, isCompressedData);
+                            insertStockHolder(templateMapper, param);
+
+                            //TODO 압축된 STOCK 데이터도 텔레그램 전송하는지.. 확인..
                             stockCount++;
                         }
 
@@ -233,6 +247,129 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void compressStockHolder(TemplateMapper templateMapper, Long seq) {
+        templateMapper.compressStockHolder(seq);
+    }
+
+    /**
+     * 압축된 여부를 적용.
+     * @param param
+     * @param isCompressedData 세부변동내역에 여러 데이터를 합축된 경우가 있는데 그 여부를 확인.
+     */
+    private void setupCompressed(Map<String, Object> param, boolean isCompressedData) {
+        if (isCompressedData) {
+            param.put("is_compressed", "Y");
+        } else {
+            param.put("is_compressed", "N");
+        }
+    }
+
+    /**
+     * 주식등의 대량상황보고서 중에 압축한 STOCK 데이터 여부를 확인함..
+     * @param changes
+     * @param rptNm
+     * @param docUrl
+     * @param contents
+     * @return
+     */
+    private boolean findCompressedData(List<Change> changes, String rptNm,String docUrl,String contents ) {
+        if (rptNm.contains("주식등의대량보유상황보고서")) {
+            if (changes.size() == 1) {
+                Table table = findTable(contents, docUrl);
+                if (table == null) {
+                    log.debug("[압축STOCKDATA] 분석할 테이블이 없음.... ");
+                    return false;
+                }
+                String[] strings = findBeforeNowDate(table.toMapList());
+                String before = strings[0];
+                String now = strings[1];
+                if (StringUtils.isAnyEmpty(before, now)) {
+                    log.debug("[압축STOCKDATA] 직전(이번)보고서 작성기준일이 없음. ... ");
+                    return false;
+                } else {
+
+                    String beforeDate = convertNumberDate(before);
+                    String nowDate = convertNumberDate(now);
+                    if (StringUtils.isAnyEmpty(beforeDate, nowDate)) {
+                        log.debug("[압축STOCKDATA] 직전(이번)보고서 작성기준일을 찾을 수 없음.... ");
+                        return false;
+                    } else {
+                        int count = templateMapper.findBeforeStock(beforeDate, nowDate);
+                        if (count > 0) {
+                            log.debug("[압축STOCKDATA] 범위내에 이미 StockData 존재하여 압축된 데이터임..... ");
+                            return true;
+                        } else {
+                            log.debug("[압축STOCKDATA] 범위내에 StockData 존재하지 않아 압축된 데이터가 아님..... ");
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                log.debug("[압축STOCKDATA] 변동내역이 두개 이상임... ");
+                return false;
+            }
+        } else {
+            log.debug("[압축STOCKDATA] 주식등의대량보유상황보고서가 아님.. ");
+            return false;
+        }
+    }
+
+    private String convertNumberDate(String date) {
+
+        List<String> list = BizUtils.convertToList(date);
+        if (list.size() != 3) {
+            return "";
+        }
+        String y = list.get(0);
+        if (y.length() == 2) {
+            y = "20" + y;
+        }
+
+        String m = list.get(1);
+        if (m.length() == 1) {
+            m = "0" + m;
+        }
+
+        String d = list.get(2);
+        if (d.length() == 1) {
+            d = "0" + d;
+        }
+        return y + m + d;
+    }
+    private Table findTable(String contents, String docUrl) {
+
+        StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
+        selector.setKeywords(new String[]{"보유주식", "보유비율"});
+        TableParser tableParser = new TableParser(selector);
+        return  (Table) tableParser.parse(contents, docUrl);
+    }
+
+    private String[] findBeforeNowDate(List<Map<String,Object>> maps) {
+        String[] strings = new String[2];
+        strings[0] = findBeforeDate(maps);
+        strings[1] = findNowDate(maps);
+
+        return strings;
+    }
+
+    private String findBeforeDate(List<Map<String,Object>> maps) {
+        return findDate(maps, "직전보고서");
+    }
+
+    private String findNowDate(List<Map<String,Object>> maps) {
+        return findDate(maps, "이번보고서");
+    }
+
+    private String findDate(List<Map<String, Object>> maps, String type) {
+        for (Map<String, Object> map : maps) {
+            if (map.toString().contains(type)) {
+                return Maps.findValueAndKeys(map, "기준일");
+            }
+        }
+
+        return "";
+    }
+
     /**
      * 신규보고인데 실제로는 아닌 경우 확인
      * 이전 거래가 없으면 false
@@ -248,22 +385,23 @@ public class StockHolderCommand extends BasicCommand {
         String etc = change.getEtc();
         if (isEmpty(stockType)==false && stockType.contains("신규보고")) {
             if (isEmpty(etc)==false && etc.contains("기존보유")) {
+                log.info("신규보고, ETC 기존보유 형태.. " + change);
                 return true;
             } else {
                 // 이전 거래 찾기...
                 Map<String, Object> map = templateMapper.findNewerStockHolder(change.getIsuCd(), change.getName(), new Timestamp(change.getDateTime()));
-                log.debug("checkFakeNewReport " + map);
                 if (map == null) {
                     // 이전 거래가 없으면 fake는 아님.
                     return false;
                 } else {
+                    log.debug("checkFakeNewReport " + map);
                     Long after = Maps.getLongValue(map, "after_amt");
                     if (after == 0) {
                         // 이전 거래가 있었지만 모두 처리한 상태이후 거래하는 거라 fake 아님..
                         return false;
                     }
                 }
-
+                log.info("신규보고, 이미 보유형태. " + change);
                 return true;
             }
         }
@@ -649,7 +787,7 @@ public class StockHolderCommand extends BasicCommand {
      * @param change
      * @return
      */
-    private boolean hasDuplicateStockHolder(TemplateMapper templateMapper, String docNo, String code, String acptNo, String docUrl, Change change, String tempRptNm) {
+    private Long hasDuplicateStockHolder(TemplateMapper templateMapper, String docNo, String code, String acptNo, String docUrl, Change change, String tempRptNm) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
         param.put("temp_rpt_nm", tempRptNm);
         param.put("doc_url", docUrl);
@@ -665,7 +803,7 @@ public class StockHolderCommand extends BasicCommand {
             param.put("stock_seq", l);
             // 중북된 공시는 stockdupholder insert함
             handleDupStock(templateMapper, param);
-            return true;
+            return l;
         } else {
             seqs = templateMapper.findDupStockSeqOnOtherKind(param);
             count = countList(seqs);
@@ -675,20 +813,12 @@ public class StockHolderCommand extends BasicCommand {
                 param.put("stock_seq", l);
                 // 중북된 공시는 stockdupholder insert함
                 handleDupStock(templateMapper, param);
-                return true;
+                return l;
             } else {
-                return false;
+                return null;
             }
         }
-//        if (templateMapper.findDupStockCountOnSameKind(param) > 0) {
-//            return true;
-//        } else {
-//            if (templateMapper.findDupStockCountOnOtherKind(param) > 0) {
-//                return true;
-//            } else {
-//                return false;
-//            }
-//        }
+
     }
 
     /**
@@ -829,17 +959,6 @@ public class StockHolderCommand extends BasicCommand {
         return code.substring(0, code.length() - 1) + "5";
     }
 
-    /**
-     * TODO
-     * 회사명으로 우선주 회사 찾기
-     *
-     * @param codeNm
-     * @return
-     */
-    private String findPreferred(String codeNm) {
-        codeNm = codeNm + "우";
-        return templateMapper.findCode(codeNm);
-    }
 
     /**
      * TODO 변경가능.

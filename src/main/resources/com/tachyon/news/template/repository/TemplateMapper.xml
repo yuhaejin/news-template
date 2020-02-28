@@ -29,8 +29,8 @@
 
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -685,5 +685,41 @@
             limit 1
         ]]>
     </select>
+<!--    deleteBeforeTouchHolder-->
+    <delete id="deleteBeforeTouchHolder" parameterType="map">
+        delete
+        from touchholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findTouchHolderCount-->
+    <select id="findTouchHolderCount" resultType="int" parameterType="map">
+        select count(seq)
+        from touchholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+<!--    insertTouchHolder-->
+    <insert id="insertTouchHolder" parameterType="map">
+        INSERT INTO touchholder (financial_type,now_revenue,before_revenue,revenue_amount,revenue_ratio,now_profit,before_profit,profi_amount,profit_ratio,now_ordi_profit,before_ordi_profit,ordi_profit_amount,ordi_profit_ratio,now_income,before_income,income_amount,income_ratio,is_large_corp,now_total_assets,before_total_assets,now_total_debt,before_total_debt,now_total_cap,before_total_cap,now_cap,before_cap,now_asscap_ratio,before_asscap_ratio,sales_variation_cause,etc, doc_no, isu_cd, acpt_no, acpt_dt)
+        VALUES (#{financial_type},#{now_revenue},#{before_revenue},#{revenue_amount},#{revenue_ratio},#{now_profit},#{before_profit},#{profi_amount},#{profit_ratio},#{now_ordi_profit},#{before_ordi_profit},#{ordi_profit_amount},#{ordi_profit_ratio},#{now_income},#{before_income},#{income_amount},#{income_ratio},#{is_large_corp},#{now_total_assets},#{before_total_assets},#{now_total_debt},#{before_total_debt},#{now_total_cap},#{before_total_cap},#{now_cap},#{before_cap},#{now_asscap_ratio},#{before_asscap_ratio},#{sales_variation_cause},#{etc}, #{doc_no}, #{isu_cd}, #{acpt_no}, #{acpt_dt})
+    </insert>
+<!--    findBeforeStock-->
+    <select id="findBeforeStock" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(seq)
+        from stockholder
+        where acpt_dt >= #{before_date}
+          and acpt_dt <= #{now_date}
+        ]]>
+    </select>
+
+<!--    compressStockHolder-->
+    <update id="compressStockHolder">
+        update stockholder
+        set is_compressed   = 'Y'
+        where seq = #{seq}
+    </update>
 </mapper>
 
