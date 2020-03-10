@@ -63,11 +63,9 @@ public class TakingHolderCommand extends BasicCommand {
         String tnsDt = Maps.getValue(map, "tns_dt");
         String acptNm = Maps.getValue(map, "rpt_nm");
 
-        if (acptNm.contains("정정")) {
-            if (docNm.contains("정정") == false) {
-                log.info("정정공시중에 이전공시임.. " + key);
-                return;
-            }
+        if (isOldAtCorrectedKongsi(map)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
         }
         // DB 확인...
 //        int count = templateMapper.findTakingCount(docNo, code, acptNo);
@@ -198,6 +196,7 @@ public class TakingHolderCommand extends BasicCommand {
     private String modifyWithUnit(String value, String unit) {
         String result = "";
         value = value.trim();
+        value = findNumber(value);
         if ("-".equalsIgnoreCase(value) || isEmpty(value) || "0".equalsIgnoreCase(value)) {
             result = value;
         } else {
@@ -206,6 +205,7 @@ public class TakingHolderCommand extends BasicCommand {
             } else if ("원".equalsIgnoreCase(unit)) {
                 result = value;
             } else {
+
                 if ("천원".equalsIgnoreCase(unit)) {
                     result = value + "000";
                 } else if ("만원".equalsIgnoreCase(unit)) {
@@ -229,6 +229,18 @@ public class TakingHolderCommand extends BasicCommand {
         }
         log.debug(value+ " ==> "+result+" with "+unit);
         return result;
+    }
+
+    private String findNumber(String s) {
+        StringBuilder sb = new StringBuilder();
+        char[] chars = s.toCharArray();
+        for (char c : chars) {
+            if (Character.isDigit(c)) {
+                sb.append(c);
+            }
+        }
+
+        return sb.toString();
     }
     private int fincTakingHolderCount(Taking taking,Borrowing borrowing, String code) {
         int count = templateMapper.fincTakingHolderCount(code, taking.getName(), taking.getBirth(), taking.getTaking(), borrowing.getBorrowingAmount(), taking.getEtc());
@@ -457,6 +469,7 @@ public class TakingHolderCommand extends BasicCommand {
     private String adjustPrice(String s) {
         s = StringUtils.remove(s, ",");
         s = StringUtils.remove(s, "-");
+        s = StringUtils.remove(s, "원");
         s = s.trim();
         if ("".equalsIgnoreCase(s)) {
             return "0";

@@ -67,6 +67,12 @@ public class TouchCommand extends BasicCommand {
                 return;
             }
         }
+
+        if (isOldAtCorrectedKongsi(_map)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
         String docUrl = findDocUrl(_map);
 
         String docNm = findDocNm(_map);

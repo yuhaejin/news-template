@@ -57,6 +57,13 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return;
         }
 
+        if (isOldAtCorrectedKongsi(kongsiHolder)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
+
+
         String docNm = Maps.getValue(kongsiHolder, "doc_nm");
         String docUrl = Maps.getValue(kongsiHolder, "doc_url");
         if (docNm.contains("영업") && docNm.contains("실적")) {

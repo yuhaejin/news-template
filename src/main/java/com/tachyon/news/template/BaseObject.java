@@ -1,6 +1,7 @@
 package com.tachyon.news.template;
 
 import com.tachyon.crawl.kind.model.DocNoIsuCd;
+import com.tachyon.crawl.kind.util.Maps;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -68,5 +69,16 @@ public class BaseObject {
         } else {
             return 0;
         }
+    }
+
+    protected boolean isOldAtCorrectedKongsi(Map<String, Object> kongsiHodler) {
+        String rptNm = Maps.getValue(kongsiHodler, "rpt_nm");
+        String docNm = Maps.getValue(kongsiHodler, "doc_nm");
+        if (StringUtils.contains(rptNm, "정정")) {
+            if (StringUtils.contains(docNm, "정정") == false) {
+                return true;
+            }
+        }
+        return false;
     }
 }

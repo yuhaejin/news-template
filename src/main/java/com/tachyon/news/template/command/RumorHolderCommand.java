@@ -57,17 +57,17 @@ public class RumorHolderCommand extends BasicCommand {
             log.error("기초공시가 없음.. " + key);
             return;
         }
+
+        if (isOldAtCorrectedKongsi(map)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
         String docNm = Maps.getValue(map, "doc_nm");
         String docUrl = Maps.getValue(map, "doc_url");
         String tnsDt = Maps.getValue(map, "tns_dt");
         String acptNm = Maps.getValue(map, "rpt_nm");
 
-        if (acptNm.contains("정정")) {
-            if (docNm.contains("정정") == false) {
-                log.info("정정공시중에 이전공시임.. " + key);
-                return;
-            }
-        }
         // DB 확인...
         int count = templateMapper.findRumorCount(docNo, code, acptNo);
         if (count > 0) {

@@ -24,7 +24,6 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
- * TODO 국믄연금관련된 문제가 있을 때... 통일된 투자자 이름으로 변경을 해야 함.
  */
 @Slf4j
 @Component
@@ -39,6 +38,7 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 투자자명을 변경을 함. 중복되지 않도록 하기 위해서.
+     * ==> MyContext에서 처리함.
      */
 
     static {
@@ -87,6 +87,13 @@ public class StockHolderCommand extends BasicCommand {
             if (validate(docRaw) == false) {
                 return;
             }
+
+            // 정정공시중에 이전 공시는 처리하지 않는다.
+            if (isOldAtCorrectedKongsi(map)) {
+                log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+                return;
+            }
+
             Table table = null;
             if (isStaffStockStatusKongsi(docNm)) {
                 //임원ㆍ주요주주특정증권등소유상황보고서
@@ -177,7 +184,7 @@ public class StockHolderCommand extends BasicCommand {
             if (isCompressedData) {
                 log.info("압축된 StockData " + docUrl);
             } else {
-                log.debug("압축된 StockData가 아님. "+docUrl);
+                log.info("압축된 StockData가 아님. "+docUrl);
             }
             for (Change change : changes) {
                 // 신규보고인데... 실제로는 아닌 경우는 SKIP..
@@ -185,7 +192,6 @@ public class StockHolderCommand extends BasicCommand {
                     log.info("Fake신규보고 SKIP " + change);
                     continue;
                 }
-
                 if (StringUtils.isEmpty(change.getName()) || "-".equalsIgnoreCase(change.getName())) {
                     log.info("거래내역에 이름이 없어 SKIP " + change);
                 } else {
@@ -213,9 +219,9 @@ public class StockHolderCommand extends BasicCommand {
                             }
 
                         } else {
-                            log.info("INSERT ... " + change);
                             Map<String, Object> param = change.paramStockHolder(code, acptNo);
                             setupCompressed(param, isCompressedData);
+                            log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
 
                             //TODO 압축된 STOCK 데이터도 텔레그램 전송하는지.. 확인..
@@ -275,6 +281,7 @@ public class StockHolderCommand extends BasicCommand {
     private boolean findCompressedData(List<Change> changes, String rptNm,String docUrl,String contents ) {
         if (rptNm.contains("주식등의대량보유상황보고서")) {
             if (changes.size() == 1) {
+                Change change = changes.get(0);
                 Table table = findTable(contents, docUrl);
                 if (table == null) {
                     log.debug("[압축STOCKDATA] 분석할 테이블이 없음.... ");
@@ -282,19 +289,21 @@ public class StockHolderCommand extends BasicCommand {
                 }
                 String[] strings = findBeforeNowDate(table.toMapList());
                 String before = strings[0];
-                String now = strings[1];
-                if (StringUtils.isAnyEmpty(before, now)) {
+                // 공시의 이번보고서 작성기준일은 사용하지 않음. 현재 처리하는게 이미 DB에 존재할 수 있기 때문에..
+//                String now = strings[1];
+                if (StringUtils.isAnyEmpty(before)) {
                     log.debug("[압축STOCKDATA] 직전(이번)보고서 작성기준일이 없음. ... ");
                     return false;
                 } else {
-
                     String beforeDate = convertNumberDate(before);
-                    String nowDate = convertNumberDate(now);
+                    String nowDate = convertNumberDate(change.getDateTime());
                     if (StringUtils.isAnyEmpty(beforeDate, nowDate)) {
                         log.debug("[압축STOCKDATA] 직전(이번)보고서 작성기준일을 찾을 수 없음.... ");
                         return false;
                     } else {
-                        int count = templateMapper.findBeforeStock(beforeDate, nowDate);
+                        String code = change.getIsuCd();
+                        String name = change.getName();
+                        int count = templateMapper.findBeforeStock(code,name,beforeDate, nowDate);
                         if (count > 0) {
                             log.debug("[압축STOCKDATA] 범위내에 이미 StockData 존재하여 압축된 데이터임..... ");
                             return true;
@@ -312,6 +321,10 @@ public class StockHolderCommand extends BasicCommand {
             log.debug("[압축STOCKDATA] 주식등의대량보유상황보고서가 아님.. ");
             return false;
         }
+    }
+
+    private String convertNumberDate(Long dateTime) {
+        return DateUtils.toString(new Date(dateTime),"yyyyMMdd");
     }
 
     private String convertNumberDate(String date) {

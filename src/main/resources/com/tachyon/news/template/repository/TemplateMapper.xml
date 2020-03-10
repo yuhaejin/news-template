@@ -710,8 +710,10 @@
         <![CDATA[
         select count(seq)
         from stockholder
-        where acpt_dt >= #{before_date}
-          and acpt_dt <= #{now_date}
+        where isu_cd = #{isu_cd}
+          and owner_name =#{owner_name}
+        and change_date > #{before_date}
+          and change_date < #{now_date}
         ]]>
     </select>
 

@@ -88,6 +88,10 @@ public class GatewayService extends AbstractService {
                 log.error("공시URL이 없음.. " + key);
                 return;
             }
+            if (isOldAtCorrectedKongsi(kongsi)) {
+                log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+                return;
+            }
 
             myContext.addGatewayCalling();
             checkMetaKongsi(key,acptNo,code);

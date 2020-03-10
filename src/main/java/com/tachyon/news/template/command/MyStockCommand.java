@@ -69,6 +69,11 @@ public class MyStockCommand extends BasicCommand {
 
             String docUrl = findDocUrl(map);
             String docNm = findDocNm(map);
+            if (isOldAtCorrectedKongsi(map)) {
+                log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+                return;
+            }
+
             if (docNm.contains("자기주식") == false) {
                 log.info("자기주식 공시가 아님. " + key + " " + docUrl);
                 return;

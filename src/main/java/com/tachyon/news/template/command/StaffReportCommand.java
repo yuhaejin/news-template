@@ -56,6 +56,12 @@ public class StaffReportCommand extends BasicCommand {
             return;
         }
 
+        if (isOldAtCorrectedKongsi(kongsiHolder)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
+
         String docNm = Maps.getValue(kongsiHolder, "doc_nm");
         if (docNm.contains("임원")==false) {
             log.info("임원 키워드가 없는 공시임. docNo=" + docNo + " code=" + code + " acptNo=" + acptNo+" "+docNm);

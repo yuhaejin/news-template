@@ -50,6 +50,13 @@ public class StaffHolderCommand extends BasicCommand {
             log.error("기초공시가 없음.. "+key);
             return;
         }
+
+        if (isOldAtCorrectedKongsi(kongsiHolder)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
+
         String docNm = Maps.getValue(kongsiHolder, "doc_nm");
         String rptNm = Maps.getValue(kongsiHolder, "rpt_nm");
         String docUrl = Maps.getValue(kongsiHolder, "doc_url");

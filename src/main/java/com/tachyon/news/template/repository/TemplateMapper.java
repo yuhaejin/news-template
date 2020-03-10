@@ -178,7 +178,15 @@ public interface TemplateMapper {
 
     void insertTouchHolder(Map<String, Object> param);
 
-    int findBeforeStock(@Param("before_date")String beforeDate, @Param("now_date")String nowDate);
+    /**
+     * code 종목, name 투자자, beforeDate 보다 크고 nowDate보다 미만인 경우를 찾음..
+     * @param code
+     * @param name
+     * @param beforeDate
+     * @param nowDate
+     * @return
+     */
+    int findBeforeStock(@Param("isu_cd")String code,@Param("owner_name")String name, @Param("before_date") String beforeDate, @Param("now_date") String nowDate);
 
     void compressStockHolder(Long seq);
 }

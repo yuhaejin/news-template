@@ -69,6 +69,11 @@ public class LargestShareHolderCommand extends BasicCommand {
             return;
         }
 
+        if (isOldAtCorrectedKongsi(map)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
         String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
 
         StockChangeSelectorByElement selector = new StockChangeSelectorByElement();

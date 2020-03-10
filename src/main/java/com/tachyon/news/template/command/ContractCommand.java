@@ -70,6 +70,10 @@ public class ContractCommand extends BasicCommand {
             return;
         }
 
+        if (isOldAtCorrectedKongsi(kongsi)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
 
         String company = Maps.getValue(kongsi, "submit_nm");
         String c = FileUtils.readFileToString(f, "UTF-8");

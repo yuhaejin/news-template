@@ -62,6 +62,12 @@ public class RelativeHolderCommand extends BasicCommand {
                 return;
             }
 
+            if (isOldAtCorrectedKongsi(map)) {
+                log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+                return;
+            }
+
+
             log.info(key + " " + map.toString());
             String docNm = Maps.getValue(map, "doc_nm");
             String docUrl = Maps.getValue(map, "doc_url");

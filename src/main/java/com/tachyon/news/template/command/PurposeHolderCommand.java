@@ -44,6 +44,11 @@ public class PurposeHolderCommand extends BasicCommand {
             log.error("기초공시가 없음 docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
             return;
         }
+        if (isOldAtCorrectedKongsi(kongsiHolder)) {
+            log.info("SKIP 정정공시중에 이전공시임. .. " + key);
+            return;
+        }
+
         String docUrl = Maps.getValue(kongsiHolder, "doc_url");
         String c = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
 

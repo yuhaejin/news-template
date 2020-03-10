@@ -542,16 +542,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         return StringUtils.contains(docNm, "정정");
     }
 
-    private boolean isOldAtCorrectedKongsi(Map<String, Object> kongsiHodler) {
-        String rptNm = Maps.getValue(kongsiHodler, "rpt_nm");
-        String docNm = Maps.getValue(kongsiHodler, "doc_nm");
-        if (StringUtils.contains(rptNm, "정정")) {
-            if (StringUtils.contains(docNm, "정정") == false) {
-                return true;
-            }
-        }
-        return false;
-    }
+
 
     private String findKeyword(String c, List<String> telegramList) throws Exception {
         for (String keyword : telegramList) {
