@@ -133,4 +133,8 @@ public class RabbitMqRouteConfig {
     Queue _TOUCH() {
         return QueueBuilder.durable("_TOUCH").build();
     }
+    @Bean
+    Queue _TRIAL() {
+        return QueueBuilder.durable("_TRIAL").build();
+    }
 }

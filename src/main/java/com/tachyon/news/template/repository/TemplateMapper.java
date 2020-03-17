@@ -189,4 +189,10 @@ public interface TemplateMapper {
     int findBeforeStock(@Param("isu_cd")String code,@Param("owner_name")String name, @Param("before_date") String beforeDate, @Param("now_date") String nowDate);
 
     void compressStockHolder(Long seq);
+
+    void deleteBeforeTrialHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+
+    int findTrialCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+
+    void insertTrial(Map<String, Object> map);
 }

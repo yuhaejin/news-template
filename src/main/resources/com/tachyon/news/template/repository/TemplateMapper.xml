@@ -723,5 +723,26 @@
         set is_compressed   = 'Y'
         where seq = #{seq}
     </update>
+<!--    deleteBeforeTrialHolder-->
+    <delete id="deleteBeforeTrialHolder" parameterType="map">
+        delete
+        from trialsholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findTrialCount-->
+    <select id="findTrialCount" resultType="int" parameterType="map">
+        select count(seq)
+        from trialsholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+    <!--    insertTrial-->
+    <insert id="insertTrial" parameterType="map">
+        INSERT INTO trialsholder (doc_no,isu_cd,acpt_no,type,title,purpose,approval_agency,approval_date,approval_history,future_plan,confirm_date,etc,acpt_dt)
+        VALUES (#{doc_no},#{isu_cd},#{acpt_no},#{type},#{title},#{purpose},#{approval_agency},#{approval_date},#{approval_history},#{future_plan},#{confirm_date},#{etc},#{acpt_dt})
+    </insert>
+
 </mapper>
 
