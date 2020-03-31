@@ -221,6 +221,8 @@ public class StockHolderCommand extends BasicCommand {
                         } else {
                             Map<String, Object> param = change.paramStockHolder(code, acptNo);
                             setupCompressed(param, isCompressedData);
+                            setupYesterDayClosePrice(param,change);
+
                             log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
 
@@ -251,6 +253,63 @@ public class StockHolderCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    /**
+     * 어제 종가와 비교해서 +-30% 이상 차이가 나면 odd_value_yn 에 Y설정함.
+     * @param param
+     * @param change
+     */
+    private void setupYesterDayClosePrice(Map<String, Object> param,Change change) {
+        param.put("odd_value_yn", "N");
+        String code = change.getIsuCd();
+        Date yesterDay = findYesterDay(new Date(change.getDateTime()));
+        Timestamp _yesterDay = new Timestamp(yesterDay.getTime());
+        Integer closePrice  = templateMapper.findCloseByStringDate(code, _yesterDay);
+        if (closePrice == null) {
+            log.warn("종가를 찾을 수 없음. "+code+" "+_yesterDay);
+            return;
+        }
+        long value = Math.abs(change.getPrice() - closePrice);
+        int percentage = percentage(value, closePrice);
+        if (percentage >= 30) {
+            param.put("odd_value_yn", "Y");
+            log.warn("전날종가보다 +-30% 임 종목명=" + code + " 변동일=" + change.getDate() + " 전날=" + yesterDay + " 전날종가=" + closePrice + " percentage=" + percentage);
+        } else {
+            log.debug("전날종가보다 +=30% 이하임..");
+        }
+    }
+
+    /**
+     *  전날을 구한다.
+     *  다만 웡요일이면 금요일을 구해야 함.
+     * @param date
+     * @return
+     */
+    private Date findYesterDay(Date date) {
+        if (isMonday(date)) {
+            return DateUtils.addDays(date, -3);
+        } else {
+            return DateUtils.addDays(date, -1);
+        }
+    }
+
+    private boolean isMonday(Date date) {
+        Calendar cal = Calendar.getInstance() ;
+        cal.setTime(date);
+        int dayNum = cal.get(Calendar.DAY_OF_WEEK) ;
+        if (dayNum == 2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private int percentage(double value, double closePrice) {
+        return (int)(value * 100 / closePrice);
+    }
+    private String modifyDate(long dateTime) {
+        return DateUtils.toString(new Date(dateTime), "yyyyMMdd");
     }
 
     private void compressStockHolder(TemplateMapper templateMapper, Long seq) {

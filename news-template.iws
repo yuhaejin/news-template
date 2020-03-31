@@ -2,12 +2,14 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a8293525-984c-422d-b467-6e92d1aa1ec8" name="Default Changelist" comment="투자자 명 변경 메타 파일">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/test/java/com/tachyon/news/template/MybatisTest.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.ideaDataSources/3dfebb32-d5a6-4991-8a45-b88550ea13c7.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.ideaDataSources/3dfebb32-d5a6-4991-8a45-b88550ea13c7.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/news-template.iml" beforeDir="false" afterPath="$PROJECT_DIR$/news-template.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/news-template.ipr" beforeDir="false" afterPath="$PROJECT_DIR$/news-template.ipr" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/news-template.iws" beforeDir="false" afterPath="$PROJECT_DIR$/news-template.iws" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/StockHolderCommand.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/command/StockHolderCommand.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/repository/TemplateMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/resources/com/tachyon/news/template/repository/TemplateMapper.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -32,6 +34,17 @@
       <path>
         <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
         <item name="MySQL - tachyon@localhost" type="feb32156:DbDataSourceImpl" />
+      </path>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="MySQL - tachyon@localhost" type="feb32156:DbDataSourceImpl" />
+        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
+      </path>
+      <path>
+        <item name="Database" type="3277223f:DatabaseStructure$DbRootGroup" />
+        <item name="MySQL - tachyon@localhost" type="feb32156:DbDataSourceImpl" />
+        <item name="schemas" type="d4e8921:DatabaseStructure$FamilyGroup" />
+        <item name="tachyon: schema" type="ebfa3cd1:MariaImplModel$Schema" />
       </path>
     </expand>
     <select />
@@ -58,6 +71,11 @@
     <option name="directoryName" value="EcYBbgCG" />
   </component>
   <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="localRepository" value="E:\dev\repository" />
+      </MavenGeneralSettings>
+    </option>
     <option name="importingSettings">
       <MavenImportingSettings>
         <option name="importAutomatically" value="true" />
@@ -80,6 +98,7 @@
   <component name="PropertiesComponent">
     <property name="ASKED_ADD_EXTERNAL_FILES" value="true" />
     <property name="DatabaseDriversLRU" value="mysql&#10;mariadb" />
+    <property name="ExpandSpringBootJavaOptionsPanel" value="true" />
     <property name="RequestMappingsPanelOrder0" value="0" />
     <property name="RequestMappingsPanelOrder1" value="1" />
     <property name="RequestMappingsPanelWidth0" value="75" />
@@ -91,7 +110,10 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$/src/main/java/com/tachyon/news/template/jobs" />
     <property name="nodejs_interpreter_path.stuck_in_default_project" value="undefined stuck path" />
     <property name="nodejs_npm_path_reset_for_default_project" value="true" />
-    <property name="settings.editor.selected.configurable" value="settings.github" />
+    <property name="project.structure.last.edited" value="Modules" />
+    <property name="project.structure.proportion" value="0.0" />
+    <property name="project.structure.side.proportion" value="0.0" />
+    <property name="settings.editor.selected.configurable" value="MavenSettings" />
   </component>
   <component name="RecentsManager">
     <key name="CreateClassDialog.RecentsKey">
@@ -104,11 +126,11 @@
       <recent name="F:\dev\tachyon\mycamel\src\main\resources" />
     </key>
     <key name="CopyClassDialog.RECENTS_KEY">
-      <recent name="com.tachyon.news.template.monitor" />
       <recent name="com.tachyon.news.template.command" />
+      <recent name="com.tachyon.news.template.service" />
+      <recent name="com.tachyon.news.template.monitor" />
       <recent name="com.tachyon.news.template.telegram" />
       <recent name="com.tachyon.news.template.jobs" />
-      <recent name="com.tachyon.news.camel.command" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="F:\dev\tachyon\mycamel\src\main\resources\com\tachyon\news\template\repository" />
@@ -148,23 +170,6 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="MonitoringBotTest.testMonitoring" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
-      <module name="news-template" />
-      <extension name="coverage">
-        <pattern>
-          <option name="PATTERN" value="com.tachyon.news.template.*" />
-          <option name="ENABLED" value="true" />
-        </pattern>
-      </extension>
-      <option name="PACKAGE_NAME" value="com.tachyon.news.template" />
-      <option name="MAIN_CLASS_NAME" value="com.tachyon.news.template.MonitoringBotTest" />
-      <option name="METHOD_NAME" value="testMonitoring" />
-      <option name="TEST_OBJECT" value="method" />
-      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
-      <method v="2">
-        <option name="Make" enabled="true" />
-      </method>
-    </configuration>
     <configuration name="MonitoringBotTest.testSending" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="news-template" />
       <extension name="coverage">
@@ -182,7 +187,7 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
-    <configuration name="RabbitmqTests.purgeQueue" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+    <configuration name="MybatisTest.findStockData" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
       <module name="news-template" />
       <extension name="coverage">
         <pattern>
@@ -191,8 +196,25 @@
         </pattern>
       </extension>
       <option name="PACKAGE_NAME" value="com.tachyon.news.template" />
-      <option name="MAIN_CLASS_NAME" value="com.tachyon.news.template.RabbitmqTests" />
-      <option name="METHOD_NAME" value="purgeQueue" />
+      <option name="MAIN_CLASS_NAME" value="com.tachyon.news.template.MybatisTest" />
+      <option name="METHOD_NAME" value="findStockData" />
+      <option name="TEST_OBJECT" value="method" />
+      <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="MybatisTest.findStockData2" type="JUnit" factoryName="JUnit" temporary="true" nameIsGenerated="true">
+      <module name="news-template" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.tachyon.news.template.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <option name="PACKAGE_NAME" value="com.tachyon.news.template" />
+      <option name="MAIN_CLASS_NAME" value="com.tachyon.news.template.MybatisTest" />
+      <option name="METHOD_NAME" value="findStockData2" />
       <option name="TEST_OBJECT" value="method" />
       <option name="WORKING_DIRECTORY" value="%MODULE_WORKING_DIR%" />
       <method v="2">
@@ -215,6 +237,7 @@
         </pattern>
       </extension>
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.tachyon.news.template.TachyonApplication" />
+      <option name="VM_PARAMETERS" value="-Dspring.profiles.active=dev" />
       <option name="ALTERNATIVE_JRE_PATH" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -240,18 +263,18 @@
     </configuration>
     <list>
       <item itemvalue="Application.InfixToPostfixParens" />
-      <item itemvalue="JUnit.MonitoringBotTest.testMonitoring" />
-      <item itemvalue="JUnit.RabbitmqTests.purgeQueue" />
       <item itemvalue="JUnit.MonitoringBotTest.testSending" />
+      <item itemvalue="JUnit.MybatisTest.findStockData" />
+      <item itemvalue="JUnit.MybatisTest.findStockData2" />
       <item itemvalue="Spring Boot.TachyonApplication" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Spring Boot.TachyonApplication" />
+        <item itemvalue="JUnit.MybatisTest.findStockData2" />
+        <item itemvalue="JUnit.MybatisTest.findStockData" />
         <item itemvalue="Application.InfixToPostfixParens" />
         <item itemvalue="JUnit.MonitoringBotTest.testSending" />
-        <item itemvalue="JUnit.MonitoringBotTest.testMonitoring" />
-        <item itemvalue="JUnit.RabbitmqTests.purgeQueue" />
       </list>
     </recent_temporary>
   </component>
@@ -265,6 +288,11 @@
               <path>
                 <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
                 <item name="Spring Boot" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+              </path>
+              <path>
+                <item name="services root" type="e789fda9:ObjectUtils$Sentinel" />
+                <item name="Spring Boot" type="7427dc5b:ServiceModel$ServiceGroupNode" />
+                <item name="Running" type="7427dc5b:ServiceModel$ServiceGroupNode" />
               </path>
             </expand>
             <select />
@@ -458,21 +486,72 @@
       <workItem from="1576817911167" duration="3551000" />
       <workItem from="1577078309749" duration="4134000" />
       <workItem from="1577153033970" duration="997000" />
-      <workItem from="1577155301947" duration="3936000" />
-    </task>
-    <task id="LOCAL-00001" summary="처음 반영">
-      <created>1558514277020</created>
-      <option name="number" value="00001" />
-      <option name="presentableId" value="LOCAL-00001" />
-      <option name="project" value="LOCAL" />
-      <updated>1558514277020</updated>
-    </task>
-    <task id="LOCAL-00002" summary="처음 반영">
-      <created>1559538463493</created>
-      <option name="number" value="00002" />
-      <option name="presentableId" value="LOCAL-00002" />
-      <option name="project" value="LOCAL" />
-      <updated>1559538463493</updated>
+      <workItem from="1577155301947" duration="10484000" />
+      <workItem from="1577424734117" duration="2672000" />
+      <workItem from="1577673449561" duration="5660000" />
+      <workItem from="1577755115642" duration="4591000" />
+      <workItem from="1577770904067" duration="3695000" />
+      <workItem from="1577774618688" duration="1693000" />
+      <workItem from="1577927983867" duration="41595000" />
+      <workItem from="1578275319468" duration="530000" />
+      <workItem from="1578275858625" duration="2901000" />
+      <workItem from="1578299815217" duration="4747000" />
+      <workItem from="1578362810534" duration="8380000" />
+      <workItem from="1578447313345" duration="744000" />
+      <workItem from="1578471677655" duration="33000" />
+      <workItem from="1578473573092" duration="41000" />
+      <workItem from="1578473645992" duration="1386000" />
+      <workItem from="1578552653170" duration="13352000" />
+      <workItem from="1578890924654" duration="593000" />
+      <workItem from="1578900518615" duration="2566000" />
+      <workItem from="1578903970208" duration="4356000" />
+      <workItem from="1579139062175" duration="14782000" />
+      <workItem from="1579164315946" duration="5676000" />
+      <workItem from="1579229165182" duration="1612000" />
+      <workItem from="1579238848573" duration="1809000" />
+      <workItem from="1579590079755" duration="1012000" />
+      <workItem from="1579682165492" duration="4428000" />
+      <workItem from="1580189887861" duration="698000" />
+      <workItem from="1580274672347" duration="4711000" />
+      <workItem from="1580348176164" duration="9351000" />
+      <workItem from="1580375145919" duration="1515000" />
+      <workItem from="1580456269275" duration="3294000" />
+      <workItem from="1580464892372" duration="643000" />
+      <workItem from="1580782169602" duration="4945000" />
+      <workItem from="1580962229792" duration="2460000" />
+      <workItem from="1581297890268" duration="1803000" />
+      <workItem from="1581317578171" duration="1253000" />
+      <workItem from="1581404385314" duration="1605000" />
+      <workItem from="1581556949438" duration="4265000" />
+      <workItem from="1581646875990" duration="2605000" />
+      <workItem from="1581663503717" duration="2192000" />
+      <workItem from="1581904204987" duration="37000" />
+      <workItem from="1581904579873" duration="764000" />
+      <workItem from="1581916668687" duration="603000" />
+      <workItem from="1582166979532" duration="1681000" />
+      <workItem from="1582175496309" duration="601000" />
+      <workItem from="1582263737814" duration="6295000" />
+      <workItem from="1582512486830" duration="3470000" />
+      <workItem from="1582537410713" duration="1911000" />
+      <workItem from="1582602510223" duration="695000" />
+      <workItem from="1582606495583" duration="692000" />
+      <workItem from="1582619868705" duration="1982000" />
+      <workItem from="1582681483862" duration="25966000" />
+      <workItem from="1583114278082" duration="3175000" />
+      <workItem from="1583117514672" duration="5918000" />
+      <workItem from="1583458110892" duration="3559000" />
+      <workItem from="1583473311877" duration="1205000" />
+      <workItem from="1583804843069" duration="79000" />
+      <workItem from="1583820365362" duration="7892000" />
+      <workItem from="1584001037322" duration="1554000" />
+      <workItem from="1584341261304" duration="176000" />
+      <workItem from="1584341610061" duration="2076000" />
+      <workItem from="1584425085682" duration="414000" />
+      <workItem from="1584425527372" duration="2698000" />
+      <workItem from="1584428553055" duration="2086000" />
+      <workItem from="1585013663539" duration="26000" />
+      <workItem from="1585630253208" duration="8894000" />
+      <workItem from="1585640594814" duration="1347000" />
     </task>
     <task id="LOCAL-00003" summary="처음 반영">
       <created>1559539358061</created>
@@ -719,34 +798,106 @@
       <option name="project" value="LOCAL" />
       <updated>1577155183784</updated>
     </task>
-    <option name="localTasksCounter" value="38" />
+    <task id="LOCAL-00038" summary="add ignore">
+      <created>1577180371696</created>
+      <option name="number" value="00038" />
+      <option name="presentableId" value="LOCAL-00038" />
+      <option name="project" value="LOCAL" />
+      <updated>1577180371696</updated>
+    </task>
+    <task id="LOCAL-00039" summary="변동없는 거래는 보내지 않음..">
+      <created>1577409542199</created>
+      <option name="number" value="00039" />
+      <option name="presentableId" value="LOCAL-00039" />
+      <option name="project" value="LOCAL" />
+      <updated>1577409542199</updated>
+    </task>
+    <task id="LOCAL-00040" summary="로컬 공시 처리 &#10;세부변동내역 단가가 범위형태로 인 것 처리">
+      <created>1577426634074</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1577426634074</updated>
+    </task>
+    <task id="LOCAL-00041" summary="취득 템플릿 추가">
+      <created>1577776248038</created>
+      <option name="number" value="00041" />
+      <option name="presentableId" value="LOCAL-00041" />
+      <option name="project" value="LOCAL" />
+      <updated>1577776248038</updated>
+    </task>
+    <task id="LOCAL-00042" summary="취득 템플릿 반영">
+      <created>1578034780292</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1578034780292</updated>
+    </task>
+    <task id="LOCAL-00043" summary="_TAKING 추가">
+      <created>1578034903037</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1578034903037</updated>
+    </task>
+    <task id="LOCAL-00044" summary="취득&#10;증여,수증 비고 처리">
+      <created>1578903162384</created>
+      <option name="number" value="00044" />
+      <option name="presentableId" value="LOCAL-00044" />
+      <option name="project" value="LOCAL" />
+      <updated>1578903162384</updated>
+    </task>
+    <task id="LOCAL-00045" summary="수증 증여 로직 추가">
+      <created>1579165233181</created>
+      <option name="number" value="00045" />
+      <option name="presentableId" value="LOCAL-00045" />
+      <option name="project" value="LOCAL" />
+      <updated>1579165233181</updated>
+    </task>
+    <task id="LOCAL-00046" summary="취득 단위 변경">
+      <created>1580351046567</created>
+      <option name="number" value="00046" />
+      <option name="presentableId" value="LOCAL-00046" />
+      <option name="project" value="LOCAL" />
+      <updated>1580351046567</updated>
+    </task>
+    <task id="LOCAL-00047" summary="증여 취소 중복KEY 변경">
+      <created>1580465532518</created>
+      <option name="number" value="00047" />
+      <option name="presentableId" value="LOCAL-00047" />
+      <option name="project" value="LOCAL" />
+      <updated>1580465532518</updated>
+    </task>
+    <task id="LOCAL-00048" summary="신규보고 데이터 처리 로직">
+      <created>1582535403406</created>
+      <option name="number" value="00048" />
+      <option name="presentableId" value="LOCAL-00048" />
+      <option name="project" value="LOCAL" />
+      <updated>1582535403406</updated>
+    </task>
+    <task id="LOCAL-00049" summary="압축StockData 처리">
+      <created>1582876242385</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1582876242385</updated>
+    </task>
+    <task id="LOCAL-00050" summary="정정중에 이전 공시는 처리하지 않도록 함.">
+      <created>1583826564242</created>
+      <option name="number" value="00050" />
+      <option name="presentableId" value="LOCAL-00050" />
+      <option name="project" value="LOCAL" />
+      <updated>1583826564243</updated>
+    </task>
+    <task id="LOCAL-00051" summary="임상실험">
+      <created>1584427454784</created>
+      <option name="number" value="00051" />
+      <option name="presentableId" value="LOCAL-00051" />
+      <option name="project" value="LOCAL" />
+      <updated>1584427454785</updated>
+    </task>
+    <option name="localTasksCounter" value="52" />
     <servers />
-  </component>
-  <component name="TestHistory">
-    <history-entry file="RabbitmqTests_purgeQueue - 2019.06.12 at 16h 16m 07s.xml">
-      <configuration name="RabbitmqTests.purgeQueue" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testMonitoring - 2019.06.12 at 17h 45m 13s.xml">
-      <configuration name="MonitoringBotTest.testMonitoring" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testMonitoring - 2019.06.17 at 16h 54m 09s.xml">
-      <configuration name="MonitoringBotTest.testMonitoring" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testSending - 2019.06.17 at 17h 02m 00s.xml">
-      <configuration name="MonitoringBotTest.testSending" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testMonitoring - 2019.06.17 at 17h 04m 09s.xml">
-      <configuration name="MonitoringBotTest.testMonitoring" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testSending - 2019.06.17 at 17h 05m 20s.xml">
-      <configuration name="MonitoringBotTest.testSending" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testSending - 2019.06.17 at 17h 06m 06s.xml">
-      <configuration name="MonitoringBotTest.testSending" configurationId="JUnit" />
-    </history-entry>
-    <history-entry file="MonitoringBotTest_testSending - 2019.06.17 at 17h 08m 15s.xml">
-      <configuration name="MonitoringBotTest.testSending" configurationId="JUnit" />
-    </history-entry>
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
@@ -765,20 +916,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="정정전 정정후 데이터 분리하기" />
-    <MESSAGE value="주식 변동 추가 분석" />
-    <MESSAGE value="임기만료 처리" />
-    <MESSAGE value="로그 변경" />
-    <MESSAGE value="텔레그램 처리 버그 수정" />
-    <MESSAGE value="로그 변경&#10;정정데이터 추출 로직 보완" />
-    <MESSAGE value="TODO 추가" />
-    <MESSAGE value="국민연금 키워드 처리&#10;crinicalTrials 데이터 처리" />
-    <MESSAGE value="취득/처분 단가 처리&#10;최대주주 처리중" />
-    <MESSAGE value="최대주주 처리" />
-    <MESSAGE value="친인척 처리" />
-    <MESSAGE value="친인척 속보&#10; - 쿼리 버그 수정&#10; - 로깅 변경" />
-    <MESSAGE value="퇴임임원 처리 로직 추가" />
-    <MESSAGE value="신규 친인척 처리" />
     <MESSAGE value="공시명 통일.&#10;TaskExecutor 쓰레드풀 변경" />
     <MESSAGE value="임원보고서 템플릿 처리" />
     <MESSAGE value="잠정 실적 템플릿 처리&#10;비어있는 세부변동사항 skip" />
@@ -790,83 +927,132 @@
     <MESSAGE value="web 사용하게 함&#10;server port 추가" />
     <MESSAGE value="현행화&#10;서버포트 추가" />
     <MESSAGE value="속보기사 insert 시에 date_sigan 도 처리하게 함" />
-    <option name="LAST_COMMIT_MESSAGE" value="속보기사 insert 시에 date_sigan 도 처리하게 함" />
+    <MESSAGE value="add ignore" />
+    <MESSAGE value="변동없는 거래는 보내지 않음.." />
+    <MESSAGE value="로컬 공시 처리 &#10;세부변동내역 단가가 범위형태로 인 것 처리" />
+    <MESSAGE value="취득 템플릿 추가" />
+    <MESSAGE value="취득 템플릿 반영" />
+    <MESSAGE value="_TAKING 추가" />
+    <MESSAGE value="취득&#10;증여,수증 비고 처리" />
+    <MESSAGE value="수증 증여 로직 추가" />
+    <MESSAGE value="취득 단위 변경" />
+    <MESSAGE value="증여 취소 중복KEY 변경" />
+    <MESSAGE value="신규보고 데이터 처리 로직" />
+    <MESSAGE value="압축StockData 처리" />
+    <MESSAGE value="정정중에 이전 공시는 처리하지 않도록 함." />
+    <MESSAGE value="임상실험" />
+    <option name="LAST_COMMIT_MESSAGE" value="임상실험" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="640" y="224" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1575273072538">
-      <screen x="0" y="0" width="1920" height="998" />
-    </state>
-    <state x="640" y="224" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273072538" />
-    <state x="486" y="26" width="890" height="973" key="CommitChangelistDialog2" timestamp="1577180323339">
+    <state x="552" y="157" key="#Project_Structure" timestamp="1584341272888">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state x="486" y="26" width="890" height="973" key="CommitChangelistDialog2/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577180323339" />
-    <state x="740" y="253" key="FileChooserDialogImpl" timestamp="1575273381399">
-      <screen x="0" y="0" width="1920" height="998" />
-    </state>
-    <state x="740" y="253" key="FileChooserDialogImpl/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273381399" />
-    <state width="1877" height="272" key="GridCell.Tab.0.bottom" timestamp="1577155195848">
+    <state x="552" y="157" key="#Project_Structure/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1584341272888" />
+    <state x="414" y="154" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1577673543196">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1876" height="267" key="GridCell.Tab.0.bottom/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575276434692" />
-    <state width="1877" height="272" key="GridCell.Tab.0.bottom/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577155195848" />
-    <state width="1877" height="272" key="GridCell.Tab.0.center" timestamp="1577155195847">
+    <state x="414" y="154" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577673543196" />
+    <state x="725" y="200" key="#com.intellij.ide.util.MemberChooser" timestamp="1582694497047">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1876" height="267" key="GridCell.Tab.0.center/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575276434692" />
-    <state width="1877" height="272" key="GridCell.Tab.0.center/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577155195847" />
-    <state width="1877" height="272" key="GridCell.Tab.0.left" timestamp="1577155195847">
+    <state x="725" y="200" key="#com.intellij.ide.util.MemberChooser/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1580349204317" />
+    <state x="725" y="200" key="#com.intellij.ide.util.MemberChooser/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1582694497047" />
+    <state x="640" y="224" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1585635776069">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1876" height="267" key="GridCell.Tab.0.left/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575276434692" />
-    <state width="1877" height="272" key="GridCell.Tab.0.left/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577155195847" />
-    <state width="1877" height="272" key="GridCell.Tab.0.right" timestamp="1577155195848">
+    <state x="640" y="224" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577772874447" />
+    <state x="640" y="224" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585635776069" />
+    <state x="486" y="26" width="890" height="973" key="CommitChangelistDialog2" timestamp="1585013672936">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1876" height="267" key="GridCell.Tab.0.right/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575276434692" />
-    <state width="1877" height="272" key="GridCell.Tab.0.right/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577155195848" />
-    <state width="1599" height="321" key="GridCell.Tab.1.bottom" timestamp="1577084033789">
+    <state x="486" y="26" width="890" height="973" key="CommitChangelistDialog2/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1580465530928" />
+    <state x="486" y="26" key="CommitChangelistDialog2/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585013672936" />
+    <state x="759" y="320" key="FileChooserDialogImpl" timestamp="1584341294232">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1641" height="316" key="GridCell.Tab.1.bottom/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273948092" />
-    <state width="1599" height="321" key="GridCell.Tab.1.bottom/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577084033789" />
-    <state width="1599" height="321" key="GridCell.Tab.1.center" timestamp="1577084033789">
+    <state x="759" y="320" key="FileChooserDialogImpl/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1584341294232" />
+    <state width="1598" height="262" key="GridCell.Tab.0.bottom" timestamp="1585641748250">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1641" height="316" key="GridCell.Tab.1.center/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273948092" />
-    <state width="1599" height="321" key="GridCell.Tab.1.center/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577084033789" />
-    <state width="1599" height="321" key="GridCell.Tab.1.left" timestamp="1577084033789">
+    <state width="1877" height="272" key="GridCell.Tab.0.bottom/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285011" />
+    <state width="1598" height="262" key="GridCell.Tab.0.bottom/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state width="1598" height="262" key="GridCell.Tab.0.center" timestamp="1585641748250">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1641" height="316" key="GridCell.Tab.1.left/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273948092" />
-    <state width="1599" height="321" key="GridCell.Tab.1.left/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577084033789" />
-    <state width="1599" height="321" key="GridCell.Tab.1.right" timestamp="1577084033789">
+    <state width="1877" height="272" key="GridCell.Tab.0.center/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285011" />
+    <state width="1598" height="262" key="GridCell.Tab.0.center/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state width="1598" height="262" key="GridCell.Tab.0.left" timestamp="1585641748249">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state width="1641" height="316" key="GridCell.Tab.1.right/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273948092" />
-    <state width="1599" height="321" key="GridCell.Tab.1.right/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577084033789" />
-    <state x="540" y="232" key="IDE.errors.dialog" timestamp="1575273147058">
-      <screen x="0" y="0" width="1920" height="998" />
-    </state>
-    <state x="540" y="232" key="IDE.errors.dialog/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575273147058" />
-    <state x="552" y="231" key="Vcs.Push.Dialog.v2" timestamp="1577155187301">
+    <state width="1877" height="272" key="GridCell.Tab.0.left/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285011" />
+    <state width="1598" height="262" key="GridCell.Tab.0.left/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748249" />
+    <state width="1598" height="262" key="GridCell.Tab.0.right" timestamp="1585641748250">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state x="552" y="231" key="Vcs.Push.Dialog.v2/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577155187301" />
-    <state x="92" y="92" width="1736" height="815" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1575879847893">
+    <state width="1877" height="272" key="GridCell.Tab.0.right/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285011" />
+    <state width="1598" height="262" key="GridCell.Tab.0.right/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state width="1598" height="262" key="GridCell.Tab.1.bottom" timestamp="1585641748250">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state x="92" y="92" width="1736" height="815" key="com.intellij.history.integration.ui.views.FileHistoryDialog/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1575879847893" />
-    <state x="652" y="321" key="com.intellij.ide.util.TipDialog" timestamp="1576227898179">
+    <state width="1599" height="384" key="GridCell.Tab.1.bottom/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285007" />
+    <state width="1598" height="262" key="GridCell.Tab.1.bottom/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state width="1598" height="262" key="GridCell.Tab.1.center" timestamp="1585641748250">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state x="652" y="321" key="com.intellij.ide.util.TipDialog/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575439286831" />
-    <state x="652" y="321" key="com.intellij.ide.util.TipDialog/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1576227898179" />
-    <state x="653" y="235" width="613" height="538" key="find.popup" timestamp="1577163375310">
+    <state width="1599" height="384" key="GridCell.Tab.1.center/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285007" />
+    <state width="1598" height="262" key="GridCell.Tab.1.center/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state width="1598" height="262" key="GridCell.Tab.1.left" timestamp="1585641748250">
       <screen x="0" y="0" width="1920" height="999" />
     </state>
-    <state x="653" y="235" width="613" height="528" key="find.popup/0.0.1920.998/1920.0.1920.1080@0.0.1920.998" timestamp="1575434458882" />
-    <state x="653" y="235" width="613" height="538" key="find.popup/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1577163375310" />
+    <state width="1599" height="384" key="GridCell.Tab.1.left/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285007" />
+    <state width="1598" height="262" key="GridCell.Tab.1.left/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state width="1598" height="262" key="GridCell.Tab.1.right" timestamp="1585641748250">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state width="1599" height="384" key="GridCell.Tab.1.right/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581671285007" />
+    <state width="1598" height="262" key="GridCell.Tab.1.right/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585641748250" />
+    <state x="540" y="232" key="IDE.errors.dialog" timestamp="1583820802450">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="540" y="232" key="IDE.errors.dialog/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1583820802450" />
+    <state x="480" y="207" key="SettingsEditor" timestamp="1584425402089">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="480" y="207" key="SettingsEditor/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1579229242342" />
+    <state x="480" y="207" key="SettingsEditor/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1584425402089" />
+    <state x="552" y="231" key="Vcs.Push.Dialog.v2" timestamp="1585013678289">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="552" y="231" key="Vcs.Push.Dialog.v2/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1580351049170" />
+    <state x="552" y="231" key="Vcs.Push.Dialog.v2/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585013678289" />
+    <state x="860" y="69" key="com.intellij.database.run.ParametersPanel.Standalone" timestamp="1578360804682">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="860" y="69" key="com.intellij.database.run.ParametersPanel.Standalone/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1578360804682" />
+    <state x="92" y="92" width="1736" height="815" key="com.intellij.history.integration.ui.views.FileHistoryDialog" timestamp="1582864057536">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="92" y="92" width="1736" height="815" key="com.intellij.history.integration.ui.views.FileHistoryDialog/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1582864057536" />
+    <state x="652" y="321" key="com.intellij.ide.util.TipDialog" timestamp="1583479459120">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="652" y="321" key="com.intellij.ide.util.TipDialog/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1581299766915" />
+    <state x="652" y="321" key="com.intellij.ide.util.TipDialog/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1583479459120" />
+    <state x="2064" y="69" width="1138" height="687" key="dock-window-1" timestamp="1582694550986">
+      <screen x="1920" y="-8" width="1920" height="999" />
+    </state>
+    <state x="1934" y="255" width="1066" height="612" key="dock-window-1/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1578631184876" />
+    <state x="2064" y="69" width="1138" height="687" key="dock-window-1/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1582694550986" />
+    <state x="653" y="235" width="613" height="538" key="find.popup" timestamp="1583823648928">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="653" y="235" width="613" height="538" key="find.popup/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1580275682555" />
+    <state x="653" y="235" width="613" height="538" key="find.popup/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1583823648928" />
+    <state x="623" y="214" width="672" height="678" key="search.everywhere.popup" timestamp="1585635371965">
+      <screen x="0" y="0" width="1920" height="999" />
+    </state>
+    <state x="623" y="214" width="672" height="678" key="search.everywhere.popup/0.0.1920.999/1920.0.1920.1080@0.0.1920.999" timestamp="1580278091382" />
+    <state x="623" y="214" width="672" height="678" key="search.everywhere.popup/1920.-8.1920.999/0.0.1920.999@0.0.1920.999" timestamp="1585635371965" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -893,21 +1079,5 @@
   <component name="antWorkspaceConfiguration">
     <option name="IS_AUTOSCROLL_TO_SOURCE" value="false" />
     <option name="FILTER_TARGETS" value="false" />
-  </component>
-  <component name="masterDetails">
-    <states>
-      <state key="ProjectJDKs.UI">
-        <settings>
-          <last-edited>1.8</last-edited>
-          <splitter-proportions>
-            <option name="proportions">
-              <list>
-                <option value="0.19672132" />
-              </list>
-            </option>
-          </splitter-proportions>
-        </settings>
-      </state>
-    </states>
   </component>
 </project>

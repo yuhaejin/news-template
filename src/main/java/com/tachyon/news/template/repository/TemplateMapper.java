@@ -195,4 +195,6 @@ public interface TemplateMapper {
     int findTrialCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
 
     void insertTrial(Map<String, Object> map);
+
+    Integer findCloseByStringDate(@Param("code")String code, @Param("date")Timestamp date);
 }
