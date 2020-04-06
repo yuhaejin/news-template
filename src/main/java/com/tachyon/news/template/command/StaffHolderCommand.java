@@ -80,7 +80,6 @@ public class StaffHolderCommand extends BasicCommand {
             log.info("SKIP 임원정보가 없음. "+ key+" "+docUrl);
             return;
         }
-
         if (tables.size() > 0) {
             Map<String, Staff> FILTER = new HashMap<>();
             findStaff(tables, code, docNo, docUrl, acptNo,FILTER,simpleContext);
@@ -111,7 +110,7 @@ public class StaffHolderCommand extends BasicCommand {
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
             // 예전 공시는 생년월일까지 있으나 요즘 공시는 생년월까지 있어 아래처럼 작업한다.
-            String birthDay = BizUtils.parseBirthDay2_2(staff.getBirthDay());
+            String birthDay = BizUtils.convertBirth(staff.getBirthDay());
             staff.setBirthDay(birthDay);
             if (isBirthDay(birthDay)) {
                 staff.setBirthYm(toStaffYYMM(birthDay));

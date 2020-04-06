@@ -68,7 +68,6 @@ public class StaffReportCommand extends BasicCommand {
             return;
         }
 
-
         String docUrl = Maps.getValue(kongsiHolder, "doc_url");
         String c = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
 
@@ -126,6 +125,7 @@ public class StaffReportCommand extends BasicCommand {
                     }
                 }
             }
+
 
             String _birth = BizUtils.convertBirth(birth);
             log.debug(birth +" ==> "+_birth);

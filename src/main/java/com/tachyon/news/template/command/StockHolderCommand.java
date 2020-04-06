@@ -275,6 +275,7 @@ public class StockHolderCommand extends BasicCommand {
         if (percentage >= 30) {
             param.put("odd_value_yn", "Y");
             log.warn("전날종가보다 +-30% 임 종목명=" + code + " 변동일=" + change.getDate() + " 전날=" + yesterDay + " 전날종가=" + closePrice + " percentage=" + percentage);
+            //TODO 텔레그램 알림..
         } else {
             log.debug("전날종가보다 +=30% 이하임..");
         }
@@ -891,6 +892,8 @@ public class StockHolderCommand extends BasicCommand {
             }
         }
 
+
+
     }
 
     /**
@@ -927,9 +930,14 @@ public class StockHolderCommand extends BasicCommand {
         return false;
     }
 
+    /**
+     * 퇴임한 임원 정보 생성.
+     * @param change
+     * @return
+     */
     private Map<String, Object> createParam(Change change) {
         String name = change.getName();
-        String birth = change.getBirthDay();
+        String birth = BizUtils.convertBirth(change.getBirthDay());
         String kongsiDate = DateUtils.toString(change.getDateType(), "yyyyMMdd");
         String code = change.getIsuCd();
         String docNo = change.getDocNo();
