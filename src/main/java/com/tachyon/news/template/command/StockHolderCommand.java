@@ -257,29 +257,60 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 어제 종가와 비교해서 +-30% 이상 차이가 나면 odd_value_yn 에 Y설정함.
+     * 오늘이면서 단가가 0이면 SKIP...
+     * 전날 종가가 없으면 SKIP..
+     * 거래일이 주말이면 SKIP
+     *
      * @param param
      * @param change
      */
     private void setupYesterDayClosePrice(Map<String, Object> param,Change change) {
         param.put("odd_value_yn", "N");
-        String code = change.getIsuCd();
-        Date yesterDay = findYesterDay(new Date(change.getDateTime()));
+        String _code = change.getIsuCd();
+        String stockMethod = change.getStockMethod();
+        if (BizUtils.isSkipStockMethod(stockMethod)) {
+            log.debug("SKIP 처리하지 않아도 될 주식 주말이어서 처리하지 않음 "+change);
+            return;
+        }
+
+        long price = change.getPrice();
+        Date changeDate = new Date(change.getDateTime());
+        if (price == 0) {
+            // price가 0 인데 오늘이면 SKIP
+            if (DateUtils.isToday(changeDate)) {
+                log.debug("SKIP 오늘은 종가가 없어 처리하지 않음 "+change);
+                return;
+            }
+            // 거래일이 주말이면 SKIP...
+            if (DateUtils.isWeekend(changeDate)) {
+                log.debug("SKIP 거래일이 주말이어서 처리하지 않음 "+change);
+                return;
+            }
+        }
+
+        Date yesterDay = findYesterDay(changeDate);
         Timestamp _yesterDay = new Timestamp(yesterDay.getTime());
+
+        String code = BizUtils.findCode(_code, stockMethod);
         Integer closePrice  = templateMapper.findCloseByStringDate(code, _yesterDay);
         if (closePrice == null) {
             log.warn("종가를 찾을 수 없음. "+code+" "+_yesterDay);
             return;
         }
-        long value = Math.abs(change.getPrice() - closePrice);
+        long value = Math.abs(price - closePrice);
         int percentage = percentage(value, closePrice);
         if (percentage >= 30) {
             param.put("odd_value_yn", "Y");
-            log.warn("전날종가보다 +-30% 임 종목명=" + code + " 변동일=" + change.getDate() + " 전날=" + yesterDay + " 전날종가=" + closePrice + " percentage=" + percentage);
+            param.put("before_price", closePrice+"");
+            String name = change.getName();
+            log.warn("전날종가보다 +-30% 임 종목명=" + code + " 변동일=" + change.getDate() +" "+name+ " 전날=" + DateUtils.toString(yesterDay,"yyyy-MM-dd") + " 전날종가=" + closePrice + " 현단가="+price+ " percentage=" + percentage+" "+change.getDocUrl());
             //TODO 텔레그램 알림..
         } else {
             log.debug("전날종가보다 +=30% 이하임..");
         }
     }
+
+
 
     /**
      *  전날을 구한다.
@@ -1017,9 +1048,9 @@ public class StockHolderCommand extends BasicCommand {
             if (change.getPrice() == 0) {
                 log.debug("  " + change.getDate());
                 Integer price = null;
-                if (isPreferredStock(change)) {
+                if (BizUtils.isPreferredStock(change.getStockMethod())) {
                     // 우선주 회사코드 필요
-                    String preferredCode = findPreferredCode(change.getIsuCd());
+                    String preferredCode = BizUtils.findPreferredCode(change.getIsuCd());
                     price = templateMapper.findClose(preferredCode, new Timestamp(change.getDateTime()));
                 } else {
                     price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
@@ -1035,26 +1066,26 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private String findPreferredCode(String code) {
-        return code.substring(0, code.length() - 1) + "5";
-    }
+//    private String findPreferredCode(String code) {
+//        return code.substring(0, code.length() - 1) + "5";
+//    }
 
 
-    /**
-     * TODO 변경가능.
-     * 우선주인지 여부 확인
-     *
-     * @param change
-     * @return
-     */
-    private boolean isPreferredStock(Change change) {
-        String stockMethod = change.getStockMethod();
-        if (StringUtils.equalsAny(stockMethod, "종류주식", "우선주", "자동전환우선주")) {
-            return true;
-        } else {
-            return false;
-        }
-    }
+//    /**
+//     * TODO 변경가능.
+//     * 우선주인지 여부 확인
+//     *
+//     * @param change
+//     * @return
+//     */
+//    private boolean isPreferredStock(Change change) {
+//        String stockMethod = change.getStockMethod();
+//        if (StringUtils.equalsAny(stockMethod, "종류주식", "우선주", "자동전환우선주")) {
+//            return true;
+//        } else {
+//            return false;
+//        }
+//    }
 
     private String toString(Timestamp date) {
         return DateUtils.toString(date, "yyyy-MM-dd HH:mm:ss");

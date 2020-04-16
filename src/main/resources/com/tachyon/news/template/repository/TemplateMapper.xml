@@ -29,8 +29,8 @@
 
     </select>
     <insert id="insertStockHolder" parameterType="map">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">

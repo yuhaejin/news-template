@@ -114,10 +114,10 @@ public class RabbitMqRouteConfig {
         return QueueBuilder.durable("_TAKING").build();
     }
 
-    @Bean
-    Queue BEFORE_KONGSI() {
-        return QueueBuilder.durable("BEFORE_KONGSI").build();
-    }
+//    @Bean
+//    Queue BEFORE_KONGSI() {
+//        return QueueBuilder.durable("BEFORE_KONGSI").build();
+//    }
 
     @Bean
     Queue _MY_STOCK() {
