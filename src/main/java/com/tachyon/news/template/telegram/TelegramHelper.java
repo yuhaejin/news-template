@@ -245,7 +245,7 @@ public class TelegramHelper {
                 String lastName = findLastName(ownerName);
                 Map<String,Object> investmentScope = investmentScopes(ownerName,tndDt,name,before,after,price,sum,docUrl,docNm,acptUrl,acptNm,"");
                 // 새로운 요소 추가
-                addInvestmentScope(investmentScope, day, birth, interval, lastName, before, after, price, stockMethod,sum);
+                addInvestmentScope(investmentScope, day, birth, interval, lastName, before, after, price, stockMethod,sum,code);
                 Mustache mustache = MustacheHelper.findMustache(plusInvestmentMustaches, minusInvestmentMustaches, sum,random);
                 String article = makeInvestmentMessage(mustache,investmentScope);
                 String message = makeInvestmentMessage(ownerName, tndDt, name, before, after, price, sum, docUrl, docNm, acptUrl, acptNm,article);
@@ -258,8 +258,8 @@ public class TelegramHelper {
         }
     }
 
-    private void addInvestmentScope(Map<String, Object> investmentScope, String day, String birth, String interval, String lastName, String before, String after, String price, String stockMethod, String sum) {
-        MustacheHelper.addInvestmentScope(investmentScope,day,birth,interval,lastName,before,after,price,stockMethod,sum);
+    private void addInvestmentScope(Map<String, Object> investmentScope, String day, String birth, String interval, String lastName, String before, String after, String price, String stockMethod, String sum,String code) {
+        MustacheHelper.addInvestmentScope(investmentScope,day,birth,interval,lastName,before,after,price,stockMethod,sum,code);
     }
 
     private String findLastName(String ownerName) {
