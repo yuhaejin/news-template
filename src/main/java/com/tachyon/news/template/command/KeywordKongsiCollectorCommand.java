@@ -314,25 +314,28 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 if (beforeIndex > afterIndex) {
                     String subLine = line.substring(afterIndex, beforeIndex);
                     _afterIndex = c.indexOf(subLine, _afterIndex);
-                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex));
-                    _afterIndex++;
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex,"BEFORE_AFTER"));
+                    _afterIndex = _afterIndex + subLine.length();
+//                    _afterIndex++;
                     subLine = line.substring(beforeIndex);
                     _beforeIndex = c.indexOf(subLine, _beforeIndex);
-                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex));
-                    _beforeIndex++;
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex,"BEFORE_AFTER"));
+                    _beforeIndex = _beforeIndex + subLine.length();
+//                    _beforeIndex++;
                 } else {
                     String subLine = line.substring(beforeIndex, afterIndex);
                     _beforeIndex = c.indexOf(subLine, _beforeIndex);
-                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex));
-                    _beforeIndex++;
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex,"BEFORE_AFTER"));
+                    _beforeIndex = _beforeIndex + subLine.length();
+//                    _beforeIndex++;
                     subLine = line.substring(afterIndex);
                     _afterIndex = c.indexOf(subLine, _afterIndex);
-                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex));
-                    _afterIndex++;
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex,"BEFORE_AFTER"));
+                    _afterIndex = _afterIndex + subLine.length();
+
+//                    _afterIndex++;
                 }
 
-
-                //
             } else if (findBeforeCorrectKeyword(_lines)) {
                 if (isInTable(line)) {
                     log.debug("SKIP INTABLE ::: " + StringUtils.abbreviate(line,500));
@@ -350,8 +353,9 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 String subLine = line.substring(beforeIndex);
                 log.debug("BEFORE::: " + subLine.trim());
                 _beforeIndex = c.indexOf(subLine, _beforeIndex);
-                beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex));
-                _beforeIndex++;
+                beans.add(new com.tachyon.crawl.kind.model.CorrectBean("BEFORE", _beforeIndex,"BEFORE"));
+                _beforeIndex = _beforeIndex + subLine.length();
+//                _beforeIndex++;
             } else if (findAfterCorrectKeyword(_lines)) {
                 if (isInTable(line)) {
                     log.debug("SKIP INTABLE ::: " + StringUtils.abbreviate(line,500));
@@ -369,8 +373,9 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 String subLine = line.substring(afterIndex);
                 log.debug("AFTER::: " + subLine.trim());
                 _afterIndex = c.indexOf(subLine, _afterIndex);
-                beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex));
-                _afterIndex++;
+                beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", _afterIndex,"AFTER"));
+                _afterIndex = _afterIndex + subLine.length();
+//                _afterIndex++;
             } else {
 
             }
@@ -383,7 +388,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                     log.debug("AFTER::: " + lastLine.trim());
                     // 정정전과 정정후가 같은 라인에 있으므로 정정후 이후부터 처리하려고 아래 로직 삽입.
                     int lastAfterCorrectIndex = StringUtils.indexOfAny(lastLine, "정정 후", "정정후");
-                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", c.indexOf(lastLine.substring(lastAfterCorrectIndex))));
+                    beans.add(new com.tachyon.crawl.kind.model.CorrectBean("AFTER", c.indexOf(lastLine.substring(lastAfterCorrectIndex)),"SAME_LINE"));
                 }
             }
         }
