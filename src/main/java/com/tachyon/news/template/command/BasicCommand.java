@@ -17,14 +17,14 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.FileFilterUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Slf4j
 public abstract class BasicCommand extends BaseObject implements Command {
@@ -519,6 +519,69 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
 
         return findDocRow(docUrl, loadBalancerCommandHelper);
+    }
+    /**
+     * 기사처리를 위한 ARTICLE 큐로 전송..
+     * @param rabbitTemplate
+     * @param pk
+     * @param findParam
+     */
+    void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, Map<String, Object> findParam) {
+        // 기사 처리를 위해 기사Queue로 데이터 전송..
+        String subpk = sortKeyDelegateValue(findParam);
+        log.info("ARTICLE <<< PK="+pk+" TYPE="+type+" SUB_PK="+subpk+" param="+findParam);
+        rabbitTemplate.convertAndSend("ARTICLE", (Object)pk, new MessagePostProcessor() {
+            @Override
+            public Message postProcessMessage(Message message) throws AmqpException {
+                message.getMessageProperties().setPriority(9);
+                message.getMessageProperties().getHeaders().put("ARTICLE_TYPE", type);
+                message.getMessageProperties().getHeaders().put("SUB_PK", subpk);
+                return message;
+            }
+        });
+    }
+    /**
+     * subpk의 길이를 줄임
+     * key를 소팅하면서 그 값을 가져와 _로 구분하여 문자열 생성...
+     * @param param
+     * @return
+     */
+    private String sortKeyDelegateValue(Map<String, Object> param) {
+        List<String> keys = findKey(param);
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < keys.size(); i++) {
+            String value = Maps.getValue(param, keys.get(i));
+            if (i == 0) {
+                sb.append(value);
+            } else {
+                sb.append("_").append(value);
+            }
+        }
+
+        return sb.toString();
+    }
+    private List<String> findKey(Map<String, Object> param) {
+        List<String> list = new ArrayList<>();
+        list.addAll(param.keySet());
+        Collections.sort(list, new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareTo(o2);
+            }
+        });
+
+        return list;
+    }
+
+    Map<String, Object> findParam(String docNo, String isuCd, String acptNo) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("doc_no", docNo);
+        map.put("isu_cd", isuCd);
+        map.put("acpt_no", acptNo);
+        return map;
+    }
+     String findPk(Map<String, Object> param) {
+         return Maps.getValue(param, "seq");
     }
 }
 

@@ -14,6 +14,7 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -111,14 +112,24 @@ public class ContractCommand extends BasicCommand {
         }
 
 
-        int count = templateMapper.findSupplyContractCount(supplyContract.getGubun(), code, supplyContract.getActionType(),supplyContract.getDoDate());
+        Map<String, Object> findParam = findParam(supplyContract, code);
+        int count = templateMapper.findSupplyContractCount(findParam);
         if (count == 0) {
             Map<String, Object> param = param(supplyContract);
             log.info("INSERT "+param);
             templateMapper.insertSupplyContract(param);
+            sendToArticleQueue(rabbitTemplate,findPk(param),"CONTRACT",findParam);
         } else {
             log.info("이미 존재하는 계약,, "+key);
         }
+    }
+    private Map<String,Object> findParam(SupplyContract supplyContract,String code) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("contract_gubun", supplyContract.getGubun());
+        map.put("isu_cd", code);
+        map.put("action_type", supplyContract.getActionType());
+        map.put("do_date", supplyContract.getDoDate());
+        return map;
     }
     private Map<String, Object> param(SupplyContract supplyContract) {
         Map<String, Object> map = new HashMap<>();

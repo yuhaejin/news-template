@@ -12,7 +12,9 @@ import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +29,8 @@ public class MyStockCommand extends BasicCommand {
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
-
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -147,13 +150,17 @@ public class MyStockCommand extends BasicCommand {
         log.info("type=" + type + "docUrl=" + docUrl + " " + myStock.toString());
         myStock.setType(type);
 
-        if (templateMapper.findMyStockCount(myStock.getDocNo(), myStock.getIsuCd(), myStock.getAcptNo()) == 0) {
+        Map<String, Object> findParam = findParam(myStock.getDocNo(), myStock.getIsuCd(), myStock.getAcptNo());
+        if (templateMapper.findMyStockCount(findParam) == 0) {
             Map<String, Object> param = insertParam(myStock);
             templateMapper.insertMyStock(param);
+            sendToArticleQueue(rabbitTemplate,findPk(param),"MYSTOCK",findParam);
         } else {
             log.info("SkIP 중복된 데이터.. "+myStock);
         }
     }
+
+
 
     private void deleteBeforeMyStockHolder(TemplateMapper templateMapper, String code, String docNo) {
         templateMapper.deleteBeforeMyStockHolder(code, docNo);

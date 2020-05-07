@@ -111,17 +111,18 @@ public class TrialHolderCommand extends BasicCommand {
                 templateMapper.deleteBeforeTrialHolder(code, _docNo);
             }
         }
-
-        if (templateMapper.findTrialCount(docNo, code, acptNo) == 0) {
-            insertTrial(trial, docNo, code, acptNo);
+        Map<String, Object> findParam = findParam(docNo, code, acptNo);
+        if (templateMapper.findTrialCount(findParam) == 0) {
+            Map<String, Object> insertParam = param(trial, docNo, code, acptNo);
+            insertTrial(insertParam);
+            sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TRIAL",findParam);
         } else {
             log.info("SKIP 이미 존재함. " + key);
         }
 
     }
 
-    private void insertTrial(Trial trial, String docNo, String code, String acptNo) {
-        Map<String, Object> map = param(trial, docNo, code, acptNo);
+    private void insertTrial(Map<String, Object> map ) {
         templateMapper.insertTrial(map);
     }
 

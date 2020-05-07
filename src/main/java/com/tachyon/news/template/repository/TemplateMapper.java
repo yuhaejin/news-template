@@ -11,7 +11,7 @@ import java.util.Map;
 public interface TemplateMapper {
     Map<String, Object> findKongsiHalder2(@Param("doc_no") String docNo, @Param("isu_cd") String isuCd, @Param("acpt_no") String acptNo);
 
-    void insertStockHolder(Map<String, Object> paramStockHolder);
+    long insertStockHolder(Map<String, Object> paramStockHolder);
 
     int findStockHolder(Map<String, Object> param);
 
@@ -50,6 +50,7 @@ public interface TemplateMapper {
     int findRumorCount(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo);
 
     void insertTelegramHolder(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
+    void insertTelegramHolder(Map<String, Object> param);
 
     List<Map<String, Object>> findUsers();
     List<Map<String, Object>> findNoGroupTelegramHolder();
@@ -70,6 +71,7 @@ public interface TemplateMapper {
     int findExpirationCount(Map<String, Object> param);
 
     int findTelegramHolder(@Param("doc_no")String docNo, @Param("acpt_no")String acptNo, @Param("keyword")String keyword);
+    int findTelegramHolder(Map<String, Object> param);
 
     void deleteOverlapRumor(@Param("doc_no")String docNo, @Param("isu_cd")String isuCd, @Param("acpt_no")String acptNo);
 
@@ -151,6 +153,7 @@ public interface TemplateMapper {
     void deleteBeforeTakingHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     int fincTakingHolderCount(@Param("isu_cd")String code, @Param("name")String name, @Param("birth")String birth, @Param("owner_capital")String taking, @Param("borrow_amount")String borrowing, @Param("etc")String etc);
+    int fincTakingHolderCount(Map<String, Object> param);
 
     void insertTakingHolder(Map<String, Object> param);
 
@@ -161,10 +164,12 @@ public interface TemplateMapper {
     void deleteBeforeMyStockHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     int findMyStockCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+    int findMyStockCount(Map<String, Object> param);
 
     void insertMyStock(Map<String, Object> param);
 
     int findSupplyContractCount(@Param("contract_gubun")String contractGubun, @Param("isu_cd")String code, @Param("action_type")String actionYype,@Param("do_date")String doDate);
+    int findSupplyContractCount(Map<String, Object> param);
 
     void deleteBeforeContractHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
@@ -175,6 +180,7 @@ public interface TemplateMapper {
     void deleteBeforeTouchHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     int findTouchHolderCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+    int findTouchHolderCount(Map<String, Object> param);
 
     void insertTouchHolder(Map<String, Object> param);
 
@@ -193,6 +199,7 @@ public interface TemplateMapper {
     void deleteBeforeTrialHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
 
     int findTrialCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+    int findTrialCount(Map<String, Object> map);
 
     void insertTrial(Map<String, Object> map);
 

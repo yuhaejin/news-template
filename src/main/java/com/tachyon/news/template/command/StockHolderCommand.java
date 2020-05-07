@@ -9,13 +9,17 @@ import com.tachyon.crawl.kind.parser.TableParser;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern2;
 import com.tachyon.crawl.kind.util.DateUtils;
+import com.tachyon.crawl.kind.util.JsonUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.MessagePostProcessor;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +36,8 @@ public class StockHolderCommand extends BasicCommand {
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
-
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -209,7 +214,8 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
-                        Long seq = hasDuplicateStockHolder(templateMapper, docNo, code, acptNo, docUrl, change, tempRptNm);
+                        Map<String, Object> findParam = param(change, code, tempRptNm, docUrl, docNo, acptNo);
+                        Long seq = hasDuplicateStockHolder(templateMapper, findParam);
                         if (seq!=null) {
                             // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
                             log.info("ALREADY StockHodler " + change);
@@ -225,8 +231,8 @@ public class StockHolderCommand extends BasicCommand {
 
                             log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
-
-                            //TODO 압축된 STOCK 데이터도 텔레그램 전송하는지.. 확인..
+                            modifyParam(findParam);
+                            sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
                             stockCount++;
                         }
 
@@ -255,6 +261,29 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void modifyParam(Map<String, Object> findParam) {
+        findParam.remove("doc_url");
+        findParam.remove("acpt_no");
+        findParam.remove("doc_no");
+        findParam.remove("isu_cd");
+    }
+
+
+
+
+
+
+
+    private Map<String,Object> param(Change change,String code,String tempRptNm,String docUrl,String docNo,String acptNo) {
+        Map<String, Object> param = BizUtils.changeParamMap(change, code);
+        param.put("temp_rpt_nm", tempRptNm);
+        param.put("doc_url", docUrl);
+        param.put("doc_no", docNo);
+        param.put("isu_cd", code);
+        param.put("acpt_no", acptNo);
+
+        return param;
+    }
     /**
      * 어제 종가와 비교해서 +-30% 이상 차이가 나면 odd_value_yn 에 Y설정함.
      * 오늘이면서 단가가 0이면 SKIP...
@@ -344,6 +373,11 @@ public class StockHolderCommand extends BasicCommand {
         return DateUtils.toString(new Date(dateTime), "yyyyMMdd");
     }
 
+    /**
+     * 거래내역이 단건이 아닌 여러건을 한번에 압축하여 처리한 것인지 표기한다.
+     * @param templateMapper
+     * @param seq
+     */
     private void compressStockHolder(TemplateMapper templateMapper, Long seq) {
         templateMapper.compressStockHolder(seq);
     }
@@ -535,14 +569,21 @@ public class StockHolderCommand extends BasicCommand {
      */
     private void handleGiveNTake(Change change) {
         if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
-            Map<String, Object> param = findParam(change);
-            if (findGiveNtake(param) == 0) {
+            Map<String, Object> _param = findParam(change);
+            if (findGiveNtake(_param) == 0) {
+                Map<String, Object> param = new HashMap<>();
+                param.putAll(_param);
                 insertParam(change, param);
                 templateMapper.insertGiveNTake(param);
+                sendToArticleQueue(rabbitTemplate,findKongsiKey(change),"GIVETAKE",_param);
             } else {
-                log.info("SKIP 이미존재함 " + change);
+                log.info("SKIP 수증증여 이미존재함 " + change);
             }
         }
+    }
+
+    private String findKongsiKey(Change change) {
+        return change.getDocNo()+"_"+change.getIsuCd()+"_"+change.getAcptNo();
     }
 
     private Map<String, Object> findParam(Change change) {
@@ -887,17 +928,10 @@ public class StockHolderCommand extends BasicCommand {
      * - 처리일시가 다르면 단가는 넣고 중복데이터를 찾는다.
      *
      * @param templateMapper
-     * @param code
-     * @param change
+     * @param param
      * @return
      */
-    private Long hasDuplicateStockHolder(TemplateMapper templateMapper, String docNo, String code, String acptNo, String docUrl, Change change, String tempRptNm) {
-        Map<String, Object> param = BizUtils.changeParamMap(change, code);
-        param.put("temp_rpt_nm", tempRptNm);
-        param.put("doc_url", docUrl);
-        param.put("doc_no", docNo);
-        param.put("isu_cd", code);
-        param.put("acpt_no", acptNo);
+    private Long hasDuplicateStockHolder(TemplateMapper templateMapper, Map<String,Object> param) {
 
         List<Long> seqs = templateMapper.findDupStockSeqOnSameKind(param);
         int count = countList(seqs);
@@ -1113,8 +1147,8 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private void insertStockHolder(TemplateMapper templateMapper, Map<String, Object> map) {
-        templateMapper.insertStockHolder(map);
+    private long insertStockHolder(TemplateMapper templateMapper, Map<String, Object> map) {
+        return templateMapper.insertStockHolder(map);
     }
 
     private void deleteBeforeStockHolder(TemplateMapper templateMapper, String code, String _docNo) {

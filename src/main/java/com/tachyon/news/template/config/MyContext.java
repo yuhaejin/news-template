@@ -127,7 +127,6 @@ public class MyContext {
             return;
         }
 
-
         File[] files = dir.listFiles();
         for (File f : files) {
             String name = FilenameUtils.getName(f.getAbsolutePath());

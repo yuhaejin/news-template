@@ -119,13 +119,16 @@ public class TouchCommand extends BasicCommand {
         }
 
         Map<String, Object> param = param(touch, docNo, code, acptNo);
-        if (templateMapper.findTouchHolderCount(docNo, code, acptNo) == 0) {
+        Map<String, Object> findParam = findParam(docNo, code, acptNo);
+        if (templateMapper.findTouchHolderCount(findParam) == 0) {
             templateMapper.insertTouchHolder(param);
+            sendToArticleQueue(rabbitTemplate,findPk(param),"TOUCH",findParam);
         } else {
             log.info("이미 존재.. SKIP.. " + touch);
         }
-
     }
+
+
     private Map<String, Object> param(Touch touch, String docNo, String code, String acptNo) {
         Map<String, Object> map = new HashMap<>();
         map.put("financial_type", touch.getFinancialType());

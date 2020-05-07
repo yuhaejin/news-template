@@ -28,7 +28,7 @@
           and a.acpt_no = #{acpt_no}
 
     </select>
-    <insert id="insertStockHolder" parameterType="map">
+    <insert id="insertStockHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price)
         VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price})
     </insert>
@@ -556,7 +556,7 @@
           and acpt_no = #{acpt_no}
     </select>
 
-    <insert id="insertTrotHolder" parameterType="map">
+    <insert id="insertTrotHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO trotholder (isu_cd, doc_no, acpt_no, isu_nm, keyword,sigan,date_sigan)
         VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{isu_nm}, #{keyword},#{sigan},#{date_sigan})
     </insert>
@@ -588,7 +588,7 @@
           and etc=#{etc}
     </select>
 
-    <insert id="insertTakingHolder" parameterType="map">
+    <insert id="insertTakingHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO takingholder (acpt_dt,name, birth, owner_capital, borrowings, etc, sum,resource,borrower,borrow_amount,borrow_period,collateral,doc_no,isu_cd,acpt_no,type,err_msg,spot)
         VALUES ( #{acpt_dt},#{name}, #{birth}, #{owner_capital}, #{borrowings}, #{etc}, #{sum}, #{resource},#{borrower},#{borrow_amount},#{borrow_period},#{collateral},#{doc_no},#{isu_cd},#{acpt_no},#{type},#{err_msg},#{spot})
     </insert>
@@ -620,7 +620,7 @@
           and a.acpt_no = #{acpt_no}
     </select>
 
-    <insert id="insertMyStock" parameterType="map">
+    <insert id="insertMyStock" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO mystockholder (doc_no,isu_cd,acpt_no,acpt_dt,company,stock_count_gen,stock_count_etc,stock_amount_gen,stock_amount_etc,start_period,end_period,start_period2,end_period2,purpose,method,dispose_method1,dispose_method2,dispose_method3,dispose_method4,before_my_gen_count,before_my_gen_ratio,before_my_etc_count,before_my_etc_ratio,before_etc_gen_count,before_etc_gen_ratio,before_etc_etc_count,before_etc_etc_ratio,decision_date,agency,target_stock_gen_price,target_stock_etc_price,type)
         VALUES (#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{company},#{stock_count_gen},#{stock_count_etc},#{stock_amount_gen},#{stock_amount_etc},#{start_period},#{end_period},#{start_period2},#{end_period2},#{purpose},#{method},#{dispose_method1},#{dispose_method2},#{dispose_method3},#{dispose_method4},#{before_my_gen_count},#{before_my_gen_ratio},#{before_my_etc_count},#{before_my_etc_ratio},#{before_etc_gen_count},#{before_etc_gen_ratio},#{before_etc_etc_count},#{before_etc_etc_ratio},#{decision_date},#{agency},#{target_stock_gen_price},#{target_stock_etc_price},#{type})
     </insert>
@@ -651,7 +651,7 @@
           and a.isu_cd = #{isu_cd}
     </select>
 <!--    insertSupplyContract-->
-    <insert id="insertSupplyContract" parameterType="map">
+    <insert id="insertSupplyContract" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO contractholder (action_type,contract_gubun,contract_name,contents1,contents2,contents3,contents4,contents5,contents6,contents7,target,relation_with_company,sales_area,contract_start_date,contract_end_date,contract_condition,termination_reason,do_date,reservation_reason,reservation_period,etc,doc_no,isu_cd,acpt_no,acpt_dt,contract_date)
         VALUES (#{action_type},#{contract_gubun},#{contract_name},#{contents1},#{contents2},#{contents3},#{contents4},#{contents5},#{contents6},#{contents7},#{target},#{relation_with_company},#{sales_area},#{contract_start_date},#{contract_end_date},#{contract_condition},#{termination_reason},#{do_date},#{reservation_reason},#{reservation_period},#{etc},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{contract_date})
     </insert>
@@ -701,7 +701,7 @@
           and acpt_no = #{acpt_no}
     </select>
 <!--    insertTouchHolder-->
-    <insert id="insertTouchHolder" parameterType="map">
+    <insert id="insertTouchHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO touchholder (financial_type,now_revenue,before_revenue,revenue_amount,revenue_ratio,now_profit,before_profit,profi_amount,profit_ratio,now_ordi_profit,before_ordi_profit,ordi_profit_amount,ordi_profit_ratio,now_income,before_income,income_amount,income_ratio,is_large_corp,now_total_assets,before_total_assets,now_total_debt,before_total_debt,now_total_cap,before_total_cap,now_cap,before_cap,now_asscap_ratio,before_asscap_ratio,sales_variation_cause,etc, doc_no, isu_cd, acpt_no, acpt_dt)
         VALUES (#{financial_type},#{now_revenue},#{before_revenue},#{revenue_amount},#{revenue_ratio},#{now_profit},#{before_profit},#{profi_amount},#{profit_ratio},#{now_ordi_profit},#{before_ordi_profit},#{ordi_profit_amount},#{ordi_profit_ratio},#{now_income},#{before_income},#{income_amount},#{income_ratio},#{is_large_corp},#{now_total_assets},#{before_total_assets},#{now_total_debt},#{before_total_debt},#{now_total_cap},#{before_total_cap},#{now_cap},#{before_cap},#{now_asscap_ratio},#{before_asscap_ratio},#{sales_variation_cause},#{etc}, #{doc_no}, #{isu_cd}, #{acpt_no}, #{acpt_dt})
     </insert>
@@ -739,7 +739,7 @@
           and acpt_no = #{acpt_no}
     </select>
     <!--    insertTrial-->
-    <insert id="insertTrial" parameterType="map">
+    <insert id="insertTrial" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT INTO trialsholder (doc_no,isu_cd,acpt_no,type,title,purpose,approval_agency,approval_date,approval_history,future_plan,confirm_date,etc,acpt_dt)
         VALUES (#{doc_no},#{isu_cd},#{acpt_no},#{type},#{title},#{purpose},#{approval_agency},#{approval_date},#{approval_history},#{future_plan},#{confirm_date},#{etc},#{acpt_dt})
     </insert>

@@ -17,6 +17,7 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +34,9 @@ public class TakingHolderCommand extends BasicCommand {
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -134,14 +138,28 @@ public class TakingHolderCommand extends BasicCommand {
             List<Borrowing> borrowings = taking.getBorrowings();
             if (borrowings != null) {
                 for (Borrowing borrowing : borrowings) {
-                    if (fincTakingHolderCount(taking,borrowing, code) == 0) {
-                        insertTakingHolder(taking,borrowing, docNo, code, acptNo);
+                    Map<String, Object> findParam = findParam(taking, borrowing, code);
+                    if (fincTakingHolderCount(findParam) == 0) {
+                        Map<String, Object> insertParam = makeParam(taking,borrowing, docNo, code, acptNo);
+                        insertTakingHolder(insertParam);
+                        sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TAKING",findParam);
                     } else {
                         log.info("SKIP 이미존재하는 취득 " + taking+" "+borrowing);
                     }
                 }
             }
         }
+    }
+
+    private Map<String, Object> findParam(Taking taking, Borrowing borrowing, String code) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("isu_cd", code);
+        map.put("name", taking.getName());
+        map.put("birth", taking.getBirth());
+        map.put("owner_capital", taking.getTaking());
+        map.put("borrow_amount", borrowing.getBorrowingAmount());
+        map.put("etc", taking.getEtc());
+        return map;
     }
 
 
@@ -163,8 +181,7 @@ public class TakingHolderCommand extends BasicCommand {
         return null;
     }
 
-    private void insertTakingHolder(Taking taking,Borrowing borrowing, String docNo, String code, String acptNo) {
-        Map<String, Object> param = makeParam(taking,borrowing, docNo, code, acptNo);
+    private void insertTakingHolder(Map<String,Object> param ) {
         log.info("INSERT " + param);
         templateMapper.insertTakingHolder(param);
     }
@@ -245,6 +262,10 @@ public class TakingHolderCommand extends BasicCommand {
     private int fincTakingHolderCount(Taking taking,Borrowing borrowing, String code) {
         int count = templateMapper.fincTakingHolderCount(code, taking.getName(), taking.getBirth(), taking.getTaking(), borrowing.getBorrowingAmount(), taking.getEtc());
         log.info("TAKINGCOUNT " + count + " " + taking.getName());
+        return count;
+    }
+    private int fincTakingHolderCount(Map<String,Object> param) {
+        int count = templateMapper.fincTakingHolderCount(param);
         return count;
     }
 

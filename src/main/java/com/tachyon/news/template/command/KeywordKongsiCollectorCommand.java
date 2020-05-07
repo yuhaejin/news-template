@@ -16,11 +16,13 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.ibatis.annotations.Param;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,7 +38,8 @@ import java.util.*;
 public class KeywordKongsiCollectorCommand extends BasicCommand {
     @Autowired
     private MyContext myContext;
-
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
     @Autowired
     private TemplateMapper templateMapper;
     private static final String RESULT_PRIFIX = "R:::";
@@ -57,9 +60,16 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
 
         log.info(key + "<<< ");
-        DocNoIsuCd docNoIsuCd = findDocNoIsuCd(key);
-
-        Map<String, Object> kongsiHodler = findKongsiHalder(myContext, message, templateMapper, docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo());
+        String[] keys = StringUtils.split(key, "_");
+        if (keys.length != 3) {
+            log.error("INVALID KEY "+key);
+            return;
+        }
+        String docNo = keys[0];
+        String code = keys[1];
+        String acptNo = keys[2];
+        Map<String, Object> kongsiHodler = templateMapper.findKongsiHalder2(docNo, code, acptNo);
+//        Map<String, Object> kongsiHodler = findKongsiHalder(myContext, message, templateMapper, docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo());
         if (kongsiHodler == null) {
             log.info("기초공시정보가 없음. " + key);
             return;
@@ -78,7 +88,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
         if (isCorrectedKongsi(kongsiHodler)) {
             //정정공시인 경우에는 변경된 데이터에서 처리한다.
-            String htmlFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "htm");
+            String htmlFilePath = findPath(myContext.getHtmlTargetPath(), code, docNo, "htm");
             if (isEmpty(htmlFilePath)) {
                 log.info("Html파일 경로를 알 수 없음... " + key);
                 return;
@@ -99,7 +109,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             handleCorrectPart(c, sb, key);
             log.info("정정 " + sb.toString());
         } else {
-            String txtFilePath = findPath(myContext.getHtmlTargetPath(), docNoIsuCd.getIsuCd(), docNoIsuCd.getDocNo(), "txt");
+            String txtFilePath = findPath(myContext.getHtmlTargetPath(), code, docNo, "txt");
             if (isEmpty(txtFilePath)) {
                 log.info("텍스트파일 경로를 알 수 없음... " + key);
                 return;
@@ -117,7 +127,6 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
 
         contents = BizUtils.removeBlank(sb.toString());
 
-
         // 속보 키워드 목록 가져옴..
         // TODO 사용자별로 키워드를 가지면 아래 로직 변경해야 함.
         // (현재는 모두 동일하므로 아래처럼 하나의 키워드가 존재할 수 있지만 사용자마다 키워드가 다르면 모든 키워드를 대상으로 확인해 봐야 함.)
@@ -134,21 +143,44 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
             }
         }
 
-        kongsiHodler.put("doc_no", docNoIsuCd.getDocNo());
+        kongsiHodler.put("doc_no", docNo);
         // 사용자별 키워드가 없으므로 아래는 최대 하나 키워드가 존재..
         for (String keyword : keywords) {
-            int count = templateMapper.findTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getAcptNo(), keyword);
+            Map<String, Object> findParam = findParam(docNo,code,acptNo, keyword);
+            int count = templateMapper.findTelegramHolder(findParam);
             if (count == 0) {
-                templateMapper.insertTelegramHolder(docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo(), keyword);
-
+                templateMapper.insertTelegramHolder(docNo, code, acptNo, keyword);
                 setupParamMap(kongsiHodler, keyword, DateUtils.toString(new Date(), "yyyyMMddHHmm"));
                 templateMapper.insertTrotHolder(kongsiHodler);
+                if (keyword.equalsIgnoreCase("소송")) {
+                    sendToArticleQueue(rabbitTemplate,findPk(kongsiHodler),"LAWSUIT",findParam);
+                }
             } else {
-                log.info("telegramHolder count " + count);
+                log.info("SKIP 텔레그램Holder 중복 " + findParam);
             }
         }
 
         log.info("done " + key);
+    }
+
+    /**
+     * 참고
+     * isu_cd는 중복여부 조회시 사용하지 않지만
+     * trotholder 에 필요해서 집어넣음...
+     *
+     * @param docNo
+     * @param code
+     * @param acptNo
+     * @param keyword
+     * @return
+     */
+    private Map<String, Object> findParam(String docNo,String code,String acptNo, String keyword) {
+        Map<String, Object> findParam = new HashMap<>();
+        findParam.put("doc_no", docNo);
+        findParam.put("acpt_no", acptNo);
+        findParam.put("isu_cd", code);
+        findParam.put("keyword", keyword);
+        return findParam;
     }
 
     private void setupParamMap(Map<String, Object> kongsiHodler, String keyword, String sigan) {

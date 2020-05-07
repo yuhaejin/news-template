@@ -137,4 +137,6 @@ public class RabbitMqRouteConfig {
     Queue _TRIAL() {
         return QueueBuilder.durable("_TRIAL").build();
     }
+
+
 }
