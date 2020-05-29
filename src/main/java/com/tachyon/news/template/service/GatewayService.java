@@ -93,6 +93,12 @@ public class GatewayService extends AbstractService {
                 return;
             }
 
+            String codeType = Maps.getValue(kongsi,"code_type");
+            if("코넥스".equalsIgnoreCase(codeType)){
+                log.info("SKIP 코넥스공시임.. "+key);
+                return;
+            }
+
             myContext.addGatewayCalling();
             checkMetaKongsi(key,acptNo,code);
             checkKongsiFile2(key, acptNo, code, docNo, kongsi,message);

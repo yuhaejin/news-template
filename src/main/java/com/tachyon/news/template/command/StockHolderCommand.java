@@ -261,6 +261,7 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+
     private void modifyParam(Map<String, Object> findParam) {
         findParam.remove("doc_url");
         findParam.remove("acpt_no");

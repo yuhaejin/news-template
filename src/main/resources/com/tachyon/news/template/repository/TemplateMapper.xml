@@ -21,7 +21,8 @@
                a.tns_dt,
                a.submit_nm,
                a.temp_rpt_nm,
-               (select isu_nm from isu where isu_cd = a.isu_cd) as isu_nm
+               (select isu_nm from isu where isu_cd = a.isu_cd) as isu_nm,
+               a.code_type
         from kongsiholder a
         where a.doc_no = #{doc_no}
           and a.isu_cd = #{isu_cd}
