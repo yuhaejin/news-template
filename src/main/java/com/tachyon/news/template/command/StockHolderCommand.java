@@ -229,10 +229,14 @@ public class StockHolderCommand extends BasicCommand {
                             setupCompressed(param, isCompressedData);
                             setupYesterDayClosePrice(param,change);
 
+
                             log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
                             modifyParam(findParam);
-                            sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
+                            if (change.getChangeAmount() != 0) {
+                                // 변동량이 있을 때만 기사 작성하기.. by sokhoon 20200605
+                                sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
+                            }
                             stockCount++;
                         }
 

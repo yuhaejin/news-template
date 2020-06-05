@@ -563,8 +563,8 @@
     </insert>
 
     <insert id="insertKongsiHolder" parameterType="map">
-        INSERT INTO kongsiholder (isu_cd,doc_no, doc_nm, doc_url, doc_type, tns_dt, acpt_no, rpt_nm,acpt_dt,submit_nm,temp_rpt_nm)
-        VALUES ( #{isu_cd},#{doc_no}, #{doc_nm}, #{doc_url}, #{doc_type}, #{tns_dt}, #{acpt_no}, #{rpt_nm},#{acpt_dt},#{submit_nm},#{temp_rpt_nm});
+        INSERT INTO kongsiholder (isu_cd,doc_no, doc_nm, doc_url, doc_type, tns_dt, acpt_no, rpt_nm,acpt_dt,submit_nm,temp_rpt_nm,code_type)
+        VALUES ( #{isu_cd},#{doc_no}, #{doc_nm}, #{doc_url}, #{doc_type}, #{tns_dt}, #{acpt_no}, #{rpt_nm},#{acpt_dt},#{submit_nm},#{temp_rpt_nm},#{code_type});
     </insert>
 
     <select id="findKongsiCount" parameterType="map" resultType="int">
