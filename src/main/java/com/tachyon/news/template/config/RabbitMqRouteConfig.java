@@ -138,5 +138,10 @@ public class RabbitMqRouteConfig {
         return QueueBuilder.durable("_TRIAL").build();
     }
 
+    @Bean
+    Queue _SPLIT_QUEUE() {
+        return QueueBuilder.durable("_SPLIT_QUEUE").build();
+    }
+
 
 }

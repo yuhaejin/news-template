@@ -229,7 +229,6 @@ public class StockHolderCommand extends BasicCommand {
                             setupCompressed(param, isCompressedData);
                             setupYesterDayClosePrice(param,change);
 
-
                             log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
                             modifyParam(findParam);
