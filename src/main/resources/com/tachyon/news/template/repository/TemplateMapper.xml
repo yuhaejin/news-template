@@ -73,7 +73,7 @@
 
 
     <select id="findSimpleStaffHolder" parameterType="map" resultType="map">
-        select doc_no, doc_url, acpt_no
+        select doc_no, doc_url, acpt_no,seq
         from staffholder
         where kongsi_day = #{kongsi_day}
           and name = #{name}
@@ -751,6 +751,17 @@
         where code = #{code}
           and date = #{date}
     </select>
+
+    <select id="findStaffHolder" resultType="com.tachyon.crawl.kind.model.Staff" parameterType="map">
+        select seq,name,birth_day,spot,responsibilities as task from staffholder where doc_no = #{doc_no} and isu_cd = #{isu_cd} and acpt_no = #{acpt_no}
+    </select>
+    <!--    updateSimpleStockHolderBirthDay-->
+    <update id="updateSimpleStockHolderBirthDay">
+        update staffholder
+        set birth_day = #{birth_day}
+        where seq = #{seq}
+    </update>
+
 
 </mapper>
 

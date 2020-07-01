@@ -1,5 +1,6 @@
 package com.tachyon.news.template.repository;
 
+import com.tachyon.crawl.kind.model.Staff;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -204,4 +205,8 @@ public interface TemplateMapper {
     void insertTrial(Map<String, Object> map);
 
     Integer findCloseByStringDate(@Param("code")String code, @Param("date")Timestamp date);
+
+    List<Staff> findStaffHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
+
+    void updateSimpleStockHolderBirthDay(@Param("seq")long seq, @Param("birth_day")String birthDay);
 }
