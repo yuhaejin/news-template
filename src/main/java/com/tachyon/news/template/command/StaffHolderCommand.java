@@ -134,7 +134,7 @@ public class StaffHolderCommand extends BasicCommand {
 
             if (birthDay.equalsIgnoreCase(dbStaff.getBirthDay())==false) {
                 log.info("DIFF "+birthDay+" <== db "+dbStaff.getBirthDay()+" "+staff.getName()+" "+docNo+" "+code+" "+acptNo);
-                templateMapper.updateSimpleStockHolderBirthDay(dbStaff.getSeq(),staff.getBirthDay());
+                templateMapper.updateSimpleStockHolderBirthDay(dbStaff.getSeq(),staff.getBirthDay(),staff.getBirthYm());
             }
 
         }

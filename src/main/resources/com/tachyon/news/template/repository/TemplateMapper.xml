@@ -758,7 +758,8 @@
     <!--    updateSimpleStockHolderBirthDay-->
     <update id="updateSimpleStockHolderBirthDay">
         update staffholder
-        set birth_day = #{birth_day}
+        set birth_day = #{birth_day},
+        birth_ym = #{birth_ym}
         where seq = #{seq}
     </update>
 

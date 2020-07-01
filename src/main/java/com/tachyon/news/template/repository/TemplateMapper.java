@@ -208,5 +208,5 @@ public interface TemplateMapper {
 
     List<Staff> findStaffHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
 
-    void updateSimpleStockHolderBirthDay(@Param("seq")long seq, @Param("birth_day")String birthDay);
+    void updateSimpleStockHolderBirthDay(@Param("seq")long seq, @Param("birth_day")String birthDay,@Param("birth_ym")String birthYm);
 }

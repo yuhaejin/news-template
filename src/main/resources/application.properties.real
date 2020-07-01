@@ -51,3 +51,5 @@ queue.capacity=75
 dir.to.monitor=/home/firstgathering/crawler/news-template/config
 
 server.port=8082
+
+mybatis.configuration.map-underscore-to-camel-case=true
