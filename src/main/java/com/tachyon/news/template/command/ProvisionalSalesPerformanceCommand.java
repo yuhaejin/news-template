@@ -90,13 +90,11 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return;
         }
         String c = FileUtils.readFileToString(f, "UTF-8");
-
         List<Table> tables = tableParser.parseSome(c, "docUrl", myParser);
         if (tables == null || tables.size() == 0) {
             log.error("NO TABLES " + docUrl + " " + key);
             return;
         }
-
         Table table = tables.get(0);
         List<List<String>> lists = table.getBodies();
         Result result = new Result();
@@ -107,7 +105,6 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             log.error("INVALID " +toString(validResult)+" "+ docUrl + " " + key);
             return;
         }
-
         if (result.isAllValueEmpty()) {
             // 이런 경우는 일반적인 실적공시와 형태가 달라 처리하기 SKIP함.
             log.error("ALL VALUE EMPTY " + docUrl + " " + key);
@@ -125,6 +122,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
                 }
             }
         }
+
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP
         String quarter = result.parseQuarter(acptNo);
         Map<String,Object> param = result.param(docNo,code,acptNo);

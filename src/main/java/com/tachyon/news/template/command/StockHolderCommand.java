@@ -1006,8 +1006,8 @@ public class StockHolderCommand extends BasicCommand {
      */
     private Map<String, Object> createParam(Change change) {
         String name = change.getName();
-        String birth = BizUtils.convertBirth(change.getBirthDay());
         String kongsiDate = DateUtils.toString(change.getDateType(), "yyyyMMdd");
+        String birth = BizUtils.convertBirth(change.getBirthDay(),kongsiDate);
         String code = change.getIsuCd();
         String docNo = change.getDocNo();
         String acptNo = change.getAcptNo();

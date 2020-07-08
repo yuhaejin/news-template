@@ -159,7 +159,7 @@ public class StaffHolderCommand extends BasicCommand {
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
             // 예전 공시는 생년월일까지 있으나 요즘 공시는 생년월까지 있어 아래처럼 작업한다.
-            String birthDay = BizUtils.convertBirth(staff.getBirthDay());
+            String birthDay = BizUtils.convertBirth(staff.getBirthDay(),acptNo.substring(0,8));
             staff.setBirthDay(birthDay);
             if (isBirthDay(birthDay)) {
                 staff.setBirthYm(toStaffYYMM(birthDay));
@@ -220,6 +220,7 @@ public class StaffHolderCommand extends BasicCommand {
                 } else {
                     log.error("조회된임원데이터가 두개이상임.. " + staff.toKeyParamMap());
                 }
+
 
             }
 

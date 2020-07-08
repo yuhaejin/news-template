@@ -88,8 +88,8 @@
     </delete>
 
     <insert id="insertAccessHolder" parameterType="map">
-        INSERT INTO accessholder (id, type, regdate, param1, param2)
-        VALUES (#{id}, #{type}, #{regdate}, #{param1}, #{param2})
+        INSERT INTO accessholder (id, type, regdate, param1, param2,ip)
+        VALUES (#{id}, #{type}, #{regdate}, #{param1}, #{param2},#{ip})
     </insert>
 
 

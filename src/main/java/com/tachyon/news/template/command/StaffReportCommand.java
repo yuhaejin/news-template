@@ -88,7 +88,6 @@ public class StaffReportCommand extends BasicCommand {
             String startDate = modify(BizUtils.parseSimpleDay(Maps.findValueAndKeys(map, "회사", "선임일")));
             String endDate = modify(BizUtils.parseSimpleDay(Maps.findValueAndKeys(map, "회사", "퇴임일")));
 
-
             log.debug("name "+name);
             log.debug("homeabroad "+homeabroad);
             log.debug("address "+address);
@@ -98,6 +97,8 @@ public class StaffReportCommand extends BasicCommand {
             log.debug("registeredStaff "+registeredStaff);
             log.debug("startDate "+startDate);
             log.debug("endDate "+endDate);
+
+
 
             if (isEmpty(startDate)) {
                 log.info("선임일이 없는 보고자는 SKIP "+name+" "+docUrl);
@@ -119,7 +120,6 @@ public class StaffReportCommand extends BasicCommand {
                 String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
                 if (StringUtils.isEmpty(_docNo) == false) {
                     if (docNo.equalsIgnoreCase(_docNo) == false) {
-
                         deleteBeforeStaffHolder(templateMapper, code, _docNo);
                         log.info("이전 StaffHolder 삭제 code=" + code + " docNo=" + _docNo);
                     }
@@ -127,7 +127,7 @@ public class StaffReportCommand extends BasicCommand {
             }
 
 
-            String _birth = BizUtils.convertBirth(birth);
+            String _birth = BizUtils.convertBirth(birth,acptNo.substring(0,8));
             log.debug(birth +" ==> "+_birth);
             if (hasStaff(templateMapper,code, name, _birth) == false) {
                 Map<String, Object> param = params(startDate,name,_birth,relationHim,registeredStaff,code,docNo,docUrl,acptNo,relationCom);
