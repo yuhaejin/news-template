@@ -92,14 +92,10 @@ public class StaffHolderCommand extends BasicCommand {
             setupBirthDay(FILTER, acptNo);
             if (isCorrectBirthday(message)) {
                 correctBirthday(FILTER,docNo,code,acptNo);
-            }
-            if (isCollectBirthday(message)) {
-                String name = myContext.getHeader(message, "NAME");
-                String birth = myContext.getHeader(message, "BIRTH");
-                collectBirthday(FILTER, docNo, code, acptNo,name,birth,docUrl);
-            } else {
+            }else {
                 handleFilter(FILTER, docNo, acptNo);
             }
+
 
         } else {
             // 예외상황임...
@@ -205,6 +201,12 @@ public class StaffHolderCommand extends BasicCommand {
             String birthDay = BizUtils.convertBirth(staff.getBirthDay(),acptNo.substring(0,8));
             staff.setBirthDay(birthDay);
 
+            if (birthDay.length() == 6) {
+
+            }else {
+                // 예외시 로깅 처리..
+                log.error("BIRTH_ERROR "+birthDay+" < "+staff.getOriginBirth());
+            }
             if (isBirthDay(birthDay)) {
                 staff.setBirthYm(toStaffYYMM(birthDay));
             } else {
@@ -224,6 +226,7 @@ public class StaffHolderCommand extends BasicCommand {
         } else {
             return false;
         }
+
 
     }
 
