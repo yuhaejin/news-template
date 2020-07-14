@@ -34,7 +34,6 @@ public class StaffHolderCommand extends BasicCommand {
         String key = myContext.findInputValue(message);
         log.info("... " + key);
 
-
         DocNoIsuCd docNoIsuCd = find(key);
         if (docNoIsuCd == null) {
             log.info("... can't parse " + key);
@@ -55,7 +54,6 @@ public class StaffHolderCommand extends BasicCommand {
             log.info("SKIP 정정공시중에 이전공시임. .. " + key);
             return;
         }
-
 
         String docNm = Maps.getValue(kongsiHolder, "doc_nm");
         String rptNm = Maps.getValue(kongsiHolder, "rpt_nm");
@@ -94,8 +92,11 @@ public class StaffHolderCommand extends BasicCommand {
             setupBirthDay(FILTER, acptNo);
             if (isCorrectBirthday(message)) {
                 correctBirthday(FILTER,docNo,code,acptNo);
-
-
+            }
+            if (isCollectBirthday(message)) {
+                String name = myContext.getHeader(message, "NAME");
+                String birth = myContext.getHeader(message, "BIRTH");
+                collectBirthday(FILTER, docNo, code, acptNo,name,birth,docUrl);
             } else {
                 handleFilter(FILTER, docNo, acptNo);
             }
@@ -104,6 +105,47 @@ public class StaffHolderCommand extends BasicCommand {
             // 예외상황임...
             log.error("Can't parse StaffTemplate " + code + " " + docNm + " " + docUrl + " " + rptNm);
 
+        }
+    }
+
+    /**
+     * 생일데이터 파싱 알고리즘 변경을 위한 생일데이터 수집...
+     * @param FILTER
+     * @param docNo
+     * @param code
+     * @param acptNo
+     * @param name
+     * @param birth 정답생일.
+     * @param docUrl
+     */
+    private void collectBirthday(Map<String, Staff> FILTER, String docNo, String code, String acptNo, String name, String birth,String docUrl) {
+        for (String key : FILTER.keySet()) {
+            Staff staff = FILTER.get(key);
+            if (staff.getName().equalsIgnoreCase(name)==false) {
+                continue;
+            }
+            log.debug("분석된임원 "+staff);
+
+            String kongsiBirth = staff.getOriginBirth();
+            String parsedBirth = staff.getBirthDay();
+            String acptYear = acptNo.substring(0, 4);
+
+            int count = templateMapper.countBirth(kongsiBirth, acptYear);
+            if (count == 0) {
+                log.info("INSERT 생일데이터 "+kongsiBirth+" "+acptYear);
+                templateMapper.insertBirth(kongsiBirth, parsedBirth, birth, name, docNo, code, acptNo, docUrl, acptYear);
+            } else {
+                log.info("이미 존재하는 생일데이터.. "+kongsiBirth+" "+acptYear);
+            }
+
+        }
+    }
+
+    private boolean isCollectBirthday(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("_COLLECT_BIRTHDAY")) {
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -159,8 +201,10 @@ public class StaffHolderCommand extends BasicCommand {
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
             // 예전 공시는 생년월일까지 있으나 요즘 공시는 생년월까지 있어 아래처럼 작업한다.
+            staff.setOriginBirth(staff.getBirthDay());  // 일단 분석된 생일 저장..
             String birthDay = BizUtils.convertBirth(staff.getBirthDay(),acptNo.substring(0,8));
             staff.setBirthDay(birthDay);
+
             if (isBirthDay(birthDay)) {
                 staff.setBirthYm(toStaffYYMM(birthDay));
             } else {

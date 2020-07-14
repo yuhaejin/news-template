@@ -762,7 +762,17 @@
         birth_ym = #{birth_ym}
         where seq = #{seq}
     </update>
+<!--    countBirth-->
+    <select id="countBirth" resultType="int" parameterType="map">
+        select count(seq)
+        from birth
+        where kongsi_birth = #{kongsi_birth}
+          and acpt_year = #{acpt_year}
+    </select>
 
-
+    <insert id="insertBirth" parameterType="map">
+        INSERT INTO birth (kongsi_birth,parsed_birth,open_birth,nm,doc_no,isu_cd,acpt_no,doc_url,acpt_year)
+        VALUES (#{kongsi_birth},#{parsed_birth},#{open_birth},#{nm},#{doc_no},#{isu_cd},#{acpt_no},#{doc_url},#{acpt_year})
+    </insert>
 </mapper>
 

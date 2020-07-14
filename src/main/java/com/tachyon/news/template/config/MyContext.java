@@ -464,7 +464,7 @@ public class MyContext {
         byte[] bytes = message.getBody();
         return new String(bytes, Charset.forName("UTF-8"));
     }
-    private String getHeader(Message message,String key) {
+    public String getHeader(Message message,String key) {
         return (String) message.getMessageProperties().getHeaders().get(key);
     }
     public String findRoutingKey(Message message) {
@@ -477,6 +477,7 @@ public class MyContext {
     public String findKongsiMapKey(Message message) {
         return getHeader(message,NewsConstants.KONGSI_KEY);
     }
+
 
     public Map<String, Object> findKongsiMap(Message message) {
         String key = findKongsiMapKey(message);

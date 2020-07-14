@@ -24,7 +24,6 @@ public class AccessHolderCommand extends BasicCommand {
     @Override
     public void execute(Message message) throws Exception {
 
-
         String key = myContext.findInputValue(message);
         log.info("... " + key);
         Access access = JsonUtils.toObject(key, Access.class);

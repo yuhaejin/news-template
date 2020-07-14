@@ -111,6 +111,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return;
         }
 
+
         // 정정일 때는 이전 데이터 삭제한다.
         if (isChangeKongsi(docNm)) {
             String _docNo = findBeforeKongsi(templateMapper,code, acptNo);
