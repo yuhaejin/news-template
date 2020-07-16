@@ -11,10 +11,12 @@ import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,46 +83,100 @@ public class StaffHolderCommand extends BasicCommand {
         if (tables.size() > 0) {
             Map<String, Staff> FILTER = new HashMap<>();
             findStaff(tables, code, docNo, docUrl, acptNo, FILTER, simpleContext);
-            double ratio = simpleContext.getRatio();
-            if (ratio < 50l) {
-                log.error(ratio + " wrong parsing_" + rptNm + "_" + docNm + "_" + docUrl);
-            } else {
-                log.info(ratio + " parsing_" + rptNm + "_" + docNm + "_" + docUrl);
-            }
-
+            log.info("찾은임원 " + FILTER.size());
+//            double ratio = simpleContext.getRatio();
+//            if (ratio < 50l) {
+//                log.error(ratio + " wrong parsing_" + rptNm + "_" + docNm + "_" + docUrl);
+//            } else {
+//                log.info(ratio + " parsing_" + rptNm + "_" + docNm + "_" + docUrl);
+//            }
+            boolean isRemoved = checkStaffs(FILTER);
             setupKongsiDay(FILTER, acptNo);
             setupBirthDay(FILTER, acptNo);
             if (isCorrectBirthday(message)) {
-                correctBirthday(FILTER,docNo,code,acptNo);
-            }else {
-                handleFilter(FILTER, docNo, acptNo);
+                if (isRemoved) {
+                    // 생일보정중에 부실한 데이터 삭제가 되었으면 깔끔하게 기존 데이터는 모두 삭제하고 입력처리한다.
+                    deleteStaff(docNo, code, acptNo);
+                    handleFilter(FILTER, acptNo);
+                } else {
+                    // 생일데이터 보정처리함.
+                    correctBirthday(FILTER, docNo, code, acptNo);
+                }
+            } else {
+                handleFilter(FILTER, acptNo);
             }
 
-
         } else {
-            // 예외상황임...
-            log.error("Can't parse StaffTemplate " + code + " " + docNm + " " + docUrl + " " + rptNm);
+            // 이런 경우는 없음.
+        }
+    }
 
+    private void deleteStaff(String docNo, String code, String acptNo) {
+        templateMapper.deleteBeforeStaffHolder(code, docNo);
+    }
+
+    /**
+     * 부실한 임원정보는 삭제 처리함.
+     *
+     * @param filter
+     * @return
+     */
+    private boolean checkStaffs(Map<String, Staff> filter) {
+        List<String> list = new ArrayList<>();
+        for (String key : filter.keySet()) {
+            Staff staff = filter.get(key);
+            if (validate(staff) == false) {
+                list.add(key);
+            }
+        }
+        for (String key : list) {
+            Staff staff = filter.remove(key);
+            log.info("REMOVE " + key + " " + staff);
+        }
+
+        if (list.size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    private boolean validate(Staff staff) {
+        if (isTxtEmpty(staff.getResponsibilites())) {
+            if (isTxtEmpty(staff.getMajorCareer())) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private boolean isTxtEmpty(String value) {
+        if ("-".equalsIgnoreCase(value)) {
+            return true;
+        } else {
+            return StringUtils.isEmpty(value);
         }
     }
 
     /**
      * 생일데이터 파싱 알고리즘 변경을 위한 생일데이터 수집...
+     *
      * @param FILTER
      * @param docNo
      * @param code
      * @param acptNo
      * @param name
-     * @param birth 정답생일.
+     * @param birth  정답생일.
      * @param docUrl
      */
-    private void collectBirthday(Map<String, Staff> FILTER, String docNo, String code, String acptNo, String name, String birth,String docUrl) {
+    private void collectBirthday(Map<String, Staff> FILTER, String docNo, String code, String acptNo, String name, String birth, String docUrl) {
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
-            if (staff.getName().equalsIgnoreCase(name)==false) {
+            if (staff.getName().equalsIgnoreCase(name) == false) {
                 continue;
             }
-            log.debug("분석된임원 "+staff);
+            log.debug("분석된임원 " + staff);
 
             String kongsiBirth = staff.getOriginBirth();
             String parsedBirth = staff.getBirthDay();
@@ -128,10 +184,10 @@ public class StaffHolderCommand extends BasicCommand {
 
             int count = templateMapper.countBirth(kongsiBirth, acptYear);
             if (count == 0) {
-                log.info("INSERT 생일데이터 "+kongsiBirth+" "+acptYear);
+                log.info("INSERT 생일데이터 " + kongsiBirth + " " + acptYear);
                 templateMapper.insertBirth(kongsiBirth, parsedBirth, birth, name, docNo, code, acptNo, docUrl, acptYear);
             } else {
-                log.info("이미 존재하는 생일데이터.. "+kongsiBirth+" "+acptYear);
+                log.info("이미 존재하는 생일데이터.. " + kongsiBirth + " " + acptYear);
             }
 
         }
@@ -147,19 +203,18 @@ public class StaffHolderCommand extends BasicCommand {
 
     /**
      * 생일데이터 보정..
+     *
      * @param FILTER
      * @param docNo
      * @param code
      * @param acptNo
      */
     private void correctBirthday(Map<String, Staff> FILTER, String docNo, String code, String acptNo) {
-        List<Staff> staffList = templateMapper.findStaffHolder(docNo,code,acptNo);
-        for (Staff staff : staffList) {
-            log.debug("<< "+staff);
-        }
+        log.debug("생일 보정... ");
+        List<Staff> staffList = templateMapper.findStaffHolder(docNo, code, acptNo);
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
-            log.debug("분석된임원 "+staff);
+            log.debug("분석된임원 " + staff);
             Staff dbStaff = findStaff(staff, staffList);
             if (dbStaff == null) {
                 continue;
@@ -168,11 +223,13 @@ public class StaffHolderCommand extends BasicCommand {
             if (isEmpty(birthDay)) {
                 continue;
             }
-            log.debug("DB임원 "+dbStaff);
+            log.debug("DB임원 " + dbStaff);
 
-            if (birthDay.equalsIgnoreCase(dbStaff.getBirthDay())==false) {
-                log.info("DIFF "+birthDay+" <== db "+dbStaff.getBirthDay()+" "+staff.getName()+" "+docNo+" "+code+" "+acptNo);
-                templateMapper.updateSimpleStockHolderBirthDay(dbStaff.getSeq(),staff.getBirthDay(),staff.getBirthYm());
+            if (birthDay.equalsIgnoreCase(dbStaff.getBirthDay()) == false) {
+                log.info("BIRTHDIFF " + birthDay + " <== db " + dbStaff.getBirthDay() + " " + staff.getName() + " " + docNo + " " + code + " " + acptNo);
+                templateMapper.updateSimpleStockHolderBirthDay(dbStaff.getSeq(), staff.getBirthDay(), staff.getBirthYm());
+            } else {
+//                log.info("생일변경 없음. ");
             }
 
         }
@@ -180,17 +237,49 @@ public class StaffHolderCommand extends BasicCommand {
 
     /**
      * DB에서 조회된 데이터에서 staff에 해당하는 데이터 추출하기...
-     * @param staff 임원 정보
+     *
+     * @param staff     임원 정보
      * @param staffList db에서 조회한 데이터..
      * @return
      */
     private Staff findStaff(Staff staff, List<Staff> staffList) {
+
+        // 먼저 이름과 직위로 필터링
+        List<Staff> list = findStaff(staffList, staff.getName(), staff.getSpot());
+        if (list.size() == 0) {
+            return null;
+        } else if (list.size() == 1) {
+            return list.get(0);
+        } else {
+            //그리고 주요 경력으로 찾고..
+            for (Staff _staff : list) {
+                String task = staff.getMajorCareer();
+                if (task.equalsIgnoreCase(_staff.getMajorCareer())) {
+                    return _staff;
+                }
+            }
+            // 같은게 없음 동일 생일자로 찾는다.
+            for (Staff _staff : list) {
+                String birth = staff.getBirthDay();
+                if (birth.equalsIgnoreCase(_staff.getBirthDay())) {
+                    return _staff;
+                }
+            }
+            return null;
+        }
+    }
+
+    private List<Staff> findStaff(List<Staff> staffList, String name, String spot) {
+        List<Staff> staffs = new ArrayList<>();
         for (Staff _staff : staffList) {
-            if (_staff.compare(staff)) {
-                return _staff;
+            if (name.equalsIgnoreCase(_staff.getName())) {
+                if (spot.equalsIgnoreCase(_staff.getSpot())) {
+                    staffs.add(_staff);
+                }
             }
         }
-        return null;
+
+        return staffs;
     }
 
     private void setupBirthDay(Map<String, Staff> FILTER, String acptNo) {
@@ -198,15 +287,15 @@ public class StaffHolderCommand extends BasicCommand {
             Staff staff = FILTER.get(key);
             // 예전 공시는 생년월일까지 있으나 요즘 공시는 생년월까지 있어 아래처럼 작업한다.
             staff.setOriginBirth(staff.getBirthDay());  // 일단 분석된 생일 저장..
-            String birthDay = BizUtils.convertBirth(staff.getBirthDay(),acptNo.substring(0,8));
+            String birthDay = BizUtils.convertBirth(staff.getBirthDay(), acptNo.substring(0, 8));
             staff.setBirthDay(birthDay);
-
             if (birthDay.length() == 6) {
-
-            }else {
+                log.debug("BIRTH " + birthDay + " < " + staff.getOriginBirth() + " " + staff);
+            } else {
                 // 예외시 로깅 처리..
-                log.error("BIRTH_ERROR "+birthDay+" < "+staff.getOriginBirth());
+                log.error("BIRTH_ERROR " + birthDay + " < " + staff.getOriginBirth());
             }
+
             if (isBirthDay(birthDay)) {
                 staff.setBirthYm(toStaffYYMM(birthDay));
             } else {
@@ -236,11 +325,11 @@ public class StaffHolderCommand extends BasicCommand {
      *
      * @param FILTER
      */
-    private void handleFilter(Map<String, Staff> FILTER, String docNo, String acptNo) {
+    private void handleFilter(Map<String, Staff> FILTER, String acptNo) {
         boolean doDelete = false;
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
-            // acptNo docNo docUrl
+            // name,birth_day,kongsi_day,isu_cd
             List<Map<String, Object>> maps = templateMapper.findSimpleStaffHolder(staff.toKeyParamMap());
             if (maps == null || maps.size() == 0) {
                 //insert...
@@ -301,7 +390,6 @@ public class StaffHolderCommand extends BasicCommand {
                 hasUnknown = true;
             }
             if ("SKIP".equalsIgnoreCase(title)) {
-
             } else {
                 if (parsibleTitle(title)) {
                     table.findStaff(code, docNo, docUrl, acptNo, kongsiDay, FILTER);

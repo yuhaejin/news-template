@@ -32,7 +32,6 @@ public interface TemplateMapper {
 
     void deleteBeforeStaffHolder(Map<String, Object> deleteParam);
 
-
     int findPurposeHolder(Map<String, Object> map);
     void insertPurposeHolder1(Map<String, Object> map);
     void insertPurposeHolder2(Map<String, Object> map);
