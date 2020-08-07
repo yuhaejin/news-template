@@ -371,7 +371,6 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
     /**
      * 이름이 - 인 것중에 이전 Change 성명과 동일하게 처리하는 로직..
-     *
      * @param changes
      * @param myContext
      */
@@ -405,17 +404,19 @@ public abstract class BasicCommand extends BaseObject implements Command {
                     String _name = StringUtils.remove(name, "주식회사").trim();
                     log.info(name + " ==> " + _name);
                     change.setName(_name);
-                } else if (name.contains("유한회사")) {
+                }else if (name.contains("유한회사")) {
                     String _name = StringUtils.remove(name, "유한회사").trim();
                     log.info(name + " ==> " + _name);
                     change.setName(_name);
-                } else {
-                    String _name = myContext.findInvestorName(name);
-                    if (_name != null) {
-                        log.info("CONVERT_INVESTOR " + name + " ==> " + _name);
-                        change.setName(_name);
-                    }
                 }
+                
+//                name = change.getName();
+//                String _name = myContext.findInvestorName(name);
+//                if (_name != null) {
+//                    log.info("CONVERT_INVESTOR " + name + " ==> " + _name);
+//                    change.setName(_name);
+//                }
+                
             }
 
             // no action
@@ -486,18 +487,23 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
         return false;
     }
+
     String findDocNm(Map<String, Object> map) {
         return Maps.getValue(map, "doc_nm");
     }
+
     String findDocUrl(Map<String, Object> map) {
         return Maps.getValue(map, "doc_url");
     }
+
     String findRptNm(Map<String, Object> map) {
         return Maps.getValue(map, "rpt_nm");
     }
+
     String toYYMM(String s) {
         return s.substring(0, 4);
     }
+
     boolean isBirthDay(String s) {
         if (isEmpty(s)) {
             return false;
@@ -520,8 +526,10 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return findDocRow(docUrl, loadBalancerCommandHelper);
     }
+
     /**
      * 기사처리를 위한 ARTICLE 큐로 전송..
+     *
      * @param rabbitTemplate
      * @param pk
      * @param findParam
@@ -529,8 +537,8 @@ public abstract class BasicCommand extends BaseObject implements Command {
     void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, Map<String, Object> findParam) {
         // 기사 처리를 위해 기사Queue로 데이터 전송..
         String subpk = sortKeyDelegateValue(findParam);
-        log.info("ARTICLE <<< PK="+pk+" TYPE="+type+" SUB_PK="+subpk+" param="+findParam);
-        rabbitTemplate.convertAndSend("ARTICLE", (Object)pk, new MessagePostProcessor() {
+        log.info("ARTICLE <<< PK=" + pk + " TYPE=" + type + " SUB_PK=" + subpk + " param=" + findParam);
+        rabbitTemplate.convertAndSend("ARTICLE", (Object) pk, new MessagePostProcessor() {
             @Override
             public Message postProcessMessage(Message message) throws AmqpException {
                 message.getMessageProperties().setPriority(9);
@@ -540,9 +548,11 @@ public abstract class BasicCommand extends BaseObject implements Command {
             }
         });
     }
+
     /**
      * subpk의 길이를 줄임
      * key를 소팅하면서 그 값을 가져와 _로 구분하여 문자열 생성...
+     *
      * @param param
      * @return
      */
@@ -560,6 +570,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return sb.toString();
     }
+
     private List<String> findKey(Map<String, Object> param) {
         List<String> list = new ArrayList<>();
         list.addAll(param.keySet());
@@ -580,8 +591,9 @@ public abstract class BasicCommand extends BaseObject implements Command {
         map.put("acpt_no", acptNo);
         return map;
     }
-     String findPk(Map<String, Object> param) {
-         return Maps.getValue(param, "seq");
+
+    String findPk(Map<String, Object> param) {
+        return Maps.getValue(param, "seq");
     }
 }
 

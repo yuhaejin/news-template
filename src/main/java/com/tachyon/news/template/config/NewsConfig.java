@@ -260,13 +260,13 @@ public class NewsConfig {
         return Executors.newFixedThreadPool(5);
     }
 
-    @Bean(destroyMethod = "stop")
-    public FileAlterationMonitor fileAlterationMonitor() throws Exception {
-        FileAlterationMonitor monitor = new FileAlterationMonitor();
-        FileAlterationObserver observer       = new FileAlterationObserver(myContext.getDirToMonitor());
-        observer.addListener(new FileMonitorListener(myContext));
-        monitor.addObserver(observer);
-        monitor.start();
-        return monitor;
-    }
+//    @Bean(destroyMethod = "stop")
+//    public FileAlterationMonitor fileAlterationMonitor() throws Exception {
+//        FileAlterationMonitor monitor = new FileAlterationMonitor();
+//        FileAlterationObserver observer       = new FileAlterationObserver(myContext.getDirToMonitor());
+//        observer.addListener(new FileMonitorListener(myContext));
+//        monitor.addObserver(observer);
+//        monitor.start();
+//        return monitor;
+//    }
 }

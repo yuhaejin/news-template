@@ -177,7 +177,6 @@ public class StockHolderCommand extends BasicCommand {
             }
 
             log.info("주식거래내역 ... " + changes.size());
-
             setupName(changes, myContext);
             setupPrice(changes, codeNm);
             setupRepresentativeName(changes);
@@ -646,7 +645,8 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 대표이름으로 변경함.
-     *
+     * 이것은 뷰에서 조회시에도 사용되는데...
+     * 국민연금기금으로 조회를 하면 국민연금으로 실제로 조회를 하는 효과를 낸다.
      * @param changes
      */
     private void setupRepresentativeName(List<Change> changes) {

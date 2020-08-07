@@ -18,20 +18,20 @@ public class FileMonitorListener extends FileAlterationListenerAdaptor {
 
     @Override
     public void onFileChange(File file) {
-        log.info("onFileChange "+file.getAbsolutePath());
-        String path = file.getAbsolutePath();
-        String name = FilenameUtils.getName(path);
-        if (name.equalsIgnoreCase("investor.txt")==false) {
-            log.info("SKIP "+file.getAbsolutePath());
-            return;
-        }
-
-        try {
-            log.info("initializeInvestor ... "+file.getAbsolutePath());
-            List<String> lines = FileUtils.readLines(file, "UTF-8");
-            myContext.initializeInvestor(lines);
-        } catch (IOException e) {
-
-        }
+//        log.info("onFileChange "+file.getAbsolutePath());
+//        String path = file.getAbsolutePath();
+//        String name = FilenameUtils.getName(path);
+//        if (name.equalsIgnoreCase("investor.txt")==false) {
+//            log.info("SKIP "+file.getAbsolutePath());
+//            return;
+//        }
+//
+//        try {
+//            log.info("initializeInvestor ... "+file.getAbsolutePath());
+//            List<String> lines = FileUtils.readLines(file, "UTF-8");
+////            myContext.initializeInvestor(lines);
+//        } catch (IOException e) {
+//
+//        }
     }
 }

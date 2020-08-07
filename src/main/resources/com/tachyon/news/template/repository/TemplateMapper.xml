@@ -774,5 +774,14 @@
         INSERT INTO birth (kongsi_birth,parsed_birth,open_birth,nm,doc_no,isu_cd,acpt_no,doc_url,acpt_year)
         VALUES (#{kongsi_birth},#{parsed_birth},#{open_birth},#{nm},#{doc_no},#{isu_cd},#{acpt_no},#{doc_url},#{acpt_year})
     </insert>
+
+    <!--    대표명 수집..-->
+    <select id="findRepresentativeName" resultType="map">
+		select /* SharedRepository.findRepresentativeName */
+			name,rep_nm
+		from repnmholder
+
+    </select>
+
 </mapper>
 

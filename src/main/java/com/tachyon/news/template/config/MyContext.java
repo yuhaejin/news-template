@@ -75,11 +75,8 @@ public class MyContext {
     private Environment environment;
 
 
-    /**
-     * 투자자명 변경.
-     * KEY 인 투자자명을 VALUE 투자자명으로 변경함.
-     */
-    private Map<String, String> INVESTER_NAME = new HashMap<>();
+
+//    private Map<String, String> INVESTER_NAME = new HashMap<>();
 
 
     public String getDirToMonitor() {
@@ -92,7 +89,10 @@ public class MyContext {
     private Map<String, String> isuCdNmMap = new HashMap<>();
     @Autowired
     private TemplateMapper templateMapper;
-
+    /**
+     * 투자자명 변경.
+     * KEY 인 투자자명을 VALUE 투자자명으로 변경함.
+     */
     private Map<String, String> INVESTOR_MAP = new HashMap<>();
 
 
@@ -118,28 +118,28 @@ public class MyContext {
         refreshTelegramUserInfo();
         setupRepresentativeName();
         viewValue();
-        setupInvestorName();
+//        setupInvestorName();
     }
 
-    private void setupInvestorName() {
-        File dir = new File(getDirToMonitor());
-        if (dir.exists()==false) {
-            return;
-        }
-
-        File[] files = dir.listFiles();
-        for (File f : files) {
-            String name = FilenameUtils.getName(f.getAbsolutePath());
-            if (name.equalsIgnoreCase("investor.txt")) {
-                try {
-                    List<String> lines = FileUtils.readLines(f, "UTF-8");
-                    initializeInvestor(lines);
-                } catch (IOException e) {
-
-                }
-            }
-        }
-    }
+//    private void setupInvestorName() {
+//        File dir = new File(getDirToMonitor());
+//        if (dir.exists()==false) {
+//            return;
+//        }
+//
+//        File[] files = dir.listFiles();
+//        for (File f : files) {
+//            String name = FilenameUtils.getName(f.getAbsolutePath());
+//            if (name.equalsIgnoreCase("investor.txt")) {
+//                try {
+//                    List<String> lines = FileUtils.readLines(f, "UTF-8");
+//                    initializeInvestor(lines);
+//                } catch (IOException e) {
+//
+//                }
+//            }
+//        }
+//    }
     private String findCurrentProfiles() {
         String[] strings = environment.getActiveProfiles();
         if (strings.length == 0) {
@@ -161,43 +161,53 @@ public class MyContext {
         log.info("spcLpKeyword="+spcLpKeyword);
     }
 
-    private void setupRepresentativeName() {
-        //TODO 여기 변경하면 dataweb의 SharedServiceImpl  함께 변경해야 함..
-        INVESTOR_MAP.put("국민연금공단", "국민연금");
-        INVESTOR_MAP.put("국민연금관리공단", "국민연금");
-        INVESTOR_MAP.put("국민연금기금", "국민연금");
-    }
+    public void setupRepresentativeName() {
+//        INVESTOR_MAP.put("국민연금공단", "국민연금");
+//        INVESTOR_MAP.put("국민연금관리공단", "국민연금");
+//        INVESTOR_MAP.put("국민연금기금", "국민연금");
 
-    public void initializeInvestor(List<String> lines) {
-        if (lines == null || lines.size() == 0) {
-            return;
-        }
-
-        synchronized (INVESTER_NAME) {
-            INVESTER_NAME.clear();
-            for (String line : lines) {
-                if (line.startsWith("#")) {
-                    continue;
-                }
-                log.info("... "+line);
-                String[] strings = StringUtils.splitByWholeSeparator(line, "=");
-                if (strings.length == 2) {
-                    log.info(strings[0]+" >>> "+strings[1]);
-                    INVESTER_NAME.put(strings[0], strings[1]);
-                }
+        List<Map<String,Object>> maps = templateMapper.findRepresentativeName();
+        synchronized (INVESTOR_MAP) {
+            INVESTOR_MAP.clear();
+            for (Map<String, Object> map : maps) {
+                String name = Maps.getValue(map, "name");
+                String repNm = Maps.getValue(map, "rep_nm");
+                log.info("INVESTOR_MAP "+name+" => "+repNm);
+                INVESTOR_MAP.put(name, repNm);
             }
         }
     }
 
-    public String findInvestorName(String name) {
-        synchronized (INVESTER_NAME) {
-            if (INVESTER_NAME.containsKey(name)==false) {
-                return null;
-            } else {
-                return INVESTER_NAME.get(name);
-            }
-        }
-    }
+//    public void initializeInvestor(List<String> lines) {
+//        if (lines == null || lines.size() == 0) {
+//            return;
+//        }
+//
+//        synchronized (INVESTER_NAME) {
+//            INVESTER_NAME.clear();
+//            for (String line : lines) {
+//                if (line.startsWith("#")) {
+//                    continue;
+//                }
+//                log.info("... "+line);
+//                String[] strings = StringUtils.splitByWholeSeparator(line, "=");
+//                if (strings.length == 2) {
+//                    log.info(strings[0]+" >>> "+strings[1]);
+//                    INVESTER_NAME.put(strings[0], strings[1]);
+//                }
+//            }
+//        }
+//    }
+
+//    public String findInvestorName(String name) {
+//        synchronized (INVESTER_NAME) {
+//            if (INVESTER_NAME.containsKey(name)==false) {
+//                return null;
+//            } else {
+//                return INVESTER_NAME.get(name);
+//            }
+//        }
+//    }
     public int getMaxPoolSize() {
         return maxPoolSize;
     }
