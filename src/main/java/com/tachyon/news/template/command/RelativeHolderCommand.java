@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -31,6 +32,11 @@ public class RelativeHolderCommand extends BasicCommand {
     private MyContext myContext;
     @Autowired
     private TemplateMapper templateMapper;
+
+    @Autowired
+    private RetryTemplate retryTemplate;
+
+
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -78,7 +84,7 @@ public class RelativeHolderCommand extends BasicCommand {
                 return;
             }
 
-            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
 
             List<Relative> relatives = new ArrayList<>();
             if (isMajorStockChangeKongis(docNm)) {

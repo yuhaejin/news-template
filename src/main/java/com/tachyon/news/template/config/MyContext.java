@@ -68,6 +68,11 @@ public class MyContext {
     @Value("${dir.to.monitor}")
     private String dirToMonitor;
 
+    @Value("${retry.max.attempts}")
+    private int retryMaxAttempts;
+    @Value("${retry.back.off.period}")
+    private long retryBackOffPeriod;
+
     private String[] templates;
     private AtomicLong gatewayCount = new AtomicLong();
 
@@ -78,6 +83,10 @@ public class MyContext {
 
 //    private Map<String, String> INVESTER_NAME = new HashMap<>();
 
+
+    public long getRetryBackOffPeriod() {
+        return retryBackOffPeriod;
+    }
 
     public String getDirToMonitor() {
         return dirToMonitor;
@@ -464,6 +473,10 @@ public class MyContext {
 
     public String getElasticUrl() {
         return elasticUrl;
+    }
+
+    public int getRetryMaxAttempts() {
+        return retryMaxAttempts;
     }
 
     public String[] getTemplates() {

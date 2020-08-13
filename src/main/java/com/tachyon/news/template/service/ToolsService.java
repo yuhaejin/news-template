@@ -10,6 +10,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -29,7 +30,8 @@ public class ToolsService extends AbstractService {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
-
+    @Autowired
+    private RetryTemplate retryTemplate;
     public ToolsService(TemplateMapper templateMapper) {
         super(templateMapper);
     }
@@ -47,7 +49,7 @@ public class ToolsService extends AbstractService {
 
             if (kongsiMap != null) {
                 String docUrl = Maps.getValue(kongsiMap, "doc_url");
-                String content = loadBalancerCommandHelper.findBody(docUrl);
+                String content = loadBalancerCommandHelper.findBody(docUrl,retryTemplate);
                 log.info(content.length()+" <<< "+StringUtils.abbreviate(content, 100));
 
             }

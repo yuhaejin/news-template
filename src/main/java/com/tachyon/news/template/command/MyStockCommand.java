@@ -16,6 +16,7 @@ import org.apache.ibatis.annotations.Param;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -31,6 +32,8 @@ public class MyStockCommand extends BasicCommand {
     private TemplateMapper templateMapper;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -92,7 +95,7 @@ public class MyStockCommand extends BasicCommand {
                 return;
             }
 
-            String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+            String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
             WholeSelector selector = new WholeSelector();
             TableParser tableParser = new TableParser(selector);
             List<Table> tables = tableParser.parseSome(html, docUrl, new MyStockParser());

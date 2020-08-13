@@ -16,6 +16,7 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.search.fetch.subphase.FetchSourceContext;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -33,7 +34,8 @@ public class IndexingCommand extends BasicCommand {
     private RestHighLevelClient restHighLevelClient;
     @Autowired
     private TemplateMapper templateMapper;
-
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Autowired
     private MyContext myContext;
 
@@ -127,7 +129,7 @@ public class IndexingCommand extends BasicCommand {
 
     private IndexRequest fileIndex(String docNo, String code, String acptNo, String name, Map<String, Object> map) throws IOException {
         String docUrl = Maps.getValue(map, "doc_url");
-        String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+        String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
         if (isEmpty(docRaw)) {
             log.error("공시의 내용이 확인할 수 없음.. docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
             return null;

@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -32,7 +33,8 @@ public class TouchCommand extends BasicCommand {
     private MyContext myContext;
     @Autowired
     private RabbitTemplate rabbitTemplate;
-
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
     @Override
@@ -82,7 +84,7 @@ public class TouchCommand extends BasicCommand {
         }
         String filePath = filePath(myContext.getHtmlTargetPath(), docNo, code);
         log.info("... " + key + " " + docUrl + " " + filePath);
-        String html = findDocRow(filePath, docUrl, loadBalancerCommandHelper);
+        String html = findDocRow(filePath, docUrl,retryTemplate, loadBalancerCommandHelper);
         if (StringUtils.isEmpty(html)) {
             log.info("공시데이터가 없음. " + key + " " + docUrl);
             return;

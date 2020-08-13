@@ -143,5 +143,12 @@ public class RabbitMqRouteConfig {
         return QueueBuilder.durable("_SPLIT_QUEUE").build();
     }
 
-
+    @Bean
+    Queue ARTICLE() {
+        return QueueBuilder.durable("ARTICLE").build();
+    }
+    @Bean
+    Queue FACEBOOK() {
+        return QueueBuilder.durable("FACEBOOK").build();
+    }
 }

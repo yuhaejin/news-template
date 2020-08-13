@@ -14,6 +14,7 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -34,7 +35,8 @@ public class RumorHolderCommand extends BasicCommand {
     private TemplateMapper templateMapper;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
-
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Override
     public void execute(Message message) throws Exception {
 
@@ -80,7 +82,7 @@ public class RumorHolderCommand extends BasicCommand {
             return;
         }
 
-        String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+        String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
         if (isEmpty(html)) {
             log.error("공시Html을 수집할 수 없음. " + key + " " + docUrl);
             return;

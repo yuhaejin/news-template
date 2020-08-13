@@ -141,56 +141,6 @@ public class RabbitMqListener {
     }
 
 
-
-//    @RabbitListener(queues = {"GATEWAY","OK_GATEWAY","KONGSI_CHECK","META_KONGSI","LOCAL_KONGSI"})
-//    public void SERVICE(Message message) {
-//        execute(message,message.getMessageProperties().getConsumerQueue());
-//    }
-
-//    @RabbitListener(queues = {"_STOCK_HOLDER","_ELASTICSEARCH_INDEX","_STAFF_HOLDER"
-//            ,"_PURPOSE_HOLDER","_KEYWORD_NOTIFICATION","_ACCESS_HOLDER","_TELEGRAM","_ROMOR_HOLDER","_LARGEST_SHARE_HOLDER"})
-//    public void TEMPLATE(Message message) {
-//        execute(message,"TEMPLATE");
-//    }
-//    @RabbitListener(queues = {"_RELATIVE_HOLDER","_STAFF_REPORT","_PROVISIONAL_PERF","_TAKING","_MY_STOCK","_CONTRACT","_TOUCH","_TRIAL"})
-//    public void TEMPLATE2(Message message) {
-//        execute(message,"TEMPLATE");
-//    }
-
-//    @RabbitListener(queues = {"_SPLIT_QUEUE"})
-//    public void _SPLIT_QUEUE(Message message) {
-//        executeSplit(message);
-//    }
-
-//    private void execute(Message message, String queue) {
-//        if ("GATEWAY".equalsIgnoreCase(queue)) {
-//            NewsService newsService = commandFactory.findService(GatewayService.class);
-//            newsService.consume(message);
-//        } else if ("OK_GATEWAY".equalsIgnoreCase(queue)) {
-//            GatewayService newsService = (GatewayService)commandFactory.findService(GatewayService.class);
-//            newsService.okConsume(message);
-//        }else if ("KONGSI_CHECK".equalsIgnoreCase(queue)) {
-//            NewsService newsService = commandFactory.findService(KongsiCollector.class);
-//            newsService.consume(message);
-//        }else if ("META_KONGSI".equalsIgnoreCase(queue)) {
-//            NewsService newsService = commandFactory.findService(MetaKongsiCollector.class);
-//            newsService.consume(message);
-//        }else if ("TEMPLATE".equalsIgnoreCase(queue)) {
-//            commandFactory.findService(TemplateService.class).consume(message);
-//        } else if ("LOCAL_KONGSI".equalsIgnoreCase(queue)) {
-//            NewsService newsService = commandFactory.findService(LocalKongsiService.class);
-//            newsService.consume(message);
-////        }else if("BEFORE_KONGSI".equalsIgnoreCase(queue)){
-////            NewsService newsService = commandFactory.findService(BeforeKongsiService.class);
-////            newsService.consume(message);
-//        } else {
-//
-//        }
-//    }
-
-
-
-
     private void executeSplit(Message message) {
         byte[] bytes = message.getBody();
         String _message = new String(bytes, Charset.forName("UTF-8"));

@@ -37,6 +37,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.retry.backoff.FixedBackOffPolicy;
+import org.springframework.retry.policy.SimpleRetryPolicy;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.annotation.PostConstruct;
@@ -260,6 +263,22 @@ public class NewsConfig {
         return Executors.newFixedThreadPool(5);
     }
 
+
+
+    @Bean
+    public RetryTemplate retryTemplate() {
+        RetryTemplate retryTemplate = new RetryTemplate();
+        // 재시도 간격을 2초로 설정
+        FixedBackOffPolicy fixedBackOffPolicy = new FixedBackOffPolicy();
+        fixedBackOffPolicy.setBackOffPeriod(myContext.getRetryBackOffPeriod());
+        retryTemplate.setBackOffPolicy(fixedBackOffPolicy);
+        // 재시도 최대 횟수를 5번으로 설정
+        SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+        retryPolicy.setMaxAttempts(myContext.getRetryMaxAttempts());
+        retryTemplate.setRetryPolicy(retryPolicy);
+
+        return retryTemplate;
+    }
 //    @Bean(destroyMethod = "stop")
 //    public FileAlterationMonitor fileAlterationMonitor() throws Exception {
 //        FileAlterationMonitor monitor = new FileAlterationMonitor();

@@ -21,6 +21,7 @@ import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.retry.support.RetryTemplate;
 
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +67,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
      * @return
      * @throws IOException
      */
-    String findDocRow(String htmlTargetPath, String docNo, String code, String docUrl, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
+    String findDocRow(String htmlTargetPath, String docNo, String code, String docUrl,RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
         // 파일시스템에 있는지 확인
         String filePath = filePath(htmlTargetPath, docNo, code);
         log.info("filePath " + filePath);
@@ -75,7 +76,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
             return FileUtils.readFileToString(file, "UTF-8");
         }
 
-        return findDocRow(docUrl, loadBalancerCommandHelper);
+        return findDocRow(docUrl,retryTemplate, loadBalancerCommandHelper);
     }
 
     public String convertText(String docRaw) {
@@ -86,17 +87,17 @@ public abstract class BasicCommand extends BaseObject implements Command {
         return findPath(htmlTargetPath, code, docNo, "txt");
     }
 
-    String findDocRow(String docUrl, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
+    String findDocRow(String docUrl,RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
 
         // 파일시스템에 있는지 확인
-        return findBody(loadBalancerCommandHelper, docUrl);
+        return findBody(loadBalancerCommandHelper,retryTemplate, docUrl);
     }
 
-    protected String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, String docUrl) throws IOException {
+    protected String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, RetryTemplate retryTemplate,String docUrl) throws IOException {
         if (loadBalancerCommandHelper == null) {
-            return JSoupHelper.findBody(docUrl);
+            return JSoupHelper.findBody(docUrl,retryTemplate);
         } else {
-            return loadBalancerCommandHelper.findBody(docUrl);
+            return loadBalancerCommandHelper.findBody(docUrl,retryTemplate);
         }
     }
 
@@ -517,14 +518,14 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
     }
 
-    String findDocRow(String filePath, String docUrl, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
+    String findDocRow(String filePath, String docUrl, RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
         // 파일시스템에 있는지 확인
         File file = new File(filePath);
         if (file.exists()) {
             return FileUtils.readFileToString(file, "UTF-8");
         }
 
-        return findDocRow(docUrl, loadBalancerCommandHelper);
+        return findDocRow(docUrl,retryTemplate, loadBalancerCommandHelper);
     }
 
     /**

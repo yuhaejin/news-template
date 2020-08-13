@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -36,7 +37,8 @@ public class LargestShareHolderCommand extends BasicCommand {
     private TemplateMapper templateMapper;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
-
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Override
     public void execute(Message message) throws Exception {
 
@@ -74,7 +76,7 @@ public class LargestShareHolderCommand extends BasicCommand {
             return;
         }
 
-        String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+        String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, retryTemplate,loadBalancerCommandHelper);
 
         StockChangeSelectorByElement selector = new StockChangeSelectorByElement();
         selector.setKeywords(new String[]{"최대", "주주", "주식","소유","현황"});

@@ -21,6 +21,7 @@ import org.springframework.amqp.core.Message;
 import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.sql.Timestamp;
@@ -38,6 +39,9 @@ public class StockHolderCommand extends BasicCommand {
     private TemplateMapper templateMapper;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -86,7 +90,7 @@ public class StockHolderCommand extends BasicCommand {
             String tempRptNm = Maps.getValue(map, "temp_rpt_nm");
             String codeNm = Maps.getValue(map, "isu_nm");
             String tnsDt = findTnsDt(map);
-            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
             // 일반문서처리.
             log.info("... done docRow");
             if (validate(docRaw) == false) {

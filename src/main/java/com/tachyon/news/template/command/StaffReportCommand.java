@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -41,7 +42,8 @@ public class StaffReportCommand extends BasicCommand {
 
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
-
+    @Autowired
+    private RetryTemplate retryTemplate;
     @Override
     public void execute(Message message) throws Exception {
         String key = myContext.findInputValue(message);
@@ -69,7 +71,7 @@ public class StaffReportCommand extends BasicCommand {
         }
 
         String docUrl = Maps.getValue(kongsiHolder, "doc_url");
-        String c = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, loadBalancerCommandHelper);
+        String c = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, retryTemplate,loadBalancerCommandHelper);
 
         TableParser parser = new TableParser(new StaffReporterSelectorByPattern());
         List<Table> tables = parser.parseSome(c , docUrl,new StaffReportParser());

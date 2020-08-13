@@ -214,4 +214,5 @@ public interface TemplateMapper {
     void insertBirth(@Param("kongsi_birth")String kongsiBirth, @Param("parsed_birth")String parsedBirth, @Param("open_birth")String birth, @Param("nm")String name, @Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo, @Param("doc_url")String docUrl, @Param("acpt_year")String acptYear);
 
     List<Map<String, Object>> findRepresentativeName();
+
 }

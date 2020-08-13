@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -39,6 +40,10 @@ public class KongsiCollector extends AbstractService {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private RetryTemplate retryTemplate;
+
     public KongsiCollector(TemplateMapper templateMapper) {
         super(templateMapper);
     }
@@ -90,13 +95,13 @@ public class KongsiCollector extends AbstractService {
                     log.info("공시 정상파일 존재.. "+htmlFile+" fileSize="+content.length());
                 } else {
                     // 파일 수집과 저장.
-                    content = findBody(loadBalancerCommandHelper, docUrl);
+                    content = findBody(loadBalancerCommandHelper,retryTemplate, docUrl);
                     log.info("공시 비정상파일 존재.. "+htmlFile+" fileSize="+content.length());
                     saveFile(filePath, content);
                 }
             } else {
                 // 파일 수집과 저장.
-                content = findBody(loadBalancerCommandHelper, docUrl);
+                content = findBody(loadBalancerCommandHelper,retryTemplate, docUrl);
                 log.info("공시파일 미존재.. "+htmlFile+" fileSize="+content.length());
                 saveFile(filePath, content);
             }
@@ -116,10 +121,11 @@ public class KongsiCollector extends AbstractService {
                     // 텍스트파일이 크기가 다르다면..
                     log.info("파일존재하지만 크기가 달라 재처리.. "+txtPath);
                     saveFile(txtPath, text);
-                    if (hasSpcLpKeyword(text)) {
-                        String spcLpPath = findSpcLpPath(myContext.getSpcLpPath(), code, docNo, acptNo, "txt");
-                        saveFile(spcLpPath, text);
-                    }
+                    // 현재 20191227에는 Spc 관련 작업하지 않으므로 일단 막아둠.
+//                    if (hasSpcLpKeyword(text)) {
+//                        String spcLpPath = findSpcLpPath(myContext.getSpcLpPath(), code, docNo, acptNo, "txt");
+//                        saveFile(spcLpPath, text);
+//                    }
                     reindexing = true;
                 } else {
                     reindexing = false;
@@ -175,12 +181,12 @@ public class KongsiCollector extends AbstractService {
         }
     }
 
-    private String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, String docUrl) throws IOException {
+    private String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper,RetryTemplate retryTemplate, String docUrl) throws IOException {
         log.info("공시파일 수집.. "+docUrl);
         if (loadBalancerCommandHelper == null) {
-            return JSoupHelper.findBody(docUrl);
+            return JSoupHelper.findBody(docUrl,retryTemplate);
         } else {
-            return loadBalancerCommandHelper.findBody(docUrl);
+            return loadBalancerCommandHelper.findBody(docUrl,retryTemplate);
         }
     }
     private void saveFile(String filePath, String content) throws IOException {

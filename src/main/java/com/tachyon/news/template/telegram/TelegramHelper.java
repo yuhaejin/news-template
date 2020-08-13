@@ -246,7 +246,7 @@ public class TelegramHelper {
                 Map<String,Object> investmentScope = investmentScopes(ownerName,tndDt,name,before,after,price,sum,docUrl,docNm,acptUrl,acptNm,"");
                 // 새로운 요소 추가
                 addInvestmentScope(investmentScope, day, birth, interval, lastName, before, after, price, stockMethod,sum,code);
-                Mustache mustache = MustacheHelper.findMustache(plusInvestmentMustaches, minusInvestmentMustaches, sum,random);
+                Mustache mustache = MustacheHelper.findMustache(plusInvestmentMustaches, minusInvestmentMustaches, different(before,after),random);
                 String article = makeInvestmentMessage(mustache,investmentScope);
                 String message = makeInvestmentMessage(ownerName, tndDt, name, before, after, price, sum, docUrl, docNm, acptUrl, acptNm,article);
                 sendAsync(user, message, key);
@@ -256,6 +256,10 @@ public class TelegramHelper {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    private long different(String before, String after) {
+        return Long.valueOf(after) - Long.valueOf(before);
     }
 
     private void addInvestmentScope(Map<String, Object> investmentScope, String day, String birth, String interval, String lastName, String before, String after, String price, String stockMethod, String sum,String code) {
