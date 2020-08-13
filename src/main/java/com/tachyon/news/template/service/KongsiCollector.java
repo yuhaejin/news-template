@@ -194,6 +194,7 @@ public class KongsiCollector extends AbstractService {
         FileUtils.write(new File(filePath), content, "UTF-8", false);
     }
 
+
     private String tnsDt(String tnsDt, String day) {
         if (tnsDt.length() == 4) {
             if (day.length() >= 8) {
