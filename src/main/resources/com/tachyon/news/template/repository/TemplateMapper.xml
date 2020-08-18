@@ -12,7 +12,7 @@
     <!--        </collection>-->
     <!--    </resultMap>-->
 
-    <select id="findKongsiHalder2" resultType="map" parameterType="string">
+    <select id="findKongsiHolder2" resultType="map" parameterType="string">
         select a.doc_nm,
                a.doc_url,
                a.isu_cd,
