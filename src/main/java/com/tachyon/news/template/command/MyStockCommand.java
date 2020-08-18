@@ -12,7 +12,6 @@ import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,7 +66,7 @@ public class MyStockCommand extends BasicCommand {
     private void handleMyStock(String docNo, String code, String acptNo, String key) {
         try {
             log.info("... " + key);
-            Map<String, Object> map = templateMapper.findKongsiHalder2(docNo, code, acptNo);
+            Map<String, Object> map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
             if (map == null) {
                 log.info("공시가 없음. " + key);
                 return;
@@ -135,7 +134,7 @@ public class MyStockCommand extends BasicCommand {
                 myStock.setAcptNo(acptNo);
                 myStock.setIsuCd(code);
                 myStock.setAcptDt(acptNo.substring(0, 8));
-                handleMyStockDb(myStock, type, docUrl);
+                handleMyStockDb(myStock, type, docUrl,docNm);
             }
 
         } catch (Exception e) {
@@ -149,7 +148,7 @@ public class MyStockCommand extends BasicCommand {
      * @param type
      * @param docUrl
      */
-    private void handleMyStockDb(MyStock myStock, String type, String docUrl) {
+    private void handleMyStockDb(MyStock myStock, String type, String docUrl,String docNm) {
         log.info("type=" + type + "docUrl=" + docUrl + " " + myStock.toString());
         myStock.setType(type);
 
@@ -157,7 +156,9 @@ public class MyStockCommand extends BasicCommand {
         if (templateMapper.findMyStockCount(findParam) == 0) {
             Map<String, Object> param = insertParam(myStock);
             templateMapper.insertMyStock(param);
-            sendToArticleQueue(rabbitTemplate,findPk(param),"MYSTOCK",findParam);
+            if (isGoodArticle(docNm)) {
+                sendToArticleQueue(rabbitTemplate,findPk(param),"MYSTOCK",findParam);
+            }
         } else {
             log.info("SkIP 중복된 데이터.. "+myStock);
         }

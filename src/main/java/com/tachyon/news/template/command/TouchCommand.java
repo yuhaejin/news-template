@@ -63,7 +63,7 @@ public class TouchCommand extends BasicCommand {
     private void handleTouch(Map<String, Object> _map, String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
 
         if (_map == null) {
-            _map = templateMapper.findKongsiHalder2(docNo, code, acptNo);
+            _map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
             if (_map == null) {
                 log.info("공시가 없음. " + key);
                 return;
@@ -124,7 +124,9 @@ public class TouchCommand extends BasicCommand {
         Map<String, Object> findParam = findParam(docNo, code, acptNo);
         if (templateMapper.findTouchHolderCount(findParam) == 0) {
             templateMapper.insertTouchHolder(param);
-            sendToArticleQueue(rabbitTemplate,findPk(param),"TOUCH",findParam);
+            if (isGoodArticle(docNm)) {
+                sendToArticleQueue(rabbitTemplate,findPk(param),"TOUCH",findParam);
+            }
         } else {
             log.info("이미 존재.. SKIP.. " + touch);
         }

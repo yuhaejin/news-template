@@ -4,7 +4,6 @@ import com.google.common.collect.TreeBasedTable;
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.CorrectBean;
 import com.tachyon.crawl.kind.model.CorrectInfo;
-import com.tachyon.crawl.kind.model.DocNoIsuCd;
 import com.tachyon.crawl.kind.util.DateUtils;
 import com.tachyon.crawl.kind.util.JSoupHelper;
 import com.tachyon.crawl.kind.util.JSoupTableException;
@@ -16,7 +15,6 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -68,13 +66,13 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         String docNo = keys[0];
         String code = keys[1];
         String acptNo = keys[2];
-        Map<String, Object> kongsiHodler = templateMapper.findKongsiHalder2(docNo, code, acptNo);
+        Map<String, Object> kongsiHodler = templateMapper.findKongsiHolder2(docNo, code, acptNo);
 //        Map<String, Object> kongsiHodler = findKongsiHalder(myContext, message, templateMapper, docNoIsuCd.getDocNo(), docNoIsuCd.getIsuCd(), docNoIsuCd.getAcptNo());
         if (kongsiHodler == null) {
             log.info("기초공시정보가 없음. " + key);
             return;
         }
-
+        String docNm = Maps.getValue(kongsiHodler, "doc_nm");
         String docUrl = Maps.getValue(kongsiHodler, "doc_url");
         // 정정공시중에 원공시 정보는 SKIP
         if (isOldAtCorrectedKongsi(kongsiHodler)) {
@@ -153,7 +151,9 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 setupParamMap(kongsiHodler, keyword, DateUtils.toString(new Date(), "yyyyMMddHHmm"));
                 templateMapper.insertTrotHolder(kongsiHodler);
                 if (keyword.equalsIgnoreCase("소송")) {
-                    sendToArticleQueue(rabbitTemplate,findPk(kongsiHodler),"LAWSUIT",findParam);
+                    if (isGoodArticle(docNm)) {
+                        sendToArticleQueue(rabbitTemplate,findPk(kongsiHodler),"LAWSUIT",findParam);
+                    }
                 }
             } else {
                 log.info("SKIP 텔레그램Holder 중복 " + findParam);

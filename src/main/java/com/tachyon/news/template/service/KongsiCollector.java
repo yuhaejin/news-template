@@ -188,6 +188,9 @@ public class KongsiCollector extends AbstractService {
         } else {
             return loadBalancerCommandHelper.findBody(docUrl,retryTemplate);
         }
+
+
+
     }
     private void saveFile(String filePath, String content) throws IOException {
         log.info("파일저장.. "+filePath);

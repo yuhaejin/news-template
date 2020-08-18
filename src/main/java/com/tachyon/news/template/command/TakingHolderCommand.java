@@ -144,7 +144,9 @@ public class TakingHolderCommand extends BasicCommand {
                     if (fincTakingHolderCount(findParam) == 0) {
                         Map<String, Object> insertParam = makeParam(taking,borrowing, docNo, code, acptNo);
                         insertTakingHolder(insertParam);
-                        sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TAKING",findParam);
+                        if (isGoodArticle(docNm)) {
+                            sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TAKING",findParam);
+                        }
                     } else {
                         log.info("SKIP 이미존재하는 취득 " + taking+" "+borrowing);
                     }

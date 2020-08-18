@@ -26,7 +26,7 @@ public abstract class AbstractService extends BaseObject implements NewsService 
     }
 
     protected Map<String,Object> findKongsiHalder2(String docNo,String code,String acptNo) {
-        return templateMapper.findKongsiHalder2(docNo, code, acptNo);
+        return templateMapper.findKongsiHolder2(docNo, code, acptNo);
     }
 
     protected File findJsonBasicKongsiPath(String jsonTargetPath, String acptNo, String code) {

@@ -14,7 +14,6 @@ import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.ibatis.annotations.Param;
 import org.springframework.amqp.core.Message;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,7 +51,7 @@ public class ContractCommand extends BasicCommand {
         String code = docNoIsuCd.getIsuCd();
         String acptNo = docNoIsuCd.getAcptNo();
 
-        Map<String, Object> kongsi = templateMapper.findKongsiHalder2(docNo, code, acptNo);
+        Map<String, Object> kongsi = templateMapper.findKongsiHolder2(docNo, code, acptNo);
         if (kongsi == null) {
             log.warn("공시가 없음..  " + key);
             return;
@@ -118,11 +117,15 @@ public class ContractCommand extends BasicCommand {
             Map<String, Object> param = param(supplyContract);
             log.info("INSERT "+param);
             templateMapper.insertSupplyContract(param);
-            sendToArticleQueue(rabbitTemplate,findPk(param),"CONTRACT",findParam);
+            if (isGoodArticle(docNm)) {
+                sendToArticleQueue(rabbitTemplate,findPk(param),"CONTRACT",findParam);
+            }
         } else {
             log.info("이미 존재하는 계약,, "+key);
         }
     }
+
+
     private Map<String,Object> findParam(SupplyContract supplyContract,String code) {
         Map<String, Object> map = new HashMap<>();
         map.put("contract_gubun", supplyContract.getGubun());

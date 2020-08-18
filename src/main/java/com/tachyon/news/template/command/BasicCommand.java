@@ -48,7 +48,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
     }
 
     Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo, String code, String acptNo) {
-        return templateMapper.findKongsiHalder2(docNo, code, acptNo);
+        return templateMapper.findKongsiHolder2(docNo, code, acptNo);
     }
 
     public void saveFile(String filePath, String content) throws IOException {
@@ -550,6 +550,14 @@ public abstract class BasicCommand extends BaseObject implements Command {
         });
     }
 
+
+    boolean isGoodArticle(String docNm) {
+        if (StringUtils.containsAny(docNm, "연결감사보고서", "분기연결검토보고서", "반기검토보고서", "감사보고서")) {
+            return false;
+        } else {
+            return true;
+        }
+    }
     /**
      * subpk의 길이를 줄임
      * key를 소팅하면서 그 값을 가져와 _로 구분하여 문자열 생성...

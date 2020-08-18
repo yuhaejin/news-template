@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Mapper
 public interface TemplateMapper {
-    Map<String, Object> findKongsiHalder2(@Param("doc_no") String docNo, @Param("isu_cd") String isuCd, @Param("acpt_no") String acptNo);
+    Map<String, Object> findKongsiHolder2(@Param("doc_no") String docNo, @Param("isu_cd") String isuCd, @Param("acpt_no") String acptNo);
 
     long insertStockHolder(Map<String, Object> paramStockHolder);
 

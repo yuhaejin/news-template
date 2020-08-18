@@ -237,7 +237,9 @@ public class StockHolderCommand extends BasicCommand {
                             modifyParam(findParam);
                             if (change.getChangeAmount() != 0) {
                                 // 변동량이 있을 때만 기사 작성하기.. by sokhoon 20200605
-                                sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
+                                if (isGoodArticle(docNm)) {
+                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
+                                }
                             }
                             stockCount++;
                         }
@@ -248,7 +250,7 @@ public class StockHolderCommand extends BasicCommand {
                         }
                     }
 
-                    handleGiveNTake(change);
+                    handleGiveNTake(change,docNm);
 
                 }
             }
@@ -574,7 +576,7 @@ public class StockHolderCommand extends BasicCommand {
      *
      * @param change
      */
-    private void handleGiveNTake(Change change) {
+    private void handleGiveNTake(Change change,String docNm) {
         if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
             Map<String, Object> _param = findParam(change);
             if (findGiveNtake(_param) == 0) {
@@ -582,7 +584,9 @@ public class StockHolderCommand extends BasicCommand {
                 param.putAll(_param);
                 insertParam(change, param);
                 templateMapper.insertGiveNTake(param);
-                sendToArticleQueue(rabbitTemplate,findKongsiKey(change),"GIVETAKE",_param);
+                if (isGoodArticle(docNm)) {
+                    sendToArticleQueue(rabbitTemplate,findKongsiKey(change),"GIVETAKE",_param);
+                }
             } else {
                 log.info("SKIP 수증증여 이미존재함 " + change);
             }

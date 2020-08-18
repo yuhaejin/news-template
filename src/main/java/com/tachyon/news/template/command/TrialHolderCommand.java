@@ -66,7 +66,7 @@ public class TrialHolderCommand extends BasicCommand {
 
     private void handleTrial(String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
 
-        Map<String, Object> _map = templateMapper.findKongsiHalder2(docNo, code, acptNo);
+        Map<String, Object> _map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
         if (_map == null) {
             log.warn("공시가 없음. " + key);
             return;
@@ -117,7 +117,9 @@ public class TrialHolderCommand extends BasicCommand {
         if (templateMapper.findTrialCount(findParam) == 0) {
             Map<String, Object> insertParam = param(trial, docNo, code, acptNo);
             insertTrial(insertParam);
-            sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TRIAL",findParam);
+            if (isGoodArticle(docNm)) {
+                sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TRIAL",findParam);
+            }
         } else {
             log.info("SKIP 이미 존재함. " + key);
         }
