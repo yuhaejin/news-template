@@ -550,9 +550,8 @@ public abstract class BasicCommand extends BaseObject implements Command {
         });
     }
 
-
     boolean isGoodArticle(String docNm) {
-        if (StringUtils.containsAny(docNm, "연결감사보고서", "분기연결검토보고서", "반기검토보고서", "감사보고서")) {
+        if (StringUtils.containsAny(docNm, "감사보고서", "검토보고서")) {
             return false;
         } else {
             return true;
