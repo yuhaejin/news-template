@@ -538,7 +538,11 @@ public abstract class BasicCommand extends BaseObject implements Command {
     void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, Map<String, Object> findParam) {
         // 기사 처리를 위해 기사Queue로 데이터 전송..
         String subpk = sortKeyDelegateValue(findParam);
-        log.info("ARTICLE <<< PK=" + pk + " TYPE=" + type + " SUB_PK=" + subpk + " param=" + findParam);
+        sendToArticleQueue(rabbitTemplate, pk, type, subpk);
+    }
+    void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, String subpk) {
+        // 기사 처리를 위해 기사Queue로 데이터 전송..
+        log.info("ARTICLE <<< PK=" + pk + " TYPE=" + type + " SUB_PK=" + subpk);
         rabbitTemplate.convertAndSend("ARTICLE", (Object) pk, new MessagePostProcessor() {
             @Override
             public Message postProcessMessage(Message message) throws AmqpException {
@@ -549,7 +553,11 @@ public abstract class BasicCommand extends BaseObject implements Command {
             }
         });
     }
-
+    /**
+     * 감사보고서, 검토보고서 제외....
+     * @param docNm
+     * @return
+     */
     boolean isGoodArticle(String docNm) {
         if (StringUtils.containsAny(docNm, "감사보고서", "검토보고서")) {
             return false;

@@ -194,6 +194,9 @@ public class StockHolderCommand extends BasicCommand {
             } else {
                 log.info("압축된 StockData가 아님. "+docUrl);
             }
+
+            Map<String, String> ownerNameMap = new HashMap<>();
+
             for (Change change : changes) {
                 // 신규보고인데... 실제로는 아닌 경우는 SKIP..
                 if (checkFakeNewReport(change)) {
@@ -238,7 +241,11 @@ public class StockHolderCommand extends BasicCommand {
                             if (change.getChangeAmount() != 0) {
                                 // 변동량이 있을 때만 기사 작성하기.. by sokhoon 20200605
                                 if (isGoodArticle(docNm)) {
-                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
+                                    String ownerName = Maps.getValue(param, "owner_name");
+                                    if (ownerNameMap.containsKey(ownerName)==false) {
+                                        ownerNameMap.put(ownerName, ownerName);
+                                    }
+//                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
                                 }
                             }
                             stockCount++;
@@ -250,8 +257,16 @@ public class StockHolderCommand extends BasicCommand {
                         }
                     }
 
+
                     handleGiveNTake(change,docNm);
 
+                }
+            }
+
+            // 투자자별로 기사 생성할 수 있게 처리함.
+            if (ownerNameMap.size() > 0) {
+                for (String ownerName : ownerNameMap.keySet()) {
+                    sendToArticleQueue(rabbitTemplate,key,"STOCK",ownerName);
                 }
             }
 
