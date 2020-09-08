@@ -208,6 +208,7 @@ public class StockHolderCommand extends BasicCommand {
                 } else {
                     log.debug(change.toString());
                     if (isBirthdayUpdate(message)) {
+                        // 생년월일 보정 작업
                         if (findStockHolder(templateMapper, code, change)) {
                             Map<String, Object> _map = toParam(change, code);
                             if (StringUtils.equals(change.getBirthDay(), change.getBirthDay2()) == false) {
@@ -217,7 +218,20 @@ public class StockHolderCommand extends BasicCommand {
                                 log.info("SKIP 생일파싱이 동일함 " + _map);
                             }
                         }
-                    } else {
+
+                    } else if(isPriceUpdate(message)){
+                    // 단가 보정
+                        if (change.getPrice() == 0) {
+                            //"보정된 단가가 0이면 처리하지 않음."
+                            continue;
+                        }
+
+                        Map<String, Object> _map = toUpdatePriceParam(change, code);
+                        log.info("단가보정 ... "+_map+" "+docNo+" "+code);
+                        updateStockHolderUnitPrice(templateMapper, _map);
+
+
+                    }else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
                         Map<String, Object> findParam = param(change, code, tempRptNm, docUrl, docNo, acptNo);
@@ -242,8 +256,10 @@ public class StockHolderCommand extends BasicCommand {
                                 // 변동량이 있을 때만 기사 작성하기.. by sokhoon 20200605
                                 if (isGoodArticle(docNm)) {
                                     String ownerName = Maps.getValue(param, "owner_name");
-                                    if (ownerNameMap.containsKey(ownerName)==false) {
-                                        ownerNameMap.put(ownerName, ownerName);
+                                    String birthDay = Maps.getValue(param, "birth_day");
+                                    String _key = ownerName + "_" + birthDay;
+                                    if (ownerNameMap.containsKey(_key)==false) {
+                                        ownerNameMap.put(_key, _key);
                                     }
 //                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
                                 }
@@ -284,6 +300,25 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void updateStockHolderUnitPrice(TemplateMapper templateMapper, Map<String, Object> map) {
+        templateMapper.updateStockHolderUnitPrice(map);
+    }
+
+    private Map<String, Object> toUpdatePriceParam(Change change, String code) {
+        Map<String, Object> map = BizUtils.changeParamMap(change, code);
+        map.put("unit_price", change.getPrice());
+        map.put("unit_price2", change.getPrice2());
+        return map;
+    }
+
+    private boolean isPriceUpdate(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
+            if ("PRICE".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__UPDATE"))) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     private void modifyParam(Map<String, Object> findParam) {
         findParam.remove("doc_url");
@@ -291,12 +326,6 @@ public class StockHolderCommand extends BasicCommand {
         findParam.remove("doc_no");
         findParam.remove("isu_cd");
     }
-
-
-
-
-
-
 
     private Map<String,Object> param(Change change,String code,String tempRptNm,String docUrl,String docNo,String acptNo) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);

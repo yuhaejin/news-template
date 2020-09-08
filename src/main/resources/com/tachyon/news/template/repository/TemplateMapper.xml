@@ -783,5 +783,17 @@
 
     </select>
 
+    <update id="updateStockHolderUnitPrice" parameterType="map">
+        update stockholder
+        set unit_price = #{unit_price},
+        unit_price2 = #{unit_price2}
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </update>
+
 </mapper>
 

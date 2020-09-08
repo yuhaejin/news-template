@@ -215,4 +215,5 @@ public interface TemplateMapper {
 
     List<Map<String, Object>> findRepresentativeName();
 
+    void updateStockHolderUnitPrice(Map<String, Object> map);
 }
