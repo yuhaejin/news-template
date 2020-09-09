@@ -300,10 +300,16 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    /**
+     * 사업자인 경우 모자펀드 정보를 조회해서 처리한다.
+     *
+     * @param param
+     * @param change
+     */
     private void setupParentFund(Map<String, Object> param, Change change) {
         String birth = change.getBirthDay();
         Long parentSeq = templateMapper.findParentFundSeq(birth);
-        
+
         param.put("prnt_seq", parentSeq);
     }
 
