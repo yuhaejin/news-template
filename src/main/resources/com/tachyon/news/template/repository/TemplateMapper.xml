@@ -30,8 +30,8 @@
 
     </select>
     <insert id="insertStockHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price,prnt_seq)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price},#{prnt_seq})
     </insert>
 
     <select id="findStockHolder" resultType="int" parameterType="map">
@@ -794,6 +794,14 @@
           and after_amt = #{after_amt}
           and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
     </update>
+
+    <select id="findParentFundSeq" resultType="long">
+        select prnt_seq
+        from tachyon.child_fund
+        where birth = #{birth}
+        order by seq limit 1
+    </select>
+
 
 </mapper>
 

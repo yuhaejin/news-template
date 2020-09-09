@@ -248,7 +248,7 @@ public class StockHolderCommand extends BasicCommand {
                             Map<String, Object> param = change.paramStockHolder(code, acptNo);
                             setupCompressed(param, isCompressedData);
                             setupYesterDayClosePrice(param,change);
-
+                            setupParentFund(param, change);
                             log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
                             modifyParam(findParam);
@@ -298,6 +298,13 @@ public class StockHolderCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    private void setupParentFund(Map<String, Object> param, Change change) {
+        String birth = change.getBirthDay();
+        Long parentSeq = templateMapper.findParentFundSeq(birth);
+        
+        param.put("prnt_seq", parentSeq);
     }
 
     private void updateStockHolderUnitPrice(TemplateMapper templateMapper, Map<String, Object> map) {
