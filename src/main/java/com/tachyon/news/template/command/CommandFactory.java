@@ -59,6 +59,8 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(TouchCommand.class);
         }else if("_TRIAL".equalsIgnoreCase(routingKey)){
             return findCommand(TrialHolderCommand.class);
+        }else if("_OTHER_MANAGEMENT".equalsIgnoreCase(routingKey)){
+            return findCommand(OtherManagementCommand.class);
         }else {
             return findCommand(DummyCommand.class);
         }

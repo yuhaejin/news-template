@@ -218,4 +218,10 @@ public interface TemplateMapper {
     void updateStockHolderUnitPrice(Map<String, Object> map);
 
     Long findParentFundSeq(String birth);
+
+    int findEtcManagementCount(Map<String, Object> findParam);
+
+    void insertEtcManagement(Map<String, Object> param);
+
+    void updateEtcManagement(Map<String, Object> param);
 }

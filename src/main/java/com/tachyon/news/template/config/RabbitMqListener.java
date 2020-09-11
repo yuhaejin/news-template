@@ -134,7 +134,10 @@ public class RabbitMqListener {
     public void _TRIAL(Message message) {
         commandFactory.findService(TemplateService.class).consume(message);
     }
-
+    @RabbitListener(queues = {"_TRIAL"}, concurrency = "1")
+    public void _OTHER_MANAGEMENT(Message message) {
+        commandFactory.findService(TemplateService.class).consume(message);
+    }
     @RabbitListener(queues = {"_SPLIT_QUEUE"}, concurrency = "1")
     public void _SPLIT_QUEUE(Message message) {
         executeSplit(message);
