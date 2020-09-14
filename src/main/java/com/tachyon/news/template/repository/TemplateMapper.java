@@ -224,4 +224,44 @@ public interface TemplateMapper {
     void insertEtcManagement(Map<String, Object> param);
 
     void updateEtcManagement(Map<String, Object> param);
+
+    /**
+     * 모펀드 데이터 조회
+     * @param parentParam
+     * @return
+     */
+    Long findParentFund(Map<String, Object> parentParam);
+
+    /**
+     * 모펀드 입력
+     * @param parentParam
+     */
+    void insertParentFund(Map<String, Object> parentParam);
+
+    /**
+     * 자펀드 존재 유무 조회
+     * @param param
+     * @return
+     */
+    int countChildFund(Map<String, Object> param);
+
+    /**
+     * 자펀드 입력
+     * @param param
+     */
+    void insertChildFund(Map<String, Object> param);
+
+    /**
+     * 그 거래 데이터 Seq 조회
+     * @param param
+     * @return
+     */
+    Long findStockHolderSeq(Map<String, Object> param);
+
+    /**
+     * 모펀드 데이터 보정..
+     * @param seq 거래데이터 키
+     * @param parentSeq 모펀드 키
+     */
+    void updateParentFund(@Param("seq")Long seq, @Param("prnt_seq")Long parentSeq);
 }

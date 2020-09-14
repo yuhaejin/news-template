@@ -801,7 +801,89 @@
         where birth = #{birth}
         order by seq limit 1
     </select>
+    <select id="findParentFund" resultType="long" parameterType="map">
+        select seq from parent_fund where birth = #{birth}
+    </select>
+    <insert id="insertParentFund" useGeneratedKeys="true" keyProperty="seq" parameterType="map">
+		INSERT /* GoogleMapper.insertParentFund */
+		INTO parent_fund
+		(
+			hname,
+			ename,
+			address,
+			birth,
+			job,
+			bc_company,
+			bc_name,
+			bc_spot,
+			doc_no,
+			isu_cd,
+			acpt_no
 
+		)
+		VALUES
+		(
+			#{hname},
+			#{ename},
+			#{address},
+			#{birth},
+			#{job},
+			#{bc_company},
+			#{bc_name},
+			#{bc_spot},
+			#{doc_no},
+			#{isu_cd},
+			#{acpt_no}
+		)
+	</insert>
+    <insert id="insertChildFund" parameterType="map">
+		INSERT /* GoogleMapper.insertChildFund */
+		INTO child_fund
+		(
+			prnt_seq,
+			ename,
+			type,
+			relation,
+			birth,
+			nationality,
+			address,
+			job,
+			etc
+		)
+		VALUES
+		(
+			#{prnt_seq},
+			#{ename},
+			#{type},
+			#{relation},
+			#{birth},
+			#{nationality},
+			#{address},
+			#{job},
+			#{etc}
+		)
+	</insert>
+    <!--    countChildFund-->
+    <select id="countChildFund" parameterType="map" resultType="int">
+        select count(seq) from child_fund where prnt_seq = #{prnt_seq} and birth = #{birth}
+    </select>
+
+    <select id="findStockHolderSeq" resultType="long" parameterType="map">
+        select seq
+        from stockholder
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </select>
+
+    <update id="updateParentFund" parameterType="map">
+        update stockholder
+        set prnt_seq = #{prnt_seq}
+        where seq = #{seq}
+    </update>
 
 </mapper>
 

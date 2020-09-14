@@ -4,31 +4,33 @@ import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Change;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.MajorStockChangeParser;
+import com.tachyon.crawl.kind.parser.ParentFundMyParser;
 import com.tachyon.crawl.kind.parser.StaffBirthDayParser;
 import com.tachyon.crawl.kind.parser.TableParser;
+import com.tachyon.crawl.kind.parser.handler.SimpleSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern2;
 import com.tachyon.crawl.kind.util.DateUtils;
-import com.tachyon.crawl.kind.util.JsonUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.core.Message;
-import org.springframework.amqp.core.MessagePostProcessor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
+import java.io.File;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**
+ *
  */
 @Slf4j
 @Component
@@ -90,7 +92,7 @@ public class StockHolderCommand extends BasicCommand {
             String tempRptNm = Maps.getValue(map, "temp_rpt_nm");
             String codeNm = Maps.getValue(map, "isu_nm");
             String tnsDt = findTnsDt(map);
-            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
+            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, retryTemplate, loadBalancerCommandHelper);
             // 일반문서처리.
             log.info("... done docRow");
             if (validate(docRaw) == false) {
@@ -186,13 +188,15 @@ public class StockHolderCommand extends BasicCommand {
             setupRepresentativeName(changes);
             setupBistowal(changes);
             setupBirthYm(changes);
+            Long parentSeq = findParentFund(rptNm, docNo, code, acptNo, docUrl, key);
+
             int stockCount = 0;
 
-            boolean isCompressedData = findCompressedData(changes,rptNm,docUrl,docRaw);
+            boolean isCompressedData = findCompressedData(changes, rptNm, docUrl, docRaw);
             if (isCompressedData) {
                 log.info("압축된 StockData " + docUrl);
             } else {
-                log.info("압축된 StockData가 아님. "+docUrl);
+                log.info("압축된 StockData가 아님. " + docUrl);
             }
 
             Map<String, String> ownerNameMap = new HashMap<>();
@@ -219,36 +223,46 @@ public class StockHolderCommand extends BasicCommand {
                             }
                         }
 
-                    } else if(isPriceUpdate(message)){
-                    // 단가 보정
+                    } else if (isPriceUpdate(message)) {
+                        // 단가 보정
                         if (change.getPrice() == 0) {
                             //"보정된 단가가 0이면 처리하지 않음."
                             continue;
                         }
 
                         Map<String, Object> _map = toUpdatePriceParam(change, code);
-                        log.info("단가보정 ... "+_map+" "+docNo+" "+code);
+                        log.info("단가보정 ... " + _map + " " + docNo + " " + code);
                         updateStockHolderUnitPrice(templateMapper, _map);
 
 
-                    }else {
+                    } else if (isParentFundUpdate(message)) {
+                        Long seq = findStockHolderSeq(templateMapper, code, change);
+                        if (seq == null) {
+                            log.info("모펀드 보정할 거래데이터 업음. "+change);
+                            continue;
+                        }
+                        updateParentFund(templateMapper,seq, parentSeq);
+
+                    } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
                         Map<String, Object> findParam = param(change, code, tempRptNm, docUrl, docNo, acptNo);
                         Long seq = hasDuplicateStockHolder(templateMapper, findParam);
-                        if (seq!=null) {
+                        if (seq != null) {
                             // 정정된 것은 이미 삭제가 되었으므로 업데이트하지 않아도 딱히 문제가 없음.
                             log.info("ALREADY StockHodler " + change);
                             if (isCompressedData) {
-                                log.info("Compress StockData "+seq);
-                                compressStockHolder(templateMapper,seq);
+                                log.info("Compress StockData " + seq);
+                                compressStockHolder(templateMapper, seq);
                             }
 
                         } else {
                             Map<String, Object> param = change.paramStockHolder(code, acptNo);
                             setupCompressed(param, isCompressedData);
-                            setupYesterDayClosePrice(param,change);
-                            setupParentFund(param, change);
+                            setupYesterDayClosePrice(param, change);
+                            setupParentFun(param, parentSeq);
+                            //거래마다 처리하면 모펀드 데이터가 각 거래마다 달라질 수 있어 삭제처리.
+//                            setupParentFund(param, change);
                             log.info("INSERT ... " + param);
                             insertStockHolder(templateMapper, param);
                             modifyParam(findParam);
@@ -258,7 +272,7 @@ public class StockHolderCommand extends BasicCommand {
                                     String ownerName = Maps.getValue(param, "owner_name");
                                     String birthDay = Maps.getValue(param, "birth_day");
                                     String _key = ownerName + "_" + birthDay;
-                                    if (ownerNameMap.containsKey(_key)==false) {
+                                    if (ownerNameMap.containsKey(_key) == false) {
                                         ownerNameMap.put(_key, _key);
                                     }
 //                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
@@ -274,7 +288,7 @@ public class StockHolderCommand extends BasicCommand {
                     }
 
 
-                    handleGiveNTake(change,docNm);
+                    handleGiveNTake(change, docNm);
 
                 }
             }
@@ -282,7 +296,7 @@ public class StockHolderCommand extends BasicCommand {
             // 투자자별로 기사 생성할 수 있게 처리함.
             if (ownerNameMap.size() > 0) {
                 for (String ownerName : ownerNameMap.keySet()) {
-                    sendToArticleQueue(rabbitTemplate,key,"STOCK",ownerName);
+                    sendToArticleQueue(rabbitTemplate, key, "STOCK", ownerName);
                 }
             }
 
@@ -300,13 +314,220 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void updateParentFund(TemplateMapper templateMapper,Long seq, Long parentSeq) {
+        log.info("모펀드보정 "+parentSeq+" >> "+seq);
+        templateMapper.updateParentFund(seq, parentSeq);
+    }
+
+    private Long findStockHolderSeq(TemplateMapper templateMapper, String code, Change change) {
+        Map<String, Object> param = BizUtils.changeParamMap(change, code);
+        return templateMapper.findStockHolderSeq(param);
+    }
+
+    private boolean isParentFundUpdate(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
+            if ("FUND".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__UPDATE"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void setupParentFun(Map<String, Object> param, Long parentSeq) {
+
+        param.put("prnt_seq", parentSeq);
+    }
+
+    /**
+     * 모자 펀드 데이터 분석 및 처리.
+     *
+     * @param rptNm
+     * @param docNo
+     * @param isuCd
+     * @param acptNo
+     * @param docUrl
+     * @param key
+     * @return
+     * @throws Exception
+     */
+    private Long findParentFund(String rptNm, String docNo, String isuCd, String acptNo, String docUrl, String key) throws Exception {
+        if (rptNm.contains("주식등의대량보유상황보고서") == false) {
+            return null;
+        }
+        String htmlPath = findPath(myContext.getHtmlTargetPath(), isuCd, docNo, "htm");
+        File f = new File(htmlPath);
+        if (f.exists() == false) {
+            log.info("파일이 없음. " + htmlPath + " " + key);
+            return null;
+        }
+        SimpleSelectorByPattern selector = new SimpleSelectorByPattern();
+        selector.setKeywords(new String[]{"대량", "보유자", "사항"});
+        TableParser tableParser = new TableParser(selector);
+        ParentFundMyParser myParser = new ParentFundMyParser();
+
+        String c = FileUtils.readFileToString(f, "UTF-8");
+
+        List<Map<String, Object>> tables = (List<Map<String, Object>>) tableParser.simpleParse(c, docUrl, myParser);
+        if (tables == null || tables.size() <= 1) {
+            log.info("분석해보니 관련테이블 정보가 없음. " + key);
+            return null;
+        }
+        Map<String, Object> parentFund = findParentFund(tables);
+        if (parentFund == null) {
+            log.info("모펀드 관련테이블 정보가 없음. " + key);
+            return null;
+        }
+        List<Map<String, Object>> childFunds = findChildFunds(tables);
+        if (childFunds == null) {
+            log.info("자펀드 관련테이블 정보가 없음. " + key);
+            return null;
+        }
+
+        Map<String, Object> parentParam = convertParentFund(parentFund);
+        setupKongsi(parentParam, docNo, isuCd, acptNo);
+        List<Map<String, Object>> childParams = convertChildFunds(childFunds);
+
+
+        Long seq = templateMapper.findParentFund(parentParam);
+
+        if (seq == null) {
+            templateMapper.insertParentFund(parentParam);
+            Long _seq = (Long) parentParam.get("seq");
+            for (Map<String, Object> param : childParams) {
+                param.put("prnt_seq", _seq);
+                if (templateMapper.countChildFund(param) == 0) {
+                    templateMapper.insertChildFund(param);
+                }
+            }
+            return _seq;
+            // childparam 도 insert
+        } else {
+            for (Map<String, Object> param : childParams) {
+                param.put("prnt_seq", seq);
+                if (templateMapper.countChildFund(param) == 0) {
+                    templateMapper.insertChildFund(param);
+                }
+            }
+
+            return seq;
+        }
+
+
+    }
+
+    /**
+     * name 200
+     * type
+     * relation
+     * birth 30
+     * nationality
+     * address 500
+     * job
+     * etc
+     *
+     * @param maps
+     * @return
+     */
+    private List<Map<String, Object>> convertChildFunds(List<Map<String, Object>> maps) {
+        List<Map<String, Object>> params = new ArrayList<>();
+        for (Map<String, Object> map : maps) {
+            String type = Maps.findValueAndKeys(map, "구분");
+            if (type.contains("외국") == false) {
+                continue;
+            }
+            Map<String, Object> param = new HashMap<>();
+            param.put("ename", Maps.findValueAndKeys(map, "성명"));
+            param.put("type", type);
+            param.put("relation", Maps.findValueAndKeys(map, "보고자", "관계"));
+            param.put("birth", removeSpace(Maps.findValueAndKeys(map, "생년월일")));
+            param.put("nationality", Maps.findValueAndKeys(map, "국적"));
+            param.put("address", Maps.findValueAndKeys(map, "주소"));
+            param.put("job", Maps.findValueAndKeys(map, "직업"));
+            param.put("etc", Maps.findValueAndKeys(map, "발행회사"));
+            params.add(param);
+        }
+
+        return params;
+    }
+
+    private void setupKongsi(Map<String, Object> parentParam, String docNo, String code, String acptNo) {
+        parentParam.put("doc_no", docNo);
+        parentParam.put("isu_cd", code);
+        parentParam.put("acpt_no", acptNo);
+    }
+
+
+    /**
+     * hname 200
+     * ename 100
+     * address
+     * birth 30
+     * job
+     * bc_company 200
+     * bc_name
+     * bc_spot
+     *
+     * @param map
+     * @return
+     */
+    private Map<String, Object> convertParentFund(Map<String, Object> map) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("hname", Maps.findValueAndKeys(map, "성명", "한글"));
+        param.put("ename", Maps.findValueAndKeys(map, "성명", "영문"));
+        param.put("address", Maps.findValueAndKeys(map, "주소", "본점"));
+        param.put("birth", removeSpace(Maps.findValueAndKeys(map, "생년월일")));
+        param.put("job", Maps.findValueAndKeys(map, "직업"));
+        param.put("bc_company", Maps.findValueAndKeys(map, "업무상", "회사"));
+        param.put("bc_name", Maps.findValueAndKeys(map, "업무상", "성명"));
+        param.put("bc_spot", Maps.findValueAndKeys(map, "업무상", "직위"));
+        return param;
+    }
+
+    private String removeSpace(String s) {
+        return StringUtils.remove(s, " ");
+    }
+
+    private List<Map<String, Object>> findChildFunds(List<Map<String, Object>> tables) {
+        List<Map<String, Object>> maps = new ArrayList<>();
+        for (Map<String, Object> map : tables) {
+            if (map.containsKey("연번") || map.containsKey("구분")) {
+                String v = Maps.getValue(map, "구분");
+                if (v.contains("외국")) {
+                    maps.add(map);
+                }
+            }
+        }
+        if (maps.size() == 0) {
+            return null;
+        } else {
+
+            return maps;
+        }
+
+
+    }
+
+    private Map<String, Object> findParentFund(List<Map<String, Object>> tables) {
+        for (Map<String, Object> map : tables) {
+            log.debug(map.toString());
+            if (map.containsKey("보고자구분") && map.containsKey("직업(사업내용)")) {
+                String v = Maps.getValue(map, "보고자구분");
+                if (v.contains("외국")) {
+                    return map;
+                }
+            }
+        }
+
+        return null;
+    }
+
     /**
      * 사업자인 경우 모자펀드 정보를 조회해서 처리한다.
      *
      * @param param
      * @param change
      */
-    private void setupParentFund(Map<String, Object> param, Change change) {
+    private void findParentFund(Map<String, Object> param, Change change) {
         String birth = change.getBirthDay();
         Long parentSeq = templateMapper.findParentFundSeq(birth);
 
@@ -340,7 +561,7 @@ public class StockHolderCommand extends BasicCommand {
         findParam.remove("isu_cd");
     }
 
-    private Map<String,Object> param(Change change,String code,String tempRptNm,String docUrl,String docNo,String acptNo) {
+    private Map<String, Object> param(Change change, String code, String tempRptNm, String docUrl, String docNo, String acptNo) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
         param.put("temp_rpt_nm", tempRptNm);
         param.put("doc_url", docUrl);
@@ -350,6 +571,7 @@ public class StockHolderCommand extends BasicCommand {
 
         return param;
     }
+
     /**
      * 어제 종가와 비교해서 +-30% 이상 차이가 나면 odd_value_yn 에 Y설정함.
      * 오늘이면서 단가가 0이면 SKIP...
@@ -359,12 +581,12 @@ public class StockHolderCommand extends BasicCommand {
      * @param param
      * @param change
      */
-    private void setupYesterDayClosePrice(Map<String, Object> param,Change change) {
+    private void setupYesterDayClosePrice(Map<String, Object> param, Change change) {
         param.put("odd_value_yn", "N");
         String _code = change.getIsuCd();
         String stockMethod = change.getStockMethod();
         if (BizUtils.isSkipStockMethod(stockMethod)) {
-            log.debug("SKIP 처리하지 않아도 될 주식 주말이어서 처리하지 않음 "+change);
+            log.debug("SKIP 처리하지 않아도 될 주식 주말이어서 처리하지 않음 " + change);
             return;
         }
 
@@ -373,12 +595,12 @@ public class StockHolderCommand extends BasicCommand {
         if (price == 0) {
             // price가 0 인데 오늘이면 SKIP
             if (DateUtils.isToday(changeDate)) {
-                log.debug("SKIP 오늘은 종가가 없어 처리하지 않음 "+change);
+                log.debug("SKIP 오늘은 종가가 없어 처리하지 않음 " + change);
                 return;
             }
             // 거래일이 주말이면 SKIP...
             if (DateUtils.isWeekend(changeDate)) {
-                log.debug("SKIP 거래일이 주말이어서 처리하지 않음 "+change);
+                log.debug("SKIP 거래일이 주말이어서 처리하지 않음 " + change);
                 return;
             }
         }
@@ -387,18 +609,18 @@ public class StockHolderCommand extends BasicCommand {
         Timestamp _yesterDay = new Timestamp(yesterDay.getTime());
 
         String code = BizUtils.findCode(_code, stockMethod);
-        Integer closePrice  = templateMapper.findCloseByStringDate(code, _yesterDay);
+        Integer closePrice = templateMapper.findCloseByStringDate(code, _yesterDay);
         if (closePrice == null) {
-            log.warn("종가를 찾을 수 없음. "+code+" "+_yesterDay);
+            log.warn("종가를 찾을 수 없음. " + code + " " + _yesterDay);
             return;
         }
         long value = Math.abs(price - closePrice);
         int percentage = percentage(value, closePrice);
         if (percentage >= 30) {
             param.put("odd_value_yn", "Y");
-            param.put("before_price", closePrice+"");
+            param.put("before_price", closePrice + "");
             String name = change.getName();
-            log.warn("전날종가보다 +-30% 임 종목명=" + code + " 변동일=" + change.getDate() +" "+name+ " 전날=" + DateUtils.toString(yesterDay,"yyyy-MM-dd") + " 전날종가=" + closePrice + " 현단가="+price+ " percentage=" + percentage+" "+change.getDocUrl());
+            log.warn("전날종가보다 +-30% 임 종목명=" + code + " 변동일=" + change.getDate() + " " + name + " 전날=" + DateUtils.toString(yesterDay, "yyyy-MM-dd") + " 전날종가=" + closePrice + " 현단가=" + price + " percentage=" + percentage + " " + change.getDocUrl());
             //TODO 텔레그램 알림..
         } else {
             log.debug("전날종가보다 +=30% 이하임..");
@@ -406,10 +628,10 @@ public class StockHolderCommand extends BasicCommand {
     }
 
 
-
     /**
-     *  전날을 구한다.
-     *  다만 웡요일이면 금요일을 구해야 함.
+     * 전날을 구한다.
+     * 다만 웡요일이면 금요일을 구해야 함.
+     *
      * @param date
      * @return
      */
@@ -422,9 +644,9 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private boolean isMonday(Date date) {
-        Calendar cal = Calendar.getInstance() ;
+        Calendar cal = Calendar.getInstance();
         cal.setTime(date);
-        int dayNum = cal.get(Calendar.DAY_OF_WEEK) ;
+        int dayNum = cal.get(Calendar.DAY_OF_WEEK);
         if (dayNum == 2) {
             return true;
         } else {
@@ -433,14 +655,16 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private int percentage(double value, double closePrice) {
-        return (int)(value * 100 / closePrice);
+        return (int) (value * 100 / closePrice);
     }
+
     private String modifyDate(long dateTime) {
         return DateUtils.toString(new Date(dateTime), "yyyyMMdd");
     }
 
     /**
      * 거래내역이 단건이 아닌 여러건을 한번에 압축하여 처리한 것인지 표기한다.
+     *
      * @param templateMapper
      * @param seq
      */
@@ -450,6 +674,7 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 압축된 여부를 적용.
+     *
      * @param param
      * @param isCompressedData 세부변동내역에 여러 데이터를 합축된 경우가 있는데 그 여부를 확인.
      */
@@ -463,13 +688,14 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 주식등의 대량상황보고서 중에 압축한 STOCK 데이터 여부를 확인함..
+     *
      * @param changes
      * @param rptNm
      * @param docUrl
      * @param contents
      * @return
      */
-    private boolean findCompressedData(List<Change> changes, String rptNm,String docUrl,String contents ) {
+    private boolean findCompressedData(List<Change> changes, String rptNm, String docUrl, String contents) {
         if (rptNm.contains("주식등의대량보유상황보고서")) {
             if (changes.size() == 1) {
                 Change change = changes.get(0);
@@ -494,7 +720,7 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         String code = change.getIsuCd();
                         String name = change.getName();
-                        int count = templateMapper.findBeforeStock(code,name,beforeDate, nowDate);
+                        int count = templateMapper.findBeforeStock(code, name, beforeDate, nowDate);
                         if (count > 0) {
                             log.debug("[압축STOCKDATA] 범위내에 이미 StockData 존재하여 압축된 데이터임..... ");
                             return true;
@@ -515,7 +741,7 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private String convertNumberDate(Long dateTime) {
-        return DateUtils.toString(new Date(dateTime),"yyyyMMdd");
+        return DateUtils.toString(new Date(dateTime), "yyyyMMdd");
     }
 
     private String convertNumberDate(String date) {
@@ -540,15 +766,16 @@ public class StockHolderCommand extends BasicCommand {
         }
         return y + m + d;
     }
+
     private Table findTable(String contents, String docUrl) {
 
         StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
         selector.setKeywords(new String[]{"보유주식", "보유비율"});
         TableParser tableParser = new TableParser(selector);
-        return  (Table) tableParser.parse(contents, docUrl);
+        return (Table) tableParser.parse(contents, docUrl);
     }
 
-    private String[] findBeforeNowDate(List<Map<String,Object>> maps) {
+    private String[] findBeforeNowDate(List<Map<String, Object>> maps) {
         String[] strings = new String[2];
         strings[0] = findBeforeDate(maps);
         strings[1] = findNowDate(maps);
@@ -556,11 +783,11 @@ public class StockHolderCommand extends BasicCommand {
         return strings;
     }
 
-    private String findBeforeDate(List<Map<String,Object>> maps) {
+    private String findBeforeDate(List<Map<String, Object>> maps) {
         return findDate(maps, "직전보고서");
     }
 
-    private String findNowDate(List<Map<String,Object>> maps) {
+    private String findNowDate(List<Map<String, Object>> maps) {
         return findDate(maps, "이번보고서");
     }
 
@@ -587,8 +814,8 @@ public class StockHolderCommand extends BasicCommand {
         log.info("checkFakeNewReport " + change);
         String stockType = change.getStockType();
         String etc = change.getEtc();
-        if (isEmpty(stockType)==false && stockType.contains("신규보고")) {
-            if (isEmpty(etc)==false && etc.contains("기존보유")) {
+        if (isEmpty(stockType) == false && stockType.contains("신규보고")) {
+            if (isEmpty(etc) == false && etc.contains("기존보유")) {
                 log.info("신규보고, ETC 기존보유 형태.. " + change);
                 return true;
             } else {
@@ -633,7 +860,7 @@ public class StockHolderCommand extends BasicCommand {
      *
      * @param change
      */
-    private void handleGiveNTake(Change change,String docNm) {
+    private void handleGiveNTake(Change change, String docNm) {
         if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
             Map<String, Object> _param = findParam(change);
             if (findGiveNtake(_param) == 0) {
@@ -642,7 +869,7 @@ public class StockHolderCommand extends BasicCommand {
                 insertParam(change, param);
                 templateMapper.insertGiveNTake(param);
                 if (isGoodArticle(docNm)) {
-                    sendToArticleQueue(rabbitTemplate,findKongsiKey(change),"GIVETAKE",_param);
+                    sendToArticleQueue(rabbitTemplate, findKongsiKey(change), "GIVETAKE", _param);
                 }
             } else {
                 log.info("SKIP 수증증여 이미존재함 " + change);
@@ -651,7 +878,7 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private String findKongsiKey(Change change) {
-        return change.getDocNo()+"_"+change.getIsuCd()+"_"+change.getAcptNo();
+        return change.getDocNo() + "_" + change.getIsuCd() + "_" + change.getAcptNo();
     }
 
     private Map<String, Object> findParam(Change change) {
@@ -712,6 +939,7 @@ public class StockHolderCommand extends BasicCommand {
      * 대표이름으로 변경함.
      * 이것은 뷰에서 조회시에도 사용되는데...
      * 국민연금기금으로 조회를 하면 국민연금으로 실제로 조회를 하는 효과를 낸다.
+     *
      * @param changes
      */
     private void setupRepresentativeName(List<Change> changes) {
@@ -1000,7 +1228,7 @@ public class StockHolderCommand extends BasicCommand {
      * @param param
      * @return
      */
-    private Long hasDuplicateStockHolder(TemplateMapper templateMapper, Map<String,Object> param) {
+    private Long hasDuplicateStockHolder(TemplateMapper templateMapper, Map<String, Object> param) {
 
         List<Long> seqs = templateMapper.findDupStockSeqOnSameKind(param);
         int count = countList(seqs);
@@ -1025,7 +1253,6 @@ public class StockHolderCommand extends BasicCommand {
                 return null;
             }
         }
-
 
 
     }
@@ -1066,13 +1293,14 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 퇴임한 임원 정보 생성.
+     *
      * @param change
      * @return
      */
     private Map<String, Object> createParam(Change change) {
         String name = change.getName();
         String kongsiDate = DateUtils.toString(change.getDateType(), "yyyyMMdd");
-        String birth = BizUtils.convertBirth(change.getBirthDay(),kongsiDate);
+        String birth = BizUtils.convertBirth(change.getBirthDay(), kongsiDate);
         String code = change.getIsuCd();
         String docNo = change.getDocNo();
         String acptNo = change.getAcptNo();
