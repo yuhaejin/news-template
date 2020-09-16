@@ -1,6 +1,7 @@
 package com.tachyon.news.template.command;
 
 import com.tachyon.article.Touch;
+import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.EtcKongsiParser;
 import com.tachyon.crawl.kind.parser.MyTouchParser;
@@ -19,7 +20,9 @@ import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
+import sun.util.resources.cldr.am.CurrencyNames_am;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -110,21 +113,110 @@ public class OtherManagementCommand extends BasicCommand {
             }
         }
 
-        Map<String, Object> param = param();
-        // code, 타이틀 결정일자 로 구분이 가능해 보임..
-        Map<String, Object> findParam = findParam(docNo, code, acptNo);
-        if (templateMapper.findEtcManagementCount(findParam) == 0) {
+        Map<String, Object> param = param(tables,acptNo,code,docNo);
+        // code, 타이틀 acptt 로 구분이 가능해 보임..
+        if (templateMapper.findEtcManagementCount(param) == 0) {
+            log.info("기타경영 처리.. "+param);
             templateMapper.insertEtcManagement(param);
         } else {
-            templateMapper.updateEtcManagement(param);
+            log.info("기타경영 중복.. "+param);
+//            templateMapper.updateEtcManagement(param);
         }
     }
 
 
-    private Map<String, Object> param() {
+    private Map<String, Object> param(List<Map<String, Object>> maps,String acptNo,String code,String docNo) {
         Map<String, Object> map = new HashMap<>();
+        Map<String, Object> first = maps.get(0);
+        if (maps.size() >= 2) {
+            int size = maps.size();
+            for (int i = 1; i < size; i++) {
+                Map<String, Object> _map = maps.get(i);
+                first.putAll(_map);
+            }
+        }
+
+        map.put("acpt_dt", acptNo.substring(0, 8));
+        map.put("doc_no", docNo);
+        map.put("isu_cd", code);
+        map.put("acpt_no", acptNo);
+        map.put("title", Maps.findValueAndKeys(first, "제목"));
+        map.put("contents", Maps.findValueAndKeys(first, "주요내용"));
+        map.put("confirm_date", convertDate(Maps.findValueAndKeys(first, "결정","일자")));
+        map.put("etc", findEtc(first));
+        map.put("subsidiary", Maps.findValueAndKeys(first, "종속회사명"));
+        map.put("ename", Maps.findValueAndKeys(first, "영문"));
+        map.put("agent", Maps.findValueAndKeys(first, "대표자"));
+        map.put("major_biz", Maps.findValueAndKeys(first, "주요사업"));
+        map.put("major_sub_com_yn", Maps.findValueAndKeys(first, "주요종속회사여부"));
+        map.put("total_assets", convertNumber(Maps.findValueAndKeys(first, "종속회사의자산총액")));
+        map.put("ctrl_total_assets", convertNumber(Maps.findValueAndKeys(first, "지배회사의연결자산총액")));
+        map.put("ctrl_total_assets_ratio", Maps.findValueAndKeys(first, "지배회사의연결자산총액대비"));
 
 
         return map;
+    }
+
+    private String findEtc(Map<String, Object> first) {
+        List<String> strings = new ArrayList<>();
+        for (String key : first.keySet()) {
+            strings.add(key);
+        }
+
+        int index =  findEtc(strings);
+        if (index == -1) {
+            return "";
+        }
+
+        String key = strings.get(index + 1);
+        return (String)first.get(key);
+    }
+
+    private int findEtc(List<String> strings) {
+        for (int i = 0; i < strings.size(); i++) {
+            String key = strings.get(i);
+            if (key.contains("기타투자판단과관련한중요사항")) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private String convertNumber(String number) {
+        String[] strings = BizUtils.findNumeric(number);
+        StringBuilder sb = new StringBuilder();
+        for (String s : strings) {
+            sb.append(s);
+        }
+        return sb.toString();
+    }
+
+    private String convertDate(String confirmDate) {
+        String[] strings = BizUtils.findNumeric(confirmDate);
+        String y = "";
+        String m = "";
+        String d = "";
+        if (strings.length == 3) {
+            y = strings[0];
+            m = strings[1];
+            d = strings[2];
+
+            if (m.length() == 1) {
+                m = "0" + m;
+            }
+            if (d.length() == 1) {
+                d = "0" + d;
+            }
+
+            return y + m + d;
+
+        } else {
+            StringBuilder sb = new StringBuilder();
+            for (String s : strings) {
+                sb.append(s);
+            }
+            return sb.toString();
+        }
+
     }
 }

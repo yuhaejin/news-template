@@ -837,7 +837,7 @@
 		)
 	</insert>
     <insert id="insertChildFund" parameterType="map">
-		INSERT /* GoogleMapper.insertChildFund */
+		INSERT /* TemplateMapper.insertChildFund */
 		INTO child_fund
 		(
 			prnt_seq,
@@ -884,6 +884,24 @@
         set prnt_seq = #{prnt_seq}
         where seq = #{seq}
     </update>
-
+    <select id="findEtcManagementCount" resultType="int" parameterType="map">
+        select count(seq)
+        from etc_mng
+        where isu_cd = #{isu_cd}
+          and title = #{title}
+          and acpt_dt = #{acpt_dt}
+    </select>
+<!--    insertEtcManagement-->
+    <insert id="insertEtcManagement" parameterType="map">
+		INSERT /* TemplateMapper.insertEtcManagement */
+		INTO etc_mng
+		(
+			title,acpt_dt,doc_no,isu_cd,acpt_no,contents,confirm_date,etc,subsidiary,ename,agent,major_biz,major_sub_com_yn,total_assets,ctrl_total_assets,ctrl_total_assets_ratio
+		)
+		VALUES
+		(
+			#{title},#{acpt_dt},#{doc_no},#{isu_cd},#{acpt_no},#{contents},#{confirm_date},#{etc},#{subsidiary},#{ename},#{agent},#{major_biz},#{major_sub_com_yn},#{total_assets},#{ctrl_total_assets},#{ctrl_total_assets_ratio}
+		)
+	</insert>
 </mapper>
 

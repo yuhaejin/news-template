@@ -134,7 +134,7 @@ public class RabbitMqListener {
     public void _TRIAL(Message message) {
         commandFactory.findService(TemplateService.class).consume(message);
     }
-    @RabbitListener(queues = {"_TRIAL"}, concurrency = "1")
+    @RabbitListener(queues = {"_OTHER_MANAGEMENT"}, concurrency = "1")
     public void _OTHER_MANAGEMENT(Message message) {
         commandFactory.findService(TemplateService.class).consume(message);
     }
