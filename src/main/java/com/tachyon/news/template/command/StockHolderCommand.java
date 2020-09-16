@@ -5,7 +5,7 @@ import com.tachyon.crawl.kind.model.Change;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.MajorStockChangeParser;
 import com.tachyon.crawl.kind.parser.ParentFundMyParser;
-import com.tachyon.crawl.kind.parser.StaffBirthDayParser;
+import com.tachyon.crawl.kind.parser.StaffInfoParser;
 import com.tachyon.crawl.kind.parser.TableParser;
 import com.tachyon.crawl.kind.parser.handler.SimpleSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern;
@@ -114,11 +114,17 @@ public class StockHolderCommand extends BasicCommand {
                 selector.setKeywords(new String[]{"특정", "증권", "소유", "상황"});
                 table = (Table) stockChangeTableParser.parse(docRaw, docUrl);
                 if (table != null) {
+
                     String submitName = Maps.getValue(map, "submit_nm");
-                    //birthday가 없을 수도 있음
-                    Table _table = findBirthDay(docRaw, docUrl);
-                    String birthDay = _table.findBirthDay();
-                    String birthDay2 = _table.findBirthDay("BIRTH_DAY2");
+                    Map<String,Object> _table = findBirthDay(docRaw, docUrl);
+
+                    //공시에 있는 생년월일 데이터를 사용하므로 추후 변경처리가 필요할 수도 있다.
+                    String birthDay = Maps.findValueAndKeys(_table, "생년월일");
+                    String birthDay2 = birthDay;
+                    if (isEmpty(submitName)) {
+                        // 가끔 제출인명이 없는 경우가 있는데 그때는 아래 데이터를 사용한다.
+                        submitName = Maps.findValueAndKeys(_table, "성명", "한글");
+                    }
 
                     table.findStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, submitName, birthDay, birthDay2, FILTER);
                 }
@@ -236,9 +242,13 @@ public class StockHolderCommand extends BasicCommand {
 
 
                     } else if (isParentFundUpdate(message)) {
+                        if (rptNm.contains("주식등의대량보유상황보고서") == false) {
+                            log.info("모펀드보정 주식등의대량상황보고서가 아님.  "+key);
+                            continue;
+                        }
                         Long seq = findStockHolderSeq(templateMapper, code, change);
                         if (seq == null) {
-                            log.info("모펀드 보정할 거래데이터 업음. "+change);
+                            log.info("모펀드 보정할 거래데이터 업음. "+key);
                             continue;
                         }
                         updateParentFund(templateMapper,seq, parentSeq);
@@ -378,15 +388,18 @@ public class StockHolderCommand extends BasicCommand {
             return null;
         }
         List<Map<String, Object>> childFunds = findChildFunds(tables);
-        if (childFunds == null) {
+        if (childFunds.size() ==0) {
             log.info("자펀드 관련테이블 정보가 없음. " + key);
-            return null;
+//            return null;
         }
 
         Map<String, Object> parentParam = convertParentFund(parentFund);
         setupKongsi(parentParam, docNo, isuCd, acptNo);
         List<Map<String, Object>> childParams = convertChildFunds(childFunds);
-
+        if (childParams.size() == 0) {
+            // 자펀드 데이터가 없을 때 모펀드 정보를 삽입함..
+            childParams.add(parentFund);
+        }
 
         Long seq = templateMapper.findParentFund(parentParam);
 
@@ -445,6 +458,8 @@ public class StockHolderCommand extends BasicCommand {
             param.put("job", Maps.findValueAndKeys(map, "직업"));
             param.put("etc", Maps.findValueAndKeys(map, "발행회사"));
             params.add(param);
+
+
         }
 
         return params;
@@ -497,13 +512,8 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
         }
-        if (maps.size() == 0) {
-            return null;
-        } else {
 
-            return maps;
-        }
-
+        return maps;
 
     }
 
@@ -1431,17 +1441,11 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private Table findBirthDay(String docRaw, String docUrl) throws Exception {
+    private Map<String,Object> findBirthDay(String docRaw, String docUrl) throws Exception {
         StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
         selector.setKeywords(new String[]{"보고자", "관한", "사항"});
         TableParser stockChangeTableParser = new TableParser(selector);
-        List<Table> tables = stockChangeTableParser.parseSome(docRaw, docUrl, new StaffBirthDayParser());
-        if (tables == null || tables.size() == 0) {
-            return null;
-        } else {
-            Table table = tables.get(0);
-            return table;
-        }
+        return (Map<String,Object>)stockChangeTableParser.simpleParse(docRaw, docUrl, new StaffInfoParser());
     }
 
     private long insertStockHolder(TemplateMapper templateMapper, Map<String, Object> map) {

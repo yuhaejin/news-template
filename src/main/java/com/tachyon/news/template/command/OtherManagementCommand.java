@@ -55,11 +55,9 @@ public class OtherManagementCommand extends BasicCommand {
             String docNo = docNoIsuCd.getDocNo();
             String code = docNoIsuCd.getIsuCd();
             String acptNo = docNoIsuCd.getAcptNo();
-
             TableParser parser = new TableParser(new WholeSelector());
 
-
-//            handleOtherManagement(docNo, code, acptNo, key, parser);
+            handleOtherManagement(docNo, code, acptNo, key, parser);
 
             log.info("done " + key);
 
@@ -69,7 +67,6 @@ public class OtherManagementCommand extends BasicCommand {
     }
 
     private void handleOtherManagement(String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
-
 
         Map<String, Object> _map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
         if (_map == null) {
@@ -114,6 +111,7 @@ public class OtherManagementCommand extends BasicCommand {
         }
 
         Map<String, Object> param = param();
+        // code, 타이틀 결정일자 로 구분이 가능해 보임..
         Map<String, Object> findParam = findParam(docNo, code, acptNo);
         if (templateMapper.findEtcManagementCount(findParam) == 0) {
             templateMapper.insertEtcManagement(param);
