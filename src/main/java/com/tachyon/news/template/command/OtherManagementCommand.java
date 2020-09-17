@@ -112,8 +112,12 @@ public class OtherManagementCommand extends BasicCommand {
                 templateMapper.deleteBeforeTouchHolder(_docNo, code);
             }
         }
-
-        Map<String, Object> param = param(tables, acptNo, code, docNo);
+        Map<String, Object> param = null;
+        if (docNm.contains("특허권")) {
+            param = patentParam(tables, acptNo, code, docNo);
+        } else {
+            param = param(tables, acptNo, code, docNo);
+        }
         // code, 타이틀 acptt 로 구분이 가능해 보임..
         if (templateMapper.findEtcManagementCount(param) == 0) {
             log.info("기타경영 처리.. " + param);
@@ -122,6 +126,25 @@ public class OtherManagementCommand extends BasicCommand {
             log.info("기타경영 중복.. " + param);
 //            templateMapper.updateEtcManagement(param);
         }
+    }
+
+    private Map<String, Object> patentParam(List<Map<String, Object>> tables, String acptNo, String code, String docNo) {
+        Map<String, Object> map = new HashMap<>();
+        Map<String, Object> first = findPatent(tables);
+        log.debug("기타 경영 특허 " + first);
+        map.put("acpt_dt", acptNo.substring(0, 8));
+        map.put("doc_no", docNo);
+        map.put("isu_cd", code);
+        map.put("acpt_no", acptNo);
+        map.put("title", Maps.findValueAndKeys(first, "특허","명칭"));
+        map.put("contents", Maps.findValueAndKeys(first, "특허","주요내용"));
+        map.put("confirm_date", convertDate(Maps.findValueAndKeys(first, "확인", "일자")));
+        map.put("etc", Maps.findValueAndKeys(first, "기타","투자판단"));
+
+        map.put("agent", Maps.findValueAndKeys(first, "특허권자"));
+        map.put("major_biz", Maps.findValueAndKeys(first, "특허","활용계획"));
+
+        return map;
     }
 
 
@@ -152,16 +175,21 @@ public class OtherManagementCommand extends BasicCommand {
         }
         return null;
     }
-
-    private Map<String, Object> findFirst(List<Map<String, Object>> maps) {
+    private Map<String, Object> findMap(List<Map<String, Object>> maps,String... keys) {
         for (Map<String, Object> map : maps) {
-            if (Maps.hasAndKey(map, "주요내용")) {
+            if (Maps.hasAndKey(map, keys)) {
                 return map;
             }
         }
         return null;
     }
 
+    private Map<String, Object> findFirst(List<Map<String, Object>> maps) {
+        return findMap(maps, "주요내용");
+    }
+    private Map<String, Object> findPatent(List<Map<String, Object>> maps) {
+        return findMap(maps, "특허","명칭");
+    }
     private void setupSub(Map<String, Object> map, Map<String, Object> first) {
         log.debug("기타 경영 종속회사 " + first);
         map.put("subsidiary", Maps.findValueAndKeys(first, "종속회사명"));
@@ -194,6 +222,10 @@ public class OtherManagementCommand extends BasicCommand {
 
         int index = findEtc(strings);
         if (index == -1) {
+            return "";
+        }
+
+        if (index == strings.size() - 1) {
             return "";
         }
 
