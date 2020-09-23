@@ -848,7 +848,8 @@
 			nationality,
 			address,
 			job,
-			etc
+			etc,
+			modi_name
 		)
 		VALUES
 		(
@@ -860,12 +861,13 @@
 			#{nationality},
 			#{address},
 			#{job},
-			#{etc}
+			#{etc},
+			#{modi_name}
 		)
 	</insert>
     <!--    countChildFund-->
     <select id="countChildFund" parameterType="map" resultType="int">
-        select count(seq) from child_fund where prnt_seq = #{prnt_seq} and birth = #{birth}
+        select count(seq) from child_fund where prnt_seq = #{prnt_seq} and birth = #{birth} and modi_name = #{modi_name}
     </select>
 
     <select id="findStockHolderSeq" resultType="long" parameterType="map">

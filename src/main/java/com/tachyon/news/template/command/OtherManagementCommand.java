@@ -118,6 +118,13 @@ public class OtherManagementCommand extends BasicCommand {
         } else {
             param = param(tables, acptNo, code, docNo);
         }
+
+        String title = Maps.getValue(param, "title");
+        if (title == null || "".equalsIgnoreCase(title.trim())) {
+            log.info("제목이 없음. "+docUrl);
+            return;
+        }
+
         // code, 타이틀 acptt 로 구분이 가능해 보임..
         if (templateMapper.findEtcManagementCount(param) == 0) {
             log.info("기타경영 처리.. " + param);

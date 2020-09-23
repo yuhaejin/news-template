@@ -244,7 +244,12 @@ public class StockHolderCommand extends BasicCommand {
                     } else if (isParentFundUpdate(message)) {
                         if (rptNm.contains("주식등의대량보유상황보고서") == false) {
                             log.info("모펀드보정 주식등의대량상황보고서가 아님.  "+key);
-                            continue;
+                            break;
+                        }
+
+                        if (parentSeq == null) {
+                            log.info("모펀드 정보가 없음. "+key);
+//                            break;
                         }
                         Long seq = findStockHolderSeq(templateMapper, code, change);
                         if (seq == null) {
@@ -325,7 +330,11 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private void updateParentFund(TemplateMapper templateMapper,Long seq, Long parentSeq) {
-        log.info("모펀드보정 "+parentSeq+" >> "+seq);
+        if (parentSeq == null) {
+            log.info("모펀드정보가 없어 parentSeq null 처리 at " + seq);
+        } else {
+            log.info("모펀드보정 parentSeq="+parentSeq+" at "+seq);
+        }
         templateMapper.updateParentFund(seq, parentSeq);
     }
 
@@ -383,6 +392,7 @@ public class StockHolderCommand extends BasicCommand {
             return null;
         }
         Map<String, Object> parentFund = findParentFund(tables);
+        log.info("모펀드 "+parentFund);
         if (parentFund == null) {
             log.info("모펀드 관련테이블 정보가 없음. " + key);
             return null;
@@ -393,12 +403,20 @@ public class StockHolderCommand extends BasicCommand {
 //            return null;
         }
 
+        for (Map<String, Object> child : childFunds) {
+            log.info("자펀드 "+child);
+        }
+
         Map<String, Object> parentParam = convertParentFund(parentFund);
+        log.info("분석모펀드 "+parentParam);
         setupKongsi(parentParam, docNo, isuCd, acptNo);
         List<Map<String, Object>> childParams = convertChildFunds(childFunds);
         if (childParams.size() == 0) {
             // 자펀드 데이터가 없을 때 모펀드 정보를 삽입함..
-            childParams.add(parentFund);
+            childParams.add(parentParam);
+        }
+        for (Map<String, Object> child : childParams) {
+            log.info("분석자펀드 "+child);
         }
 
         Long seq = templateMapper.findParentFund(parentParam);
@@ -428,6 +446,12 @@ public class StockHolderCommand extends BasicCommand {
 
     }
 
+    private int findChildRows(List<Map<String, Object>> maps) {
+        int count = 0;
+
+        return 0;
+    }
+
     /**
      * name 200
      * type
@@ -448,23 +472,41 @@ public class StockHolderCommand extends BasicCommand {
             if (type.contains("외국") == false) {
                 continue;
             }
+            String seq = Maps.getValue(map, "연번");
+            if (isEmpty(seq)) {
+                continue;
+            }
+            if ("-".equalsIgnoreCase(seq.trim())) {
+                continue;
+            }
             Map<String, Object> param = new HashMap<>();
-            param.put("ename", Maps.findValueAndKeys(map, "성명"));
+            String ename = Maps.findValueOrKeys(map, "성명","명칭");
+            param.put("ename", ename);
             param.put("type", type);
             param.put("relation", Maps.findValueAndKeys(map, "보고자", "관계"));
-            param.put("birth", removeSpace(Maps.findValueAndKeys(map, "생년월일")));
+            param.put("birth", removeSpace(Maps.findValueOrKeys(map, "생년월일","사업자등록번호")));
             param.put("nationality", Maps.findValueAndKeys(map, "국적"));
             param.put("address", Maps.findValueAndKeys(map, "주소"));
             param.put("job", Maps.findValueAndKeys(map, "직업"));
             param.put("etc", Maps.findValueAndKeys(map, "발행회사"));
-            params.add(param);
+            param.put("modi_name", modifyName(ename));
 
+            params.add(param);
 
         }
 
         return params;
     }
 
+    private String modifyName(String ename) {
+        if (isEmpty(ename)) {
+            return "";
+        }
+        ename = ename.toLowerCase();
+        return StringUtils.remove(ename, " ");
+
+
+    }
     private void setupKongsi(Map<String, Object> parentParam, String docNo, String code, String acptNo) {
         parentParam.put("doc_no", docNo);
         parentParam.put("isu_cd", code);
@@ -488,13 +530,17 @@ public class StockHolderCommand extends BasicCommand {
     private Map<String, Object> convertParentFund(Map<String, Object> map) {
         Map<String, Object> param = new HashMap<>();
         param.put("hname", Maps.findValueAndKeys(map, "성명", "한글"));
-        param.put("ename", Maps.findValueAndKeys(map, "성명", "영문"));
+        String ename = Maps.findValueAndKeys(map, "성명", "영문");
+        param.put("ename", ename);
         param.put("address", Maps.findValueAndKeys(map, "주소", "본점"));
         param.put("birth", removeSpace(Maps.findValueAndKeys(map, "생년월일")));
         param.put("job", Maps.findValueAndKeys(map, "직업"));
         param.put("bc_company", Maps.findValueAndKeys(map, "업무상", "회사"));
         param.put("bc_name", Maps.findValueAndKeys(map, "업무상", "성명"));
         param.put("bc_spot", Maps.findValueAndKeys(map, "업무상", "직위"));
+        param.put("type", "외국법인");
+        param.put("modi_name", modifyName(ename));
+
         return param;
     }
 
@@ -531,18 +577,18 @@ public class StockHolderCommand extends BasicCommand {
         return null;
     }
 
-    /**
-     * 사업자인 경우 모자펀드 정보를 조회해서 처리한다.
-     *
-     * @param param
-     * @param change
-     */
-    private void findParentFund(Map<String, Object> param, Change change) {
-        String birth = change.getBirthDay();
-        Long parentSeq = templateMapper.findParentFundSeq(birth);
-
-        param.put("prnt_seq", parentSeq);
-    }
+//    /**
+//     * 사업자인 경우 모자펀드 정보를 조회해서 처리한다.
+//     *
+//     * @param param
+//     * @param change
+//     */
+//    private void findParentFund(Map<String, Object> param, Change change) {
+//        String birth = change.getBirthDay();
+//        Long parentSeq = templateMapper.findParentFundSeq(birth);
+//
+//        param.put("prnt_seq", parentSeq);
+//    }
 
     private void updateStockHolderUnitPrice(TemplateMapper templateMapper, Map<String, Object> map) {
         templateMapper.updateStockHolderUnitPrice(map);
