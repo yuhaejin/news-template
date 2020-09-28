@@ -194,7 +194,10 @@ public class StockHolderCommand extends BasicCommand {
             setupRepresentativeName(changes);
             setupBistowal(changes);
             setupBirthYm(changes);
-            Long parentSeq = findParentFund(rptNm, docNo, code, acptNo, docUrl, key);
+
+
+            List<Map<String, Object>> childParams = new ArrayList<>(); // 자펀드 정보를 담는 객체.
+            Long parentSeq = findParentFund(rptNm, docNo, code, acptNo, docUrl, key,childParams);
 
             int stockCount = 0;
 
@@ -251,7 +254,7 @@ public class StockHolderCommand extends BasicCommand {
                             log.info("모펀드 정보가 없음. "+key);
 //                            break;
                         }
-                        Long seq = findStockHolderSeq(templateMapper, code, change);
+                        Long seq = findStockHolderSeq(templateMapper, code, change,childParams);
                         if (seq == null) {
                             log.info("모펀드 보정할 거래데이터 업음. "+key);
                             continue;
@@ -275,7 +278,7 @@ public class StockHolderCommand extends BasicCommand {
                             Map<String, Object> param = change.paramStockHolder(code, acptNo);
                             setupCompressed(param, isCompressedData);
                             setupYesterDayClosePrice(param, change);
-                            setupParentFun(param, parentSeq);
+                            setupParentFun(param, parentSeq,childParams);
                             //거래마다 처리하면 모펀드 데이터가 각 거래마다 달라질 수 있어 삭제처리.
 //                            setupParentFund(param, change);
                             log.info("INSERT ... " + param);
@@ -338,9 +341,41 @@ public class StockHolderCommand extends BasicCommand {
         templateMapper.updateParentFund(seq, parentSeq);
     }
 
-    private Long findStockHolderSeq(TemplateMapper templateMapper, String code, Change change) {
+    /**
+     *
+     * @param templateMapper
+     * @param code
+     * @param change
+     * @param childParams
+     * @return
+     */
+    private Long findStockHolderSeq(TemplateMapper templateMapper, String code, Change change,List<Map<String, Object>> childParams) {
+
+//        String name = change.getName();
+        String birth = change.getBirthDay();
+        log.debug("모펀드Seq 찾기..  "+birth);
+        if (hasChildFund(birth, childParams) == false) {
+            log.info("자펀드에 없는 데이터 이므로 처리하지 않음. ");
+            return null;
+        } else {
+
+        }
+
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
         return templateMapper.findStockHolderSeq(param);
+    }
+
+    private boolean hasChildFund(String birth,List<Map<String, Object>> childParams) {
+        for (Map<String, Object> map : childParams) {
+//            String _name = Maps.getValue(map, "ename");
+            String _birth = Maps.getValue(map, "birth");
+            log.debug("자펀드정보존재여부 "+_birth +" << "+birth);
+            if (birth.equalsIgnoreCase(_birth)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean isParentFundUpdate(Message message) {
@@ -352,9 +387,19 @@ public class StockHolderCommand extends BasicCommand {
         return false;
     }
 
-    private void setupParentFun(Map<String, Object> param, Long parentSeq) {
-
-        param.put("prnt_seq", parentSeq);
+    /**
+     * @param param
+     * @param parentSeq
+     */
+    private void setupParentFun(Map<String, Object> param, Long parentSeq,List<Map<String, Object>> childParams) {
+//        String name = Maps.getValue(param,"owner_name");
+        String birthDay = Maps.getValue(param,"birth_day");
+        if (hasChildFund(birthDay, childParams)) {
+            log.debug("모펀드Seq 찾기 OK " + birthDay + " " + parentSeq);
+            param.put("prnt_seq", parentSeq);
+        } else {
+            log.debug("모펀드Seq 찾기 NO " + birthDay + " " + parentSeq);
+        }
     }
 
     /**
@@ -369,7 +414,7 @@ public class StockHolderCommand extends BasicCommand {
      * @return
      * @throws Exception
      */
-    private Long findParentFund(String rptNm, String docNo, String isuCd, String acptNo, String docUrl, String key) throws Exception {
+    private Long findParentFund(String rptNm, String docNo, String isuCd, String acptNo, String docUrl, String key,List<Map<String, Object>> childParams) throws Exception {
         if (rptNm.contains("주식등의대량보유상황보고서") == false) {
             return null;
         }
@@ -410,7 +455,7 @@ public class StockHolderCommand extends BasicCommand {
         Map<String, Object> parentParam = convertParentFund(parentFund);
         log.info("분석모펀드 "+parentParam);
         setupKongsi(parentParam, docNo, isuCd, acptNo);
-        List<Map<String, Object>> childParams = convertChildFunds(childFunds);
+        convertChildFunds(childFunds,childParams);
         if (childParams.size() == 0) {
             // 자펀드 데이터가 없을 때 모펀드 정보를 삽입함..
             childParams.add(parentParam);
@@ -465,8 +510,8 @@ public class StockHolderCommand extends BasicCommand {
      * @param maps
      * @return
      */
-    private List<Map<String, Object>> convertChildFunds(List<Map<String, Object>> maps) {
-        List<Map<String, Object>> params = new ArrayList<>();
+    private void convertChildFunds(List<Map<String, Object>> maps,List<Map<String, Object>> params) {
+
         for (Map<String, Object> map : maps) {
             String type = Maps.findValueAndKeys(map, "구분");
             if (type.contains("외국") == false) {
@@ -495,7 +540,6 @@ public class StockHolderCommand extends BasicCommand {
 
         }
 
-        return params;
     }
 
     private String modifyName(String ename) {
