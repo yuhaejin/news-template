@@ -256,7 +256,7 @@ public interface TemplateMapper {
      * @param param
      * @return
      */
-    Long findStockHolderSeq(Map<String, Object> param);
+    List<Map<String, Object>> findStockHolderSeq(Map<String, Object> param);
 
     /**
      * 모펀드 데이터 보정..

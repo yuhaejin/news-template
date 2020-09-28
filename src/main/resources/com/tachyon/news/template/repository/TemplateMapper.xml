@@ -870,15 +870,15 @@
         select count(seq) from child_fund where prnt_seq = #{prnt_seq} and birth = #{birth} and modi_name = #{modi_name}
     </select>
 
-    <select id="findStockHolderSeq" resultType="long" parameterType="map">
-        select seq
+    <select id="findStockHolderSeq" resultType="map" parameterType="map">
+        select seq,acpt_no,doc_no
         from stockholder
         where isu_cd = #{code}
           and owner_name = #{owner_name}
           and birth_day = #{birth_day}
           and before_amt = #{before_amt}
           and after_amt = #{after_amt}
-          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+          and change_date = #{change_date}
     </select>
 
     <update id="updateParentFund" parameterType="map">

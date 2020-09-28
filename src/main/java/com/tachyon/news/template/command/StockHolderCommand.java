@@ -250,16 +250,25 @@ public class StockHolderCommand extends BasicCommand {
                             break;
                         }
 
-                        if (parentSeq == null) {
-                            log.info("모펀드 정보가 없음. "+key);
-//                            break;
-                        }
-                        Long seq = findStockHolderSeq(templateMapper, code, change,childParams);
+                        Long seq = findStockHolderSeq(change, code,docNo);
                         if (seq == null) {
-                            log.info("모펀드 보정할 거래데이터 업음. "+key);
+                            log.info("모펀드보정할 거래가 없음.. "+change);
                             continue;
+                        }else {
+                            if (parentSeq == null) {
+                                log.info("모펀드 정보가 없음. " + key);
+                                updateParentFund(templateMapper, seq, parentSeq);
+                            } else {
+
+                                String birth = change.getBirthDay();
+                                log.debug("모펀드Seq 찾기..  "+birth);
+                                if (hasChildFund(birth, childParams) == false) {
+                                    updateParentFund(templateMapper,seq, null);
+                                } else {
+                                    updateParentFund(templateMapper,seq, parentSeq);
+                                }
+                            }
                         }
-                        updateParentFund(templateMapper,seq, parentSeq);
 
                     } else {
                         // 유일한 값이라고 할만한 조회...
@@ -341,28 +350,28 @@ public class StockHolderCommand extends BasicCommand {
         templateMapper.updateParentFund(seq, parentSeq);
     }
 
-    /**
-     *
-     * @param templateMapper
-     * @param code
-     * @param change
-     * @param childParams
-     * @return
-     */
-    private Long findStockHolderSeq(TemplateMapper templateMapper, String code, Change change,List<Map<String, Object>> childParams) {
 
-//        String name = change.getName();
-        String birth = change.getBirthDay();
-        log.debug("모펀드Seq 찾기..  "+birth);
-        if (hasChildFund(birth, childParams) == false) {
-            log.info("자펀드에 없는 데이터 이므로 처리하지 않음. ");
+    private Long findStockHolderSeq(Change change,String code,String docNo) {
+        Map<String, Object> param = BizUtils.changeParamMap(change, code);
+        List<Map<String,Object>> maps = templateMapper.findStockHolderSeq(param);
+        if (maps == null || maps.size() == 0) {
             return null;
         } else {
+            if (maps.size() == 1) {
+                Map<String, Object> map = maps.get(0);
+                return Maps.getLongValue(map, "seq");
+            } else {
+                for (Map<String, Object> map : maps) {
+                    Long seq = Maps.getLongValue(map, "seq");
+                    String _docNo = Maps.getValue(map, "doc_no");
+                    if (_docNo.equalsIgnoreCase(docNo)) {
+                        return seq;
+                    }
+                }
 
+                return null;
+            }
         }
-
-        Map<String, Object> param = BizUtils.changeParamMap(change, code);
-        return templateMapper.findStockHolderSeq(param);
     }
 
     private boolean hasChildFund(String birth,List<Map<String, Object>> childParams) {
@@ -398,6 +407,7 @@ public class StockHolderCommand extends BasicCommand {
             log.debug("모펀드Seq 찾기 OK " + birthDay + " " + parentSeq);
             param.put("prnt_seq", parentSeq);
         } else {
+            param.put("prnt_seq", null);
             log.debug("모펀드Seq 찾기 NO " + birthDay + " " + parentSeq);
         }
     }
