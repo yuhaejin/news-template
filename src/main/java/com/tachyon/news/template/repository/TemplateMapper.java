@@ -14,7 +14,7 @@ public interface TemplateMapper {
 
     long insertStockHolder(Map<String, Object> paramStockHolder);
 
-    int findStockHolder(Map<String, Object> param);
+    int findStockHolderCount(Map<String, Object> param);
 
     List<Map<String, Object>> findBeforeKongsi(@Param("isuCd")String code, @Param("acptNo")String acptNo);
 
@@ -264,4 +264,14 @@ public interface TemplateMapper {
      * @param parentSeq 모펀드 키
      */
     void updateParentFund(@Param("seq")Long seq, @Param("prnt_seq")Long parentSeq);
+
+    /**
+     * 거래 정보 수집..
+     * 대개 하나이지만 특이하게 두개인 경우도 있어 리스트로 반환.
+     * @param param
+     * @return
+     */
+    List<Map<String, Object>> findStockName(Map<String, Object> param);
+
+    void updateStockHolderName(@Param("seq")Long seq, @Param("owner_name")String name);
 }

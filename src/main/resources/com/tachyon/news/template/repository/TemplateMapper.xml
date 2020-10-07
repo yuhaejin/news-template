@@ -34,7 +34,7 @@
         VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price},#{prnt_seq})
     </insert>
 
-    <select id="findStockHolder" resultType="int" parameterType="map">
+    <select id="findStockHolderCount" resultType="int" parameterType="map">
         select count(doc_no)
         from stockholder
         where isu_cd = #{code}
@@ -905,5 +905,23 @@
 			#{title},#{acpt_dt},#{doc_no},#{isu_cd},#{acpt_no},#{contents},#{confirm_date},#{etc},#{subsidiary},#{ename},#{agent},#{major_biz},#{major_sub_com_yn},#{total_assets},#{ctrl_total_assets},#{ctrl_total_assets_ratio}
 		)
 	</insert>
+
+
+    <select id="findStockName" resultType="map" parameterType="map">
+        select seq,owner_name
+        from stockholder
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and change_date = #{change_date}
+    </select>
+    <update id="updateStockHolderName" parameterType="map">
+        update stockholder
+        set owner_name = #{owner_name}
+        where seq = #{seq}
+    </update>
+
 </mapper>
 

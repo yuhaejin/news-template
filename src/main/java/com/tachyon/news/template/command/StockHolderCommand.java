@@ -146,10 +146,12 @@ public class StockHolderCommand extends BasicCommand {
                 if (table != null) {
                     table.findStock(docUrl, docNo, docNm, FILTER, tnsDt, rptNm, acptNo);
                 }
+
             }
             if (table != null) {
                 if (isChangeKongsi(rptNm)) {
                     if (table.getBodies() == null || table.getBodies().size() == 0) {
+
 
                     } else {
                         if (table.getBodies().size() > 0) {
@@ -168,7 +170,6 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
 
-
             for (String _key : FILTER.keySet()) {
                 Change change = FILTER.get(_key);
 
@@ -178,17 +179,17 @@ public class StockHolderCommand extends BasicCommand {
 
                     if (isNameTotal(change.getName())) {
                         // 이름이 합계이면 skip..
+                        log.debug("이름 합계 ");
                         continue;
                     }
                     if (hasEmptyValue(change)) {
                         continue;
                     }
-
+                    log.debug("<<< "+change);
                     changes.add(change);
                 }
             }
 
-            log.info("주식거래내역 ... " + changes.size());
             setupName(changes, myContext);
             setupPrice(changes, codeNm);
             setupRepresentativeName(changes);
@@ -270,7 +271,26 @@ public class StockHolderCommand extends BasicCommand {
                             }
                         }
 
-                    } else {
+                    } else if(isMajorStockUpdate(message)){
+                        // 최대주주등소유주식변동신고서 의 거래자명을 제출인이 아닌 성명으로 보정처리함.
+                        Map<String, Object> param = BizUtils.changeParamMap(change, code);
+                        List<Map<String,Object>> maps = templateMapper.findStockName(param);
+                        if (maps == null || maps.size() == 0) {
+                            continue;
+                        }
+                        for (Map<String, Object> _map : maps) {
+                            Long seq = Maps.getLongValue(_map, "seq");
+                            String ownerName = Maps.getValue(_map, "owner_name");
+                            if (StringUtils.equals(ownerName, change.getName()) == false) {
+                                log.info("거래자명변경 " + seq + " " + ownerName + " >>  " + change.getName());
+                                templateMapper.updateStockHolderName(seq, change.getName());
+                            } else {
+                                log.debug("SKIP 거래자명변경 " + seq + " " + ownerName);
+                            }
+                        }
+
+
+                    }else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
                         Map<String, Object> findParam = param(change, code, tempRptNm, docUrl, docNo, acptNo);
@@ -341,6 +361,15 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private boolean isMajorStockUpdate(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
+            if ("MAJORSTOCK".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__UPDATE"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void updateParentFund(TemplateMapper templateMapper,Long seq, Long parentSeq) {
         if (parentSeq == null) {
             log.info("모펀드정보가 없어 parentSeq null 처리 at " + seq);
@@ -395,7 +424,6 @@ public class StockHolderCommand extends BasicCommand {
         }
         return false;
     }
-
     /**
      * @param param
      * @param parentSeq
@@ -623,7 +651,12 @@ public class StockHolderCommand extends BasicCommand {
             if (map.containsKey("보고자구분") && map.containsKey("직업(사업내용)")) {
                 String v = Maps.getValue(map, "보고자구분");
                 if (v.contains("외국")) {
-                    return map;
+                    // 개인은 필터링해야 하나? FIXME
+                    if (v.contains("개인")) {
+                        log.info("SKIP 개인이어서 "+v);
+                    } else {
+                        return map;
+                    }
                 }
             }
         }
@@ -1497,7 +1530,7 @@ public class StockHolderCommand extends BasicCommand {
                     price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
                 }
                 if (price == null || price == 0) {
-                    log.debug("no...");
+                    log.debug("no close .. "+change.getDate()+" "+change.getIsuCd());
                 } else {
                     log.debug("0 ==>  " + price);
                     change.setPrice(price);
@@ -1567,7 +1600,7 @@ public class StockHolderCommand extends BasicCommand {
 
     public boolean findStockHolder(TemplateMapper templateMapper, String code, Change change) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
-        int count = templateMapper.findStockHolder(param);
+        int count = templateMapper.findStockHolderCount(param);
         if (count > 0) {
             return true;
         } else {

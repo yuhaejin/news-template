@@ -395,30 +395,6 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
 
         } else {
-            for (Change change : changes) {
-                String name = change.getName();
-                if (isEmpty(name)) {
-                    continue;
-                }
-
-                if (name.contains("주식회사")) {
-                    String _name = StringUtils.remove(name, "주식회사").trim();
-                    log.info(name + " ==> " + _name);
-                    change.setName(_name);
-                }else if (name.contains("유한회사")) {
-                    String _name = StringUtils.remove(name, "유한회사").trim();
-                    log.info(name + " ==> " + _name);
-                    change.setName(_name);
-                }
-                
-//                name = change.getName();
-//                String _name = myContext.findInvestorName(name);
-//                if (_name != null) {
-//                    log.info("CONVERT_INVESTOR " + name + " ==> " + _name);
-//                    change.setName(_name);
-//                }
-                
-            }
 
             // no action
         }
