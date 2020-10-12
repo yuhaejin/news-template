@@ -273,7 +273,28 @@ public class StockHolderCommand extends BasicCommand {
 
                     } else if(isMajorStockUpdate(message)){
                         // 최대주주등소유주식변동신고서 의 거래자명을 제출인이 아닌 성명으로 보정처리함.
+
+//                        String submitName = Maps.getValue(map, "submit_nm");
+//                        if (StringUtils.equals(submitName, change.getName())) {
+//                            log.info("SKIP 거래자명 동일 " + change);
+//                            continue;
+//                        }
+                        String name = change.getName();
+                        if (name.contains("(")==false || name.contains(")")==false) {
+                            log.info("거래명 처리대상이 아님.. "+change.getName());
+                            continue;
+                        }
+                        String string = StringUtils.substringBetween(name, "(", ")");
+
+                        if (string.contains("특")==false) {
+                            log.info("거래명 처리대상이 아님.. "+change.getName());
+                            continue;
+                        }
+                        name = BizUtils.removeBracket(name);
+
                         Map<String, Object> param = BizUtils.changeParamMap(change, code);
+                        param.put("owner_name",name);
+
                         List<Map<String,Object>> maps = templateMapper.findStockName(param);
                         if (maps == null || maps.size() == 0) {
                             continue;
@@ -285,7 +306,7 @@ public class StockHolderCommand extends BasicCommand {
                                 log.info("거래자명변경 " + seq + " " + ownerName + " >>  " + change.getName());
                                 templateMapper.updateStockHolderName(seq, change.getName());
                             } else {
-                                log.debug("SKIP 거래자명변경 " + seq + " " + ownerName);
+                                log.info("SKIP 거래자명동일 " + seq + " " + ownerName);
                             }
                         }
 
@@ -360,6 +381,7 @@ public class StockHolderCommand extends BasicCommand {
 
         log.info("done " + key);
     }
+
 
     private boolean isMajorStockUpdate(Message message) {
         if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
