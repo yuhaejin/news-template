@@ -62,8 +62,6 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return;
         }
 
-
-
         String docNm = Maps.getValue(kongsiHolder, "doc_nm");
         String docUrl = Maps.getValue(kongsiHolder, "doc_url");
         if (docNm.contains("영업") && docNm.contains("실적")) {
@@ -126,13 +124,23 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
 
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP
         String quarter = result.parseQuarter(acptNo);
+        String type = findType(docNm);
         Map<String,Object> param = result.param(docNo,code,acptNo);
+        param.put("type", type);
         modify(param,quarter);
         if (isDuplicate(templateMapper, param) == false) {
             log.info("INSERT " + key + " " + docUrl +" "+param);
             insertPerf(templateMapper, param);
         } else {
             log.info("SKIP 중복됨 "+ key + " " + docUrl+" "+param);
+        }
+    }
+
+    private String findType(String docNm) {
+        if (docNm.contains("연결재무제표")) {
+            return "CFS";   //연결재무제표
+        } else {
+            return "SFS";   //별도재무제표
         }
     }
 
