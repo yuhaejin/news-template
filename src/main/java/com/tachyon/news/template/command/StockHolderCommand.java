@@ -3,10 +3,7 @@ package com.tachyon.news.template.command;
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Change;
 import com.tachyon.crawl.kind.model.Table;
-import com.tachyon.crawl.kind.parser.MajorStockChangeParser;
-import com.tachyon.crawl.kind.parser.ParentFundMyParser;
-import com.tachyon.crawl.kind.parser.StaffInfoParser;
-import com.tachyon.crawl.kind.parser.TableParser;
+import com.tachyon.crawl.kind.parser.*;
 import com.tachyon.crawl.kind.parser.handler.SimpleSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern2;
@@ -116,7 +113,7 @@ public class StockHolderCommand extends BasicCommand {
                 if (table != null) {
 
                     String submitName = Maps.getValue(map, "submit_nm");
-                    Map<String,Object> _table = findBirthDay(docRaw, docUrl);
+                    Map<String, Object> _table = findBirthDay(docRaw, docUrl);
 
                     //공시에 있는 생년월일 데이터를 사용하므로 추후 변경처리가 필요할 수도 있다.
                     String birthDay = Maps.findValueAndKeys(_table, "생년월일");
@@ -136,6 +133,8 @@ public class StockHolderCommand extends BasicCommand {
                     for (Table _table : tables) {
                         _table.findMajorStock(docUrl, docNo, docNm, tnsDt, rptNm, acptNo, FILTER);
                     }
+
+
                 } else {
                     log.info("세부변동내역 테이블 없음. ");
                 }
@@ -148,6 +147,7 @@ public class StockHolderCommand extends BasicCommand {
                 }
 
             }
+
             if (table != null) {
                 if (isChangeKongsi(rptNm)) {
                     if (table.getBodies() == null || table.getBodies().size() == 0) {
@@ -185,7 +185,7 @@ public class StockHolderCommand extends BasicCommand {
                     if (hasEmptyValue(change)) {
                         continue;
                     }
-                    log.debug("<<< "+change);
+                    log.debug("<<< " + change);
                     changes.add(change);
                 }
             }
@@ -195,10 +195,10 @@ public class StockHolderCommand extends BasicCommand {
             setupRepresentativeName(changes);
             setupBistowal(changes);
             setupBirthYm(changes);
-
+            String totalStockCount = findTotalStockCount(changes, docRaw, docNm, docUrl);
 
             List<Map<String, Object>> childParams = new ArrayList<>(); // 자펀드 정보를 담는 객체.
-            Long parentSeq = findParentFund(rptNm, docNo, code, acptNo, docUrl, key,childParams);
+            Long parentSeq = findParentFund(rptNm, docNo, code, acptNo, docUrl, key, childParams);
 
             int stockCount = 0;
 
@@ -208,8 +208,9 @@ public class StockHolderCommand extends BasicCommand {
             } else {
                 log.info("압축된 StockData가 아님. " + docUrl);
             }
-
+            // 거래자별로 기사 작성을 위한 맵..
             Map<String, String> ownerNameMap = new HashMap<>();
+
 
             for (Change change : changes) {
                 // 신규보고인데... 실제로는 아닌 경우는 SKIP..
@@ -247,31 +248,31 @@ public class StockHolderCommand extends BasicCommand {
 
                     } else if (isParentFundUpdate(message)) {
                         if (rptNm.contains("주식등의대량보유상황보고서") == false) {
-                            log.info("모펀드보정 주식등의대량상황보고서가 아님.  "+key);
+                            log.info("모펀드보정 주식등의대량상황보고서가 아님.  " + key);
                             break;
                         }
 
-                        Long seq = findStockHolderSeq(change, code,docNo);
+                        Long seq = findStockHolderSeq(change, code, docNo);
                         if (seq == null) {
-                            log.info("모펀드보정할 거래가 없음.. "+change);
+                            log.info("모펀드보정할 거래가 없음.. " + change);
                             continue;
-                        }else {
+                        } else {
                             if (parentSeq == null) {
                                 log.info("모펀드 정보가 없음. " + key);
                                 updateParentFund(templateMapper, seq, parentSeq);
                             } else {
 
                                 String birth = change.getBirthDay();
-                                log.debug("모펀드Seq 찾기..  "+birth);
+                                log.debug("모펀드Seq 찾기..  " + birth);
                                 if (hasChildFund(birth, childParams) == false) {
-                                    updateParentFund(templateMapper,seq, null);
+                                    updateParentFund(templateMapper, seq, null);
                                 } else {
-                                    updateParentFund(templateMapper,seq, parentSeq);
+                                    updateParentFund(templateMapper, seq, parentSeq);
                                 }
                             }
                         }
 
-                    } else if(isMajorStockUpdate(message)){
+                    } else if (isMajorStockUpdate(message)) {
                         // 최대주주등소유주식변동신고서 의 거래자명을 제출인이 아닌 성명으로 보정처리함.
 
 //                        String submitName = Maps.getValue(map, "submit_nm");
@@ -280,22 +281,22 @@ public class StockHolderCommand extends BasicCommand {
 //                            continue;
 //                        }
                         String name = change.getName();
-                        if (name.contains("(")==false || name.contains(")")==false) {
-                            log.info("거래명 처리대상이 아님.. "+change.getName());
+                        if (name.contains("(") == false || name.contains(")") == false) {
+                            log.info("거래명 처리대상이 아님.. " + change.getName());
                             continue;
                         }
                         String string = StringUtils.substringBetween(name, "(", ")");
 
-                        if (string.contains("특")==false) {
-                            log.info("거래명 처리대상이 아님.. "+change.getName());
+                        if (string.contains("특") == false) {
+                            log.info("거래명 처리대상이 아님.. " + change.getName());
                             continue;
                         }
                         name = BizUtils.removeBracket(name);
 
                         Map<String, Object> param = BizUtils.changeParamMap(change, code);
-                        param.put("owner_name",name);
+                        param.put("owner_name", name);
 
-                        List<Map<String,Object>> maps = templateMapper.findStockName(param);
+                        List<Map<String, Object>> maps = templateMapper.findStockName(param);
                         if (maps == null || maps.size() == 0) {
                             continue;
                         }
@@ -310,8 +311,7 @@ public class StockHolderCommand extends BasicCommand {
                             }
                         }
 
-
-                    }else {
+                    } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
                         Map<String, Object> findParam = param(change, code, tempRptNm, docUrl, docNo, acptNo);
@@ -328,7 +328,8 @@ public class StockHolderCommand extends BasicCommand {
                             Map<String, Object> param = change.paramStockHolder(code, acptNo);
                             setupCompressed(param, isCompressedData);
                             setupYesterDayClosePrice(param, change);
-                            setupParentFun(param, parentSeq,childParams);
+                            setupParentFun(param, parentSeq, childParams);
+                            setupTotalStockCount(param,totalStockCount);
                             //거래마다 처리하면 모펀드 데이터가 각 거래마다 달라질 수 있어 삭제처리.
 //                            setupParentFund(param, change);
                             log.info("INSERT ... " + param);
@@ -382,6 +383,93 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void setupTotalStockCount(Map<String, Object> param, String totalStockCount) {
+        if (isEmpty(totalStockCount)) {
+            param.put("no_of_share", 0);
+        } else {
+            param.put("no_of_share", Long.valueOf(totalStockCount));
+        }
+    }
+
+    private String findAcptNoIsuCd(Change change) {
+        return change.getAcptNo() + "_" + change.getIsuCd();
+    }
+
+    private boolean isCorrectTotalStockCount(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
+            if ("TOTAL_STOCK_COUNT".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__UPDATE"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private String findTotalStockCount(List<Change> changes, String kongsi, String docNm, String docUrl) throws Exception {
+        if (changes.size() == 0) {
+            return null;
+        }
+
+        Map<String, Object> map = null;
+        if (isStaffStockStatusKongsi(docNm) || isDisclosureInformation(docNm)) {
+            //임원ㆍ주요주주특정증권등소유상황보고서, 주식등의 대량상황보고서
+            StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
+            selector.setKeywords(new String[]{"회사", "관한", "사항"});
+            TableParser stockChangeTableParser = new TableParser(selector);
+            map = (Map<String, Object>) stockChangeTableParser.simpleParse(kongsi, docUrl, new StaffInfoParser());
+
+
+        } else if (isMajorStockChangeKongis(docNm)) {
+            // 최대주주등소유주식변동신고서
+            StockChangeSelectorByPattern2 pattern2 = new StockChangeSelectorByPattern2();
+            pattern2.setKeywords(new String[]{"발행", "주식"});
+            TableParser stockChangeTableParser = new TableParser(pattern2);
+            TotalStockParser myParser = new TotalStockParser();
+            map = (Map<String, Object>) stockChangeTableParser.simpleParse(kongsi, docUrl, myParser);
+            //발행주식총수
+        } else {
+
+        }
+
+        if (map != null) {
+            //의결권있는발행주식총수,발행주식총수,발행주식총수
+            String count = findCount(map);
+            if (isEmpty(count)) {
+                return null;
+            } else {
+                // , 삭제처리.
+                return StringUtils.remove(count, ",");
+            }
+        } else {
+            return null;
+        }
+
+    }
+    private String findCount(Map<String, Object> map) {
+        List<String> strings = Maps.findValuesAndKeys(map, "주식", "총수", "발행");
+        if (strings == null || strings.size() == 0) {
+            return "";
+        }
+        if (strings.size() == 1) {
+            return strings.get(0);
+        }
+
+        for (String s : strings) {
+            s = StringUtils.remove(s, ",");
+            if (StringUtils.isNumeric(s)) {
+                return s;
+            }
+        }
+
+        return "";
+    }
+    private boolean isDisclosureInformation(String docNm) {
+        if (docNm.contains("주식") && docNm.contains("대량") && docNm.contains("보유") && docNm.contains("상황")) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
 
     private boolean isMajorStockUpdate(Message message) {
         if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
@@ -392,19 +480,19 @@ public class StockHolderCommand extends BasicCommand {
         return false;
     }
 
-    private void updateParentFund(TemplateMapper templateMapper,Long seq, Long parentSeq) {
+    private void updateParentFund(TemplateMapper templateMapper, Long seq, Long parentSeq) {
         if (parentSeq == null) {
             log.info("모펀드정보가 없어 parentSeq null 처리 at " + seq);
         } else {
-            log.info("모펀드보정 parentSeq="+parentSeq+" at "+seq);
+            log.info("모펀드보정 parentSeq=" + parentSeq + " at " + seq);
         }
         templateMapper.updateParentFund(seq, parentSeq);
     }
 
 
-    private Long findStockHolderSeq(Change change,String code,String docNo) {
+    private Long findStockHolderSeq(Change change, String code, String docNo) {
         Map<String, Object> param = BizUtils.changeParamMap(change, code);
-        List<Map<String,Object>> maps = templateMapper.findStockHolderSeq(param);
+        List<Map<String, Object>> maps = templateMapper.findStockHolderSeq(param);
         if (maps == null || maps.size() == 0) {
             return null;
         } else {
@@ -425,11 +513,11 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private boolean hasChildFund(String birth,List<Map<String, Object>> childParams) {
+    private boolean hasChildFund(String birth, List<Map<String, Object>> childParams) {
         for (Map<String, Object> map : childParams) {
 //            String _name = Maps.getValue(map, "ename");
             String _birth = Maps.getValue(map, "birth");
-            log.debug("자펀드정보존재여부 "+_birth +" << "+birth);
+            log.debug("자펀드정보존재여부 " + _birth + " << " + birth);
             if (birth.equalsIgnoreCase(_birth)) {
                 return true;
             }
@@ -446,13 +534,14 @@ public class StockHolderCommand extends BasicCommand {
         }
         return false;
     }
+
     /**
      * @param param
      * @param parentSeq
      */
-    private void setupParentFun(Map<String, Object> param, Long parentSeq,List<Map<String, Object>> childParams) {
+    private void setupParentFun(Map<String, Object> param, Long parentSeq, List<Map<String, Object>> childParams) {
 //        String name = Maps.getValue(param,"owner_name");
-        String birthDay = Maps.getValue(param,"birth_day");
+        String birthDay = Maps.getValue(param, "birth_day");
         if (hasChildFund(birthDay, childParams)) {
             log.debug("모펀드Seq 찾기 OK " + birthDay + " " + parentSeq);
             param.put("prnt_seq", parentSeq);
@@ -474,7 +563,7 @@ public class StockHolderCommand extends BasicCommand {
      * @return
      * @throws Exception
      */
-    private Long findParentFund(String rptNm, String docNo, String isuCd, String acptNo, String docUrl, String key,List<Map<String, Object>> childParams) throws Exception {
+    private Long findParentFund(String rptNm, String docNo, String isuCd, String acptNo, String docUrl, String key, List<Map<String, Object>> childParams) throws Exception {
         if (rptNm.contains("주식등의대량보유상황보고서") == false) {
             return null;
         }
@@ -497,31 +586,31 @@ public class StockHolderCommand extends BasicCommand {
             return null;
         }
         Map<String, Object> parentFund = findParentFund(tables);
-        log.info("모펀드 "+parentFund);
+        log.info("모펀드 " + parentFund);
         if (parentFund == null) {
             log.info("모펀드 관련테이블 정보가 없음. " + key);
             return null;
         }
         List<Map<String, Object>> childFunds = findChildFunds(tables);
-        if (childFunds.size() ==0) {
+        if (childFunds.size() == 0) {
             log.info("자펀드 관련테이블 정보가 없음. " + key);
 //            return null;
         }
 
         for (Map<String, Object> child : childFunds) {
-            log.info("자펀드 "+child);
+            log.info("자펀드 " + child);
         }
 
         Map<String, Object> parentParam = convertParentFund(parentFund);
-        log.info("분석모펀드 "+parentParam);
+        log.info("분석모펀드 " + parentParam);
         setupKongsi(parentParam, docNo, isuCd, acptNo);
-        convertChildFunds(childFunds,childParams);
+        convertChildFunds(childFunds, childParams);
         if (childParams.size() == 0) {
             // 자펀드 데이터가 없을 때 모펀드 정보를 삽입함..
             childParams.add(parentParam);
         }
         for (Map<String, Object> child : childParams) {
-            log.info("분석자펀드 "+child);
+            log.info("분석자펀드 " + child);
         }
 
         Long seq = templateMapper.findParentFund(parentParam);
@@ -570,7 +659,7 @@ public class StockHolderCommand extends BasicCommand {
      * @param maps
      * @return
      */
-    private void convertChildFunds(List<Map<String, Object>> maps,List<Map<String, Object>> params) {
+    private void convertChildFunds(List<Map<String, Object>> maps, List<Map<String, Object>> params) {
 
         for (Map<String, Object> map : maps) {
             String type = Maps.findValueAndKeys(map, "구분");
@@ -585,11 +674,11 @@ public class StockHolderCommand extends BasicCommand {
                 continue;
             }
             Map<String, Object> param = new HashMap<>();
-            String ename = Maps.findValueOrKeys(map, "성명","명칭");
+            String ename = Maps.findValueOrKeys(map, "성명", "명칭");
             param.put("ename", ename);
             param.put("type", type);
             param.put("relation", Maps.findValueAndKeys(map, "보고자", "관계"));
-            param.put("birth", removeSpace(Maps.findValueOrKeys(map, "생년월일","사업자등록번호")));
+            param.put("birth", removeSpace(Maps.findValueOrKeys(map, "생년월일", "사업자등록번호")));
             param.put("nationality", Maps.findValueAndKeys(map, "국적"));
             param.put("address", Maps.findValueAndKeys(map, "주소"));
             param.put("job", Maps.findValueAndKeys(map, "직업"));
@@ -611,6 +700,7 @@ public class StockHolderCommand extends BasicCommand {
 
 
     }
+
     private void setupKongsi(Map<String, Object> parentParam, String docNo, String code, String acptNo) {
         parentParam.put("doc_no", docNo);
         parentParam.put("isu_cd", code);
@@ -675,7 +765,7 @@ public class StockHolderCommand extends BasicCommand {
                 if (v.contains("외국")) {
                     // 개인은 필터링해야 하나? FIXME
                     if (v.contains("개인")) {
-                        log.info("SKIP 개인이어서 "+v);
+                        log.info("SKIP 개인이어서 " + v);
                     } else {
                         return map;
                     }
@@ -1552,7 +1642,7 @@ public class StockHolderCommand extends BasicCommand {
                     price = templateMapper.findClose(change.getIsuCd(), new Timestamp(change.getDateTime()));
                 }
                 if (price == null || price == 0) {
-                    log.debug("no close .. "+change.getDate()+" "+change.getIsuCd());
+                    log.debug("no close .. " + change.getDate() + " " + change.getIsuCd());
                 } else {
                     log.debug("0 ==>  " + price);
                     change.setPrice(price);
@@ -1596,11 +1686,11 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private Map<String,Object> findBirthDay(String docRaw, String docUrl) throws Exception {
+    private Map<String, Object> findBirthDay(String docRaw, String docUrl) throws Exception {
         StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
         selector.setKeywords(new String[]{"보고자", "관한", "사항"});
         TableParser stockChangeTableParser = new TableParser(selector);
-        return (Map<String,Object>)stockChangeTableParser.simpleParse(docRaw, docUrl, new StaffInfoParser());
+        return (Map<String, Object>) stockChangeTableParser.simpleParse(docRaw, docUrl, new StaffInfoParser());
     }
 
     private long insertStockHolder(TemplateMapper templateMapper, Map<String, Object> map) {

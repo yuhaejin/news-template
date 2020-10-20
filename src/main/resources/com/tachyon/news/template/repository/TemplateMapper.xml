@@ -30,8 +30,8 @@
 
     </select>
     <insert id="insertStockHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
-        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price,prnt_seq)
-        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price},#{prnt_seq})
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price,prnt_seq,no_of_share)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price},#{prnt_seq},#{no_of_share})
     </insert>
 
     <select id="findStockHolderCount" resultType="int" parameterType="map">

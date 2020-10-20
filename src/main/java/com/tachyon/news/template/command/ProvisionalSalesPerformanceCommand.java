@@ -136,6 +136,12 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         }
     }
 
+    /**
+     * 재무제표 유형 확인
+     * 연결재무제표, 별도재무제표
+     * @param docNm
+     * @return
+     */
     private String findType(String docNm) {
         if (docNm.contains("연결재무제표")) {
             return "CFS";   //연결재무제표
