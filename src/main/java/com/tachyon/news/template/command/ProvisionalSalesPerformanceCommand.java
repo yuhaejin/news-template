@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.amqp.core.Message;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -35,6 +36,8 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
 
     @Autowired
     private TemplateMapper templateMapper;
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
 
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
@@ -131,6 +134,8 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         if (isDuplicate(templateMapper, param) == false) {
             log.info("INSERT " + key + " " + docUrl +" "+param);
             insertPerf(templateMapper, param);
+            String seq = findPk(param);
+            sendToArticleQueue(rabbitTemplate, seq, "BIZPERFORMANCE", seq);
         } else {
             log.info("SKIP 중복됨 "+ key + " " + docUrl+" "+param);
         }
