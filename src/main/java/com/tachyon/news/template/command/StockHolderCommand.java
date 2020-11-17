@@ -114,7 +114,6 @@ public class StockHolderCommand extends BasicCommand {
 
                     String submitName = Maps.getValue(map, "submit_nm");
                     Map<String, Object> _table = findBirthDay(docRaw, docUrl);
-
                     //공시에 있는 생년월일 데이터를 사용하므로 추후 변경처리가 필요할 수도 있다.
                     String birthDay = Maps.findValueAndKeys(_table, "생년월일");
                     String birthDay2 = birthDay;

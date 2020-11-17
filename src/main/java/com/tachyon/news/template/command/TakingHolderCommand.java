@@ -25,7 +25,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * 취득 템플릿 처리
+ * 차입금 템플릿 처리
  * 일단 주식등의 대량보유상황보고서 공시에서 추출하여 분석함.
  */
 @Slf4j

@@ -88,7 +88,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return;
         }
         String c = FileUtils.readFileToString(f, "UTF-8");
-        List<Table> tables = tableParser.parseSome(c, "docUrl", myParser);
+        List<Table> tables = tableParser.parseSome(c, docUrl, myParser);
         if (tables == null || tables.size() == 0) {
             log.error("NO TABLES " + docUrl + " " + key);
             return;
@@ -123,11 +123,11 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         }
 
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP
-        String quarter = result.parseQuarter(acptNo);
+        String quarter = result.parseQuarter2(acptNo);
         String type = findType(docNm);
         Map<String,Object> param = result.param(docNo,code,acptNo);
         param.put("type", type);
-        modify(param,quarter);
+        modify(param,quarter,result.getQuarter());
         if (isDuplicate(templateMapper, param) == false) {
             log.info("INSERT " + key + " " + docUrl +" "+param);
             insertPerf(templateMapper, param);
@@ -166,13 +166,13 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         }
     }
 
-    private void modify(Map<String, Object> param ,String quarter) {
+    private void modify(Map<String, Object> param ,String quarter,String rawQuarter) {
         modifyLength(param, "provider_date");
         modifyLength(param, "provider_positon");
         modifyLength(param, "provider");
         modifyLength(param, "subject");
         modifyLength(param, "contact");
-
+        param.put("raw_quarter", rawQuarter);
         modifyQuarter(param,quarter);
     }
 
