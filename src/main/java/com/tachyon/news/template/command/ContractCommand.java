@@ -84,8 +84,8 @@ public class ContractCommand extends BasicCommand {
             log.warn("계약테이블이 없음. "+key+" "+docUrl);
             return;
         }
-
-        Map<String, Object> map = Tables.wideOneLineTableToMap(tables.get(0).getBodies(), true, null);
+        Table table = tables.get(0);
+        Map<String, Object> map = Tables.wideOneLineTableToMap(table.getBodies(), true, null);
         if (map.size() == 0) {
             log.warn("계약테이블이 없음. "+key+" "+docUrl);
             return;
@@ -115,6 +115,7 @@ public class ContractCommand extends BasicCommand {
         int count = templateMapper.findSupplyContractCount(findParam);
         if (count == 0) {
             Map<String, Object> param = param(supplyContract);
+            param.put("child_com", table.getChildCompany());
             log.info("INSERT "+param);
             templateMapper.insertSupplyContract(param);
             if (isGoodArticle(docNm)) {
