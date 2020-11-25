@@ -112,7 +112,6 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             return;
         }
 
-
         // 정정일 때는 이전 데이터 삭제한다.
         if (isChangeKongsi(docNm)) {
             String _docNo = findBeforeKongsi(templateMapper,code, acptNo);
@@ -125,11 +124,13 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             }
         }
 
+
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP
         String quarter = result.parseQuarter2(acptNo);
         String type = findType(docNm);
         Map<String,Object> param = result.param(docNo,code,acptNo);
         param.put("type", type);
+        param.put("child_com", table.getChildCompany());
         modify(param,quarter,result.getQuarter());
         if (isDuplicate(templateMapper, param) == false) {
             log.info("INSERT " + key + " " + docUrl +" "+param);
