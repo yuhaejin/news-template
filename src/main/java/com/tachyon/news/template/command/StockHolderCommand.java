@@ -162,6 +162,7 @@ public class StockHolderCommand extends BasicCommand {
                                     deleteBeforeStockHolder(templateMapper, code, _docNo);
                                     log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
                                     DELETE.put(_docNo, _docNo);
+                                    deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
                                 }
                             }
                         }

@@ -106,6 +106,7 @@ public class ContractCommand extends BasicCommand {
                 if (docNo.equalsIgnoreCase(_docNo) == false) {
                     deleteBeforeContractHolder(templateMapper, code, _docNo);
                     log.info("이전 ContractHolder 삭제 code=" + code + " docNo=" + _docNo);
+                    deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
                 }
             }
         }

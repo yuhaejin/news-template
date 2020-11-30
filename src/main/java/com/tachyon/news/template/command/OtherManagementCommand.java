@@ -110,6 +110,7 @@ public class OtherManagementCommand extends BasicCommand {
             if (StringUtils.isEmpty(_docNo) == false) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
                 templateMapper.deleteBeforeTouchHolder(_docNo, code);
+                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
             }
         }
         Map<String, Object> param = null;

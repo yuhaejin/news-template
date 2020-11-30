@@ -587,6 +587,22 @@ public abstract class BasicCommand extends BaseObject implements Command {
     String findPk(Map<String, Object> param) {
         return Maps.getValue(param, "seq");
     }
+
+    /**
+     * 정정공시와 이전 공시가 같은 날이면 기사 삭제함.
+     * @param templateMapper
+     * @param _docNo 정정고시에서 이전공시 DocNo 임에 유의...
+     * @param acptNo
+     * @param code
+     */
+    void deleteBeforeArticle(TemplateMapper templateMapper, String _docNo, String acptNo, String code) {
+        String _acptDt = acptNo.substring(0, 8);
+        String _docDt = _docNo.substring(0, 8);
+        if (_acptDt.equalsIgnoreCase(_docDt)) {
+            templateMapper.deleteArticle(_docNo, code);
+            log.info("정정 이전공시 기사 삭제.. "+_docNo+" "+code);
+        }
+    }
 }
 
 

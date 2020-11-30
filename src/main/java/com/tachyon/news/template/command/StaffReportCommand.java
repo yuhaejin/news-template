@@ -124,6 +124,7 @@ public class StaffReportCommand extends BasicCommand {
                     if (docNo.equalsIgnoreCase(_docNo) == false) {
                         deleteBeforeStaffHolder(templateMapper, code, _docNo);
                         log.info("이전 StaffHolder 삭제 code=" + code + " docNo=" + _docNo);
+                        deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
                     }
                 }
             }

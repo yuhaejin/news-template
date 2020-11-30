@@ -120,6 +120,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
                 if (docNo.equalsIgnoreCase(_docNo) == false) {
                     deleteBeforePerfHolder(templateMapper, code, _docNo);
                     log.info("이전PerfHolder 삭제 code=" + code + " docNo=" + _docNo);
+                    deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
                 }
             }
         }

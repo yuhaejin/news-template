@@ -111,6 +111,7 @@ public class TrialHolderCommand extends BasicCommand {
             if (StringUtils.isEmpty(_docNo) == false) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
                 templateMapper.deleteBeforeTrialHolder(code, _docNo);
+                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
             }
         }
         Map<String, Object> findParam = findParam(docNo, code, acptNo);

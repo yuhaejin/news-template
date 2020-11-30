@@ -135,6 +135,7 @@ public class RelativeHolderCommand extends BasicCommand {
 
                                 deleteBeforeRelativeHolder(templateMapper, code, _docNo);
                                 log.info("이전RelativeHolder 삭제 code=" + code + " docNo=" + _docNo);
+                                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
                             }
                         }
                     }

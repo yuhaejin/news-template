@@ -127,6 +127,7 @@ public class MyStockCommand extends BasicCommand {
                         if (docNo.equalsIgnoreCase(_docNo) == false) {
                             deleteBeforeMyStockHolder(templateMapper, code, _docNo);
                             log.info("이전MyStockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                            deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
                         }
                     }
                 }
