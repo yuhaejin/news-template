@@ -923,5 +923,13 @@
         where seq = #{seq}
     </update>
 
+    <delete id="deleteArticle" parameterType="map">
+        delete
+        from api.articleholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
+
 </mapper>
 

@@ -23,6 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 손익구조
+ */
 @Slf4j
 @Component
 public class TouchCommand extends BasicCommand {
@@ -117,6 +120,12 @@ public class TouchCommand extends BasicCommand {
             if (StringUtils.isEmpty(_docNo) == false) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
                 templateMapper.deleteBeforeTouchHolder(_docNo, code);
+                // 정정공시와 이전 공시가 같은 날이면 기사 삭제함.
+                String _acptDt = acptNo.substring(0, 8);
+                String _docDt = _docNo.substring(0, 8);
+                if (_acptDt.equalsIgnoreCase(_docDt)) {
+                    templateMapper.deleteArticle(_docNo, code);
+                }
             }
         }
 

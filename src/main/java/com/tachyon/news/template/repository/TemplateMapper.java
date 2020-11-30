@@ -274,4 +274,11 @@ public interface TemplateMapper {
     List<Map<String, Object>> findStockName(Map<String, Object> param);
 
     void updateStockHolderName(@Param("seq")Long seq, @Param("owner_name")String name);
+
+    /**
+     * 같은 날 정정공시가 올라올 때 이전 공시기사 삭제 처리함.
+     * @param docNo
+     * @param code
+     */
+    void deleteArticle(@Param("doc_no")String docNo, @Param("isu_cd")String code);
 }
