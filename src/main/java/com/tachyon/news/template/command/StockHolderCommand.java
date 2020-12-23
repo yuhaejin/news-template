@@ -536,6 +536,8 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     /**
+     * 모자 펀드를 왜 구분을 했는지 알수는 없으나
+     * tdr의 요구사항은 구분이 필요하지는 않다고 한다.
      * @param param
      * @param parentSeq
      */
@@ -543,11 +545,13 @@ public class StockHolderCommand extends BasicCommand {
 //        String name = Maps.getValue(param,"owner_name");
         String birthDay = Maps.getValue(param, "birth_day");
         if (hasChildFund(birthDay, childParams)) {
-            log.debug("모펀드Seq 찾기 OK " + birthDay + " " + parentSeq);
+//            log.debug("모펀드Seq 찾기 OK " + birthDay + " " + parentSeq);
             param.put("prnt_seq", parentSeq);
         } else {
-            param.put("prnt_seq", null);
-            log.debug("모펀드Seq 찾기 NO " + birthDay + " " + parentSeq);
+            // 모자펀드를 구분하기 위해서 이렇게 처리한건가?
+            // 굳이 모자펀드를 구분할 필요는 없다고 한다. tdr에서
+            param.put("prnt_seq", parentSeq);
+//            log.debug("모펀드Seq 찾기 NO " + birthDay + " " + parentSeq);
         }
     }
 

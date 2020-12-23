@@ -142,6 +142,11 @@ public class RabbitMqRouteConfig {
         return QueueBuilder.durable("_OTHER_MANAGEMENT").build();
     }
     @Bean
+    Queue _BIZ_PERF() {
+        return QueueBuilder.durable("_BIZ_PERF").build();
+    }
+
+    @Bean
     Queue _SPLIT_QUEUE() {
         return QueueBuilder.durable("_SPLIT_QUEUE").build();
     }

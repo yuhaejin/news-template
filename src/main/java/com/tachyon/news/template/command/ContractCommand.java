@@ -8,6 +8,7 @@ import com.tachyon.crawl.kind.parser.TableParser;
 import com.tachyon.crawl.kind.parser.handler.WholeSelector;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.crawl.kind.util.Tables;
+import com.tachyon.helper.MustacheHelper;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
 import com.tachyon.news.template.repository.TemplateMapper;
@@ -116,7 +117,7 @@ public class ContractCommand extends BasicCommand {
         int count = templateMapper.findSupplyContractCount(findParam);
         if (count == 0) {
             Map<String, Object> param = param(supplyContract);
-            param.put("child_com", table.getChildCompany());
+            param.put("child_com", MustacheHelper.convertCompany(table.getChildCompany()));
             log.info("INSERT "+param);
             templateMapper.insertSupplyContract(param);
             if (isGoodArticle(docNm)) {

@@ -1,5 +1,6 @@
 package com.tachyon.news.template.config;
 
+import com.tachyon.crawl.kind.KrxCrawler;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.NewsConstants;
 import com.tachyon.news.template.model.Bot;
@@ -120,17 +121,35 @@ public class MyContext {
     }
 
 
+    private Map<String, String> KOSPI200 = new HashMap<>();
+
     @PostConstruct
     public void init() {
         setupTemplates();
         refreshTelegramKeywordList();
         refreshTelegramUserInfo();
         setupRepresentativeName();
-        viewValue();
+//        viewValue();
 //        setupInvestorName();
+        refreshKospi200();
     }
 
-//    private void setupInvestorName() {
+    /**
+     * 코스피200 종목명 수집...
+     */
+    public void refreshKospi200() {
+
+        Map<String,String> temp = new KrxCrawler().findKospi200();
+        if (temp.size() != 0) {
+            synchronized (KOSPI200) {
+                KOSPI200.clear();
+                KOSPI200.putAll(temp);
+                log.info("코스피200 설정 "+KOSPI200.size());
+            }
+        }
+    }
+
+    //    private void setupInvestorName() {
 //        File dir = new File(getDirToMonitor());
 //        if (dir.exists()==false) {
 //            return;
@@ -583,6 +602,9 @@ public class MyContext {
         return result;
     }
 
-
-
+    public boolean isKospi200(String code) {
+        synchronized (KOSPI200) {
+            return KOSPI200.containsKey(code);
+        }
+    }
 }

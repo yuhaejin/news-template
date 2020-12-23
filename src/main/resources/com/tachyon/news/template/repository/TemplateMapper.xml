@@ -930,6 +930,30 @@
           and doc_no = #{doc_no}
     </delete>
 
-
+<!--    deleteBeforeBizPerfHolder-->
+    <delete id="deleteBeforeBizPerfHolder" parameterType="map">
+        delete
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findBizPerfHolderCount-->
+    <select id="findBizPerfHolderCount" resultType="int" parameterType="map">
+        select count(seq)
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
+    <insert id="insertBizPerfHolder" parameterType="map">
+        INSERT /* TemplateMapper.insertBizPerfHolder */
+        INTO biz_perf_holder
+        (
+            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period
+        )
+        VALUES
+        (
+            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period}
+        )
+    </insert>
 </mapper>
 

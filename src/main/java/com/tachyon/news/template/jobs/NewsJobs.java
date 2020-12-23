@@ -587,4 +587,11 @@ public class NewsJobs {
         return DateUtils.toString(date, "yyyyMMddHHmmss");
     }
 
+
+    @Scheduled(cron = "0 0 7 ? * *")
+    public void refreshKospi200() {
+        myContext.refreshKospi200();
+    }
+
+
 }

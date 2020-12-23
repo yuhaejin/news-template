@@ -61,6 +61,8 @@ public class CommandFactory implements ApplicationContextAware {
             return findCommand(TrialHolderCommand.class);
         }else if("_OTHER_MANAGEMENT".equalsIgnoreCase(routingKey)){
             return findCommand(OtherManagementCommand.class);
+        }else if("_BIZ_PERF".equalsIgnoreCase(routingKey)){
+            return findCommand(PerformanceCommand.class);
         }else {
             return findCommand(DummyCommand.class);
         }

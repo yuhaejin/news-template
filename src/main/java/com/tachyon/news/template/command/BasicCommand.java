@@ -47,7 +47,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
         return docNm.contains("최대주주등소유주식변동신고서");
     }
 
-    Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo, String code, String acptNo) {
+    protected Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo, String code, String acptNo) {
         return templateMapper.findKongsiHolder2(docNo, code, acptNo);
     }
 
@@ -589,7 +589,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
     }
 
     /**
-     * 정정공시와 이전 공시가 같은 날이면 기사 삭제함.
+     * 정정공시와 이전 공시가 같은 날이면 기사 삭제함. (기사가 있으면 삭제처리됨)
      * @param templateMapper
      * @param _docNo 정정고시에서 이전공시 DocNo 임에 유의...
      * @param acptNo

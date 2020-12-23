@@ -281,4 +281,10 @@ public interface TemplateMapper {
      * @param code
      */
     void deleteArticle(@Param("doc_no")String docNo, @Param("isu_cd")String code);
+
+    void deleteBeforeBizPerfHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code);
+
+    int findBizPerfHolderCount(Map<String, Object> params);
+
+    void insertBizPerfHolder(Map<String, Object> params);
 }
