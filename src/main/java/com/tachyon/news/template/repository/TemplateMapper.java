@@ -287,4 +287,21 @@ public interface TemplateMapper {
     int findBizPerfHolderCount(Map<String, Object> params);
 
     void insertBizPerfHolder(Map<String, Object> params);
+
+    /**
+     * 실적데이터 조회
+     * @param seq
+     * @return
+     */
+    Map<String, Object> findBizPerf(Long seq);
+
+    /**
+     * 같은해의 실적데이터 조회.
+     * @param code
+     * @param year
+     * @return
+     */
+    List<Map<String, Object>> findBizPerfs(@Param("isu_cd")String code, @Param("year")String year);
+
+    int findPeriodCount(@Param("isu_cd")String code, @Param("period")String period);
 }

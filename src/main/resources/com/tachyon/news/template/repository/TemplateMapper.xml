@@ -948,12 +948,60 @@
         INSERT /* TemplateMapper.insertBizPerfHolder */
         INTO biz_perf_holder
         (
-            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period
+            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type
         )
         VALUES
         (
-            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period}
+            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period},#{period_type}
         )
     </insert>
+<!--    findBizPerf-->
+    <select id="findBizPerf" resultType="map">
+        select revenue
+             ,operating_profit
+             ,net_income
+             ,crevenue
+             ,coperating_profit
+             ,cnet_income
+             ,unit
+             ,period
+             ,doc_no
+             ,isu_cd
+             ,acpt_no
+             ,acpt_dt
+             ,raw_period
+             ,period_type
+        from biz_perf_holder
+        where seq = #{seq}
+    </select>
+
+    <select id="findBizPerfs" parameterType="map" resultType="map">
+        select seq
+             ,revenue
+             ,operating_profit
+             ,net_income
+             ,crevenue
+             ,coperating_profit
+             ,cnet_income
+             ,unit
+             ,period
+             ,doc_no
+             ,isu_cd
+             ,acpt_no
+             ,acpt_dt
+             ,raw_period
+             ,period_type
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+        and period like concat(#{year},'%')
+    </select>
+
+<!--    findPeriodCount-->
+    <select id="findPeriodCount" resultType="int" parameterType="map">
+        select count(seq)
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
 </mapper>
 
