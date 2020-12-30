@@ -344,6 +344,7 @@ public class StockHolderCommand extends BasicCommand {
                                     if (ownerNameMap.containsKey(_key) == false) {
                                         ownerNameMap.put(_key, _key);
                                     }
+
 //                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
                                 }
                             }

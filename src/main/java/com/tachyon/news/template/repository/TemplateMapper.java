@@ -304,4 +304,8 @@ public interface TemplateMapper {
     List<Map<String, Object>> findBizPerfs(@Param("isu_cd")String code, @Param("year")String year);
 
     int findPeriodCount(@Param("isu_cd")String code, @Param("period")String period);
+
+
+    Long findBizPerfHolder(Map<String, Object> params);
+
 }

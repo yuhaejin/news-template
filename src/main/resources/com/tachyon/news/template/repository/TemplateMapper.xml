@@ -944,7 +944,7 @@
         where isu_cd = #{isu_cd}
           and period = #{period}
     </select>
-    <insert id="insertBizPerfHolder" parameterType="map">
+    <insert id="insertBizPerfHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
         INSERT /* TemplateMapper.insertBizPerfHolder */
         INTO biz_perf_holder
         (
@@ -991,6 +991,8 @@
              ,acpt_dt
              ,raw_period
              ,period_type
+             ,cfs_json
+             ,fs_json
         from biz_perf_holder
         where isu_cd = #{isu_cd}
         and period like concat(#{year},'%')
@@ -999,6 +1001,14 @@
 <!--    findPeriodCount-->
     <select id="findPeriodCount" resultType="int" parameterType="map">
         select count(seq)
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
+
+<!--    findBizPerfHolder-->
+    <select id="findBizPerfHolder" resultType="long" parameterType="map">
+        select seq
         from biz_perf_holder
         where isu_cd = #{isu_cd}
           and period = #{period}
