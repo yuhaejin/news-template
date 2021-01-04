@@ -579,7 +579,7 @@
     </delete>
 
     <select id="fincTakingHolderCount" parameterType="map" resultType="int">
-        select count(*)
+        select count(seq)
         from takingholder
         where isu_cd = #{isu_cd}
           and name = #{name}

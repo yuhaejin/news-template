@@ -141,6 +141,7 @@ public class TakingHolderCommand extends BasicCommand {
             if (borrowings != null) {
                 for (Borrowing borrowing : borrowings) {
                     Map<String, Object> findParam = findParam(taking, borrowing, code);
+                    log.info("FIND_PARAM "+findParam);
                     if (fincTakingHolderCount(findParam) == 0) {
                         Map<String, Object> insertParam = makeParam(taking,borrowing, docNo, code, acptNo);
                         insertTakingHolder(insertParam);
@@ -157,11 +158,12 @@ public class TakingHolderCommand extends BasicCommand {
 
     private Map<String, Object> findParam(Taking taking, Borrowing borrowing, String code) {
         Map<String, Object> map = new HashMap<>();
+        String unit = taking.getUnit();
         map.put("isu_cd", code);
         map.put("name", taking.getName());
         map.put("birth", taking.getBirth());
-        map.put("owner_capital", taking.getTaking());
-        map.put("borrow_amount", borrowing.getBorrowingAmount());
+        map.put("owner_capital", modifyWithUnit(taking.getTaking(),unit));
+        map.put("borrow_amount", modifyWithUnit(borrowing.getBorrowingAmount(),unit));
         map.put("etc", taking.getEtc());
         return map;
     }
@@ -227,22 +229,26 @@ public class TakingHolderCommand extends BasicCommand {
                 result = value;
             } else {
 
-                if ("천원".equalsIgnoreCase(unit)) {
+                if (StringUtils.equalsAny(unit,"천원","천")) {
                     result = value + "000";
-                } else if ("만원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"만원","만")) {
                     result = value + "0000";
-                } else if ("백만원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"십만원","십만")) {
+                    result = value + "00000";
+                } else if (StringUtils.equalsAny(unit,"백만원","백만")) {
                     result = value + "000000";
-                } else if ("천만원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"천만원","천만")) {
                     result = value + "0000000";
-                } else if ("억원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"억원","억")) {
                     result = value + "00000000";
-                } else if ("십억원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"십억원","십억")) {
                     result = value + "000000000";
-                } else if ("백억원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"백억원","백억")) {
                     result = value + "0000000000";
-                } else if ("천억원".equalsIgnoreCase(unit)) {
+                } else if (StringUtils.equalsAny(unit,"천억원","천억")) {
                     result = value + "00000000000";
+                }else if (StringUtils.equalsAny(unit,"조원","조")) {
+                    result = value + "000000000000";
                 } else {
                     result = value + unit;
                 }
