@@ -24,6 +24,8 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+import static com.tachyon.crawl.BizUtils.modifyWithUnit;
+
 /**
  * 차입금 템플릿 처리
  * 일단 주식등의 대량보유상황보고서 공시에서 추출하여 분석함.
@@ -216,59 +218,6 @@ public class TakingHolderCommand extends BasicCommand {
         return map;
     }
 
-    private String modifyWithUnit(String value, String unit) {
-        String result = "";
-        value = value.trim();
-        value = findNumber(value);
-        if ("-".equalsIgnoreCase(value) || isEmpty(value) || "0".equalsIgnoreCase(value)) {
-            result = value;
-        } else {
-            if (unit == null) {
-                result = value;
-            } else if ("원".equalsIgnoreCase(unit)) {
-                result = value;
-            } else {
-
-                if (StringUtils.equalsAny(unit,"천원","천")) {
-                    result = value + "000";
-                } else if (StringUtils.equalsAny(unit,"만원","만")) {
-                    result = value + "0000";
-                } else if (StringUtils.equalsAny(unit,"십만원","십만")) {
-                    result = value + "00000";
-                } else if (StringUtils.equalsAny(unit,"백만원","백만")) {
-                    result = value + "000000";
-                } else if (StringUtils.equalsAny(unit,"천만원","천만")) {
-                    result = value + "0000000";
-                } else if (StringUtils.equalsAny(unit,"억원","억")) {
-                    result = value + "00000000";
-                } else if (StringUtils.equalsAny(unit,"십억원","십억")) {
-                    result = value + "000000000";
-                } else if (StringUtils.equalsAny(unit,"백억원","백억")) {
-                    result = value + "0000000000";
-                } else if (StringUtils.equalsAny(unit,"천억원","천억")) {
-                    result = value + "00000000000";
-                }else if (StringUtils.equalsAny(unit,"조원","조")) {
-                    result = value + "000000000000";
-                } else {
-                    result = value + unit;
-                }
-            }
-        }
-        log.debug(value+ " ==> "+result+" with "+unit);
-        return result;
-    }
-
-    private String findNumber(String s) {
-        StringBuilder sb = new StringBuilder();
-        char[] chars = s.toCharArray();
-        for (char c : chars) {
-            if (Character.isDigit(c)) {
-                sb.append(c);
-            }
-        }
-
-        return sb.toString();
-    }
     private int fincTakingHolderCount(Taking taking,Borrowing borrowing, String code) {
         int count = templateMapper.fincTakingHolderCount(code, taking.getName(), taking.getBirth(), taking.getTaking(), borrowing.getBorrowingAmount(), taking.getEtc());
         log.info("TAKINGCOUNT " + count + " " + taking.getName());

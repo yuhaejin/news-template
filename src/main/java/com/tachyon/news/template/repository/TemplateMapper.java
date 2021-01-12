@@ -308,4 +308,5 @@ public interface TemplateMapper {
 
     Long findBizPerfHolder(Map<String, Object> params);
 
+    void updateBizPerf(Map<String, Object> params);
 }

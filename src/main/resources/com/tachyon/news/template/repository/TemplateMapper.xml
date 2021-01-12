@@ -609,8 +609,8 @@
     </select>
 
     <insert id="insertGiveNTake" parameterType="map">
-        INSERT INTO givetakeholder (isu_cd, change_date, name, change_amount, give_take_type, birth, price, price2, before_amount, after_amount, stock_type, etc, target, target_type,doc_no,acpt_no,stock_method,acpt_dt,gender,nationality,relation)
-        VALUES (#{isu_cd}, #{change_date}, #{name}, #{change_amount}, #{give_take_type}, #{birth}, #{price}, #{price2}, #{before_amount}, #{after_amount}, #{stock_type}, #{etc}, #{target}, #{target_type},#{doc_no},#{acpt_no},#{stock_method},#{acpt_dt},#{gender},#{nationality},#{relation})
+        INSERT INTO givetakeholder (isu_cd, change_date, name, change_amount, give_take_type, birth, price, price2, before_amount, after_amount, stock_type, etc, target, target_type,doc_no,acpt_no,stock_method,acpt_dt,gender,nationality,relation,src_type)
+        VALUES (#{isu_cd}, #{change_date}, #{name}, #{change_amount}, #{give_take_type}, #{birth}, #{price}, #{price2}, #{before_amount}, #{after_amount}, #{stock_type}, #{etc}, #{target}, #{target_type},#{doc_no},#{acpt_no},#{stock_method},#{acpt_dt},#{gender},#{nationality},#{relation},#{src_type})
     </insert>
     <select id="findMyStockCount" parameterType="map" resultType="int">
         select count(a.seq)
@@ -948,11 +948,11 @@
         INSERT /* TemplateMapper.insertBizPerfHolder */
         INTO biz_perf_holder
         (
-            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type
+            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,unit2,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type
         )
         VALUES
         (
-            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period},#{period_type}
+            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{unit2},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period},#{period_type}
         )
     </insert>
 <!--    findBizPerf-->
@@ -964,6 +964,7 @@
              ,coperating_profit
              ,cnet_income
              ,unit
+             ,unit2
              ,period
              ,doc_no
              ,isu_cd
@@ -984,6 +985,7 @@
              ,coperating_profit
              ,cnet_income
              ,unit
+             ,unit2
              ,period
              ,doc_no
              ,isu_cd
@@ -1013,5 +1015,23 @@
         where isu_cd = #{isu_cd}
           and period = #{period}
     </select>
+<!--    updateBizPerf-->
+    <update id="updateBizPerf" parameterType="map">
+        update biz_perf_holder
+        set revenue = #{revenue}
+        ,operating_profit=#{operating_profit}
+        ,net_income=#{net_income}
+        ,crevenue=#{crevenue}
+        ,coperating_profit=#{coperating_profit}
+        ,cnet_income=#{cnet_income}
+        ,cfs_json=#{cfs_json}
+        ,fs_json=#{fs_json}
+        ,unit=#{unit}
+        ,unit2=#{unit2}
+        ,period=#{period}
+        ,raw_period=#{raw_period}
+        ,period_type=#{period_type}
+        where seq = #{seq}
+    </update>
 </mapper>
 

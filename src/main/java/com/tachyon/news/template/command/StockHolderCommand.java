@@ -1165,7 +1165,7 @@ public class StockHolderCommand extends BasicCommand {
         } else {
             param.put("give_take_type", "NG");
         }
-
+        param.put("src_type", change.getSrcType());
         return param;
     }
 
@@ -1231,24 +1231,6 @@ public class StockHolderCommand extends BasicCommand {
         List<Change> list = findPlusMinusChanges(changes);
         List<String> names = findNames(list);
         if (list.size() > 0) {
-//            if (hasOneGive(list)) {
-//                Change oneGiver = findOneGiver(list);
-//                setupOneGiver(list, oneGiver);
-//                if (list.size() == 2) {
-//                    setupOneTaker(list, oneGiver);
-//                }
-//
-//            } else if (hasOneCancelGiver(list)) {
-//                Change oneGiver = findOneCancelGiver(list);
-//                setupOneGiver(list, oneGiver);
-//                if (list.size() == 2) {
-//                    setupOneTaker(list, oneGiver);
-//                }
-//            } else {
-//
-//            }
-
-
             for (Change change : list) {
                 String etc = change.getEtc();
                 etc = nvl(etc);
@@ -1274,16 +1256,34 @@ public class StockHolderCommand extends BasicCommand {
                     log.warn("수증 정보를 찾지 못함. " + change);
                 }
 
-//                }else {
-//                    log.debug("증여, 수증 비고의 기본 패턴임.. "+etc);
-//                }
-                // etc2의 값이 없다고 하면 etc로 설정함.
+                setupSrcType(change);
+
                 if (isEmpty(change.getEtc2())) {
                     change.setEtc2(etc);
-
                 }
-
                 log.info(etc + " ==> " + change.getEtc2());
+            }
+        }
+    }
+
+    private void setupSrcType(Change change) {
+        if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
+            // 증여,수증 데이터이면.. 주체의 type은 항상 정할 수 있다.
+            if (isEmpty(change.getBirthDay())) {
+                change.setSrcType("UNDEFINED");
+            }else {
+                if (isCompany(change)) {
+                    log.info("company " + change.getBirthDay());
+                    change.setSrcType("COMPANY");
+                } else {
+                    if (isRelative(change)) {
+                        log.info("RELATIVE " + change.getBirthDay());
+                        change.setSrcType("RELATIVE");
+                    } else {
+                        log.info("STAFF " + change.getBirthDay());
+                        change.setSrcType("STAFF");
+                    }
+                }
             }
         }
     }
