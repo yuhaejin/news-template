@@ -39,7 +39,7 @@ import java.util.*;
 @Slf4j
 @Component
 public class PerformanceCommand extends BasicCommand {
-    private String[] PERIODS = {"1Q", "2Q", "1SA", "3Q","3QA", "4Q", "2SA", "1Y"};
+    private String[] PERIODS = {"1Q", "2Q", "1SA", "3Q", "3QA", "4Q", "2SA", "1Y"};
     @Autowired
     private MyContext myContext;
 
@@ -77,7 +77,7 @@ public class PerformanceCommand extends BasicCommand {
         // isucd와 seq조회 데이터로  나머지를 구할 수 있다.
         // 분기데이터가 만들어지면 INSERT를 수행.
         String seq = myContext.findInputValue(message);
-        log.info("실적보정 "+seq);
+        log.info("실적보정 " + seq);
         if (isEmpty(seq)) {
             log.error("실적 기간데이터 보정을 할 수 없음. seq 값이 없음 ");
             return;
@@ -106,6 +106,7 @@ public class PerformanceCommand extends BasicCommand {
         if (isFirstBangi(period)) {
             handleFirstBangi(mapList, code, year);
         } else if (isSecondBangi(period)) {
+            // 이런 경우는 없음.
             handleSecondBangi(mapList, code, year);
         } else if (isYear(period)) {
             handleYear(mapList, code, year);
@@ -153,9 +154,10 @@ public class PerformanceCommand extends BasicCommand {
 
 
     }
+
     private void handle3QA(List<Map<String, Object>> mapList, String code, String year) {
         String key = "3QA";
-        Map<String, Object> map3Q = findBungi(mapList, "3Q",year);
+        Map<String, Object> map3Q = findBungi(mapList, "3Q", year);
         if (map3Q != null) {
             log.info("NO 3분기 데이터가 이미 있음. " + code + " " + year);
 //            return;
@@ -163,7 +165,7 @@ public class PerformanceCommand extends BasicCommand {
             log.debug("OK 3분기데이터 미존재");
         }
 
-        List<Map<String, Object>> maps = findBungis(mapList, year,"1Q", "2Q");
+        List<Map<String, Object>> maps = findBungis(mapList, year, "1Q", "2Q");
         if (maps == null || maps.size() != 2) {
             log.info("NO 1,2분기 데이터가 모두 있지 않음. " + code + " " + year);
             return;
@@ -171,7 +173,7 @@ public class PerformanceCommand extends BasicCommand {
             log.debug("OK 1,2분기 데이터 존재" + maps);
         }
 
-        Map<String, Object> map = findBungi(mapList, key,year);
+        Map<String, Object> map = findBungi(mapList, key, year);
         if (map == null) {
             log.info("NO " + key + " 데이터가 없음. " + code + " " + year);
             return;
@@ -181,14 +183,15 @@ public class PerformanceCommand extends BasicCommand {
 
         String period = year + "/3Q";
         Map<String, Object> param3Q = make3QData(maps, map);
+
         log.debug("생성된 3분기 데이터 " + param3Q);
         if (map3Q == null) {
             log.info("INSERT BIZPERF " + param3Q);
             insertBizPerf(param3Q);
-        }else {
+        } else {
             param3Q.put("seq", Maps.getLongValue(map3Q, "seq"));
             updateBizPerf(param3Q);
-            log.info("UPDATE BIZPERF "+param3Q);
+            log.info("UPDATE BIZPERF " + param3Q);
 
         }
 //        if (findPeriodCount(code, year + "/4Q") == 0) {
@@ -208,27 +211,31 @@ public class PerformanceCommand extends BasicCommand {
         setupNetIncome(map3Q, maps, map);
         setupCnetIncome(map3Q, maps, map);
         setupBungiPeriod(map3Q, "3Q");
-
+        if (hasError(map3Q)) {
+            return null;
+        }
         return map3Q;
     }
 
     private void handleYearBangi(List<Map<String, Object>> mapList, String code, String year, String key) {
-        Map<String, Object> map4Q = findBungi(mapList, "4Q",year);
+        Map<String, Object> map4Q = findBungi(mapList, "4Q", year);
         if (map4Q != null) {
             log.info("NO 4분기 데이터가 이미 있음. " + code + " " + year);
 //            return;
         } else {
             log.debug("OK 4분기데이터 미존재");
         }
-        List<Map<String, Object>> maps = findBungis(mapList, year,"1Q", "2Q", "3Q");
+        List<Map<String, Object>> maps = findBungis(mapList, year, "1Q", "2Q", "3Q");
         if (maps == null || maps.size() != 3) {
             log.info("NO 1,2,3분기 데이터가 모두 있지 않음. " + code + " " + year);
             return;
         } else {
             log.debug("OK 1,2,3분기 데이터 존재" + maps);
         }
+        String period = year + "/4Q";
 
-        Map<String, Object> map = findBungi(mapList, key,year);
+
+        Map<String, Object> map = findBungi(mapList, key, year);
         if (map == null) {
             log.info("NO " + key + " 데이터가 없음. " + code + " " + year);
             return;
@@ -236,16 +243,17 @@ public class PerformanceCommand extends BasicCommand {
             log.debug("OK " + key + " 데이터 존재" + map);
         }
 
-        String period = year + "/4Q";
+
         Map<String, Object> param4Q = make4QData(maps, map);
+
         log.debug("생성된 4분기 데이터 " + param4Q);
         if (map4Q == null) {
             log.info("INSERT BIZPERF " + param4Q);
             insertBizPerf(param4Q);
-        }else {
+        } else {
             param4Q.put("seq", Maps.getLongValue(map4Q, "seq"));
             updateBizPerf(param4Q);
-            log.info("UPDATE BIZPERF "+param4Q);
+            log.info("UPDATE BIZPERF " + param4Q);
 
         }
 //        if (findPeriodCount(code, year + "/4Q") == 0) {
@@ -255,10 +263,14 @@ public class PerformanceCommand extends BasicCommand {
 //        }
     }
 
-    private List<Map<String, Object>> findBungis(List<Map<String, Object>> mapList, String year,String... keys) {
+
+
+
+
+    private List<Map<String, Object>> findBungis(List<Map<String, Object>> mapList, String year, String... keys) {
         List<Map<String, Object>> maps = new ArrayList<>();
         for (String key : keys) {
-            Map<String, Object> map = findBungi(mapList, key,year);
+            Map<String, Object> map = findBungi(mapList, key, year);
             if (map != null) {
                 maps.add(map);
             }
@@ -279,8 +291,11 @@ public class PerformanceCommand extends BasicCommand {
         setupNetIncome(map4Q, maps, map);
         setupCnetIncome(map4Q, maps, map);
         setupBungiPeriod(map4Q, "4Q");
-
         return map4Q;
+    }
+
+    private boolean hasError(Map<String, Object> map) {
+        return map.containsKey("ERROR");
     }
 
     private void setupRevenue(Map<String, Object> target, List<Map<String, Object>> srcs, Map<String, Object> src2) {
@@ -310,9 +325,20 @@ public class PerformanceCommand extends BasicCommand {
     private void setupValue(Map<String, Object> target, List<Map<String, Object>> srcs, Map<String, Object> src2, String key) {
         boolean isSameUnit = isSameUnit(srcs, src2);
         String value2 = Maps.getValue(src2, key);
+        if (isEmpty(value2)) {
+            //년기나 3개월누적 데이터가 없으면 데이터보정이 의미가 없으므로.
+            target.put(key, "");
+            return;
+        }
         if (isSameUnit) {
             long l2 = findMoney(value2);
             long l1 = findMoney(srcs, key);
+
+            if (l1 == -1) {
+                //1,2,3분기 데이터중에 하나가 없으면 데이터보정이 의미가 없으므로.
+                target.put(key, "");
+                return;
+            }
             long v = l2 - l1;
             log.debug(key + "값보정 " + v + " = " + l2 + " - " + l1);
             if (v == 0) {
@@ -322,6 +348,7 @@ public class PerformanceCommand extends BasicCommand {
             }
         } else {
             // 이거는 나중에 해보자...
+            //TODO
         }
     }
 
@@ -350,21 +377,21 @@ public class PerformanceCommand extends BasicCommand {
         // 2분기 데이터 생성
         // 중복 확인
         // 있으면
-        Map<String, Object> map2Q = findBungi(mapList, "2Q",year);
+        Map<String, Object> map2Q = findBungi(mapList, "2Q", year);
         if (map2Q != null) {
             log.info("NO 2분기 데이터가 이미 있음. " + code + " " + year);
 //            return;
         } else {
             log.debug("OK 2분기데이터 미존재");
         }
-        Map<String, Object> map1Q = findBungi(mapList, "1Q",year);
+        Map<String, Object> map1Q = findBungi(mapList, "1Q", year);
         if (map1Q == null) {
             log.info("NO 1분기 데이터가 없음. " + code + " " + year);
             return;
         } else {
             log.debug("OK 1분기 데이터 존재" + map1Q);
         }
-        Map<String, Object> map1SA = findBungi(mapList, "1SA",year);
+        Map<String, Object> map1SA = findBungi(mapList, "1SA", year);
         if (map1SA == null) {
             log.info("NO 1반기 데이터가 없음. " + code + " " + year);
             return;
@@ -373,21 +400,17 @@ public class PerformanceCommand extends BasicCommand {
         }
         String period = year + "/2Q";
         Map<String, Object> param2Q = make2QData(map1Q, map1SA);
+
         log.debug("생성된 2분기 데이터 " + param2Q);
         if (map2Q == null) {
             log.info("INSERT BIZPERF " + param2Q);
             insertBizPerf(param2Q);
-        }else {
+        } else {
             param2Q.put("seq", Maps.getLongValue(map2Q, "seq"));
             updateBizPerf(param2Q);
-            log.info("UPDATE BIZPERF "+param2Q);
+            log.info("UPDATE BIZPERF " + param2Q);
         }
-//        if (findPeriodCount(code, year + "/2Q") == 0) {
-//            log.info("INSERT BIZPERF " + param2Q);
-//            insertBizPerf(param2Q);
-//        } else {
-//            log.info("2분기데이터 이미 존재. " + code + " " + period);
-//        }
+
     }
 
     private void updateBizPerf(Map<String, Object> param2Q) {
@@ -422,7 +445,6 @@ public class PerformanceCommand extends BasicCommand {
         setupNetIncome(map2Q, map1Q, map1SA);
         setupCnetIncome(map2Q, map1Q, map1SA);
         setupBungiPeriod(map2Q, "2Q");
-
         return map2Q;
     }
 
@@ -443,6 +465,21 @@ public class PerformanceCommand extends BasicCommand {
         String value2 = Maps.getValue(src2, key);
         String unit2 = Maps.getValue(src2, unitKey);
         String value1 = Maps.getValue(src1, key);
+        if (isEmpty(value2)) {
+            String period = Maps.getValue(src2, "period");
+            String isuCd = Maps.getValue(src2, "isu_cd");
+            log.error(isuCd+" "+period+" "+ key+"에 해당하는 값이 없음.");
+            target.put(key, "");
+            return;
+        }
+
+        if (isEmpty(value1)) {
+            String period = Maps.getValue(src1, "period");
+            String isuCd = Maps.getValue(src1, "isu_cd");
+            log.error(isuCd+" "+period+" "+ key+"에 해당하는 값이 없음.");
+            target.put(key, "");
+            return;
+        }
         String unit1 = Maps.getValue(src1, unitKey);
         if (StringUtils.equalsIgnoreCase(unit1, unit2)) {
             long l2 = findMoney(value2);
@@ -475,8 +512,14 @@ public class PerformanceCommand extends BasicCommand {
         long sum = 0;
         for (Map<String, Object> map : srcs) {
             String v = Maps.getValue(map, key);
+            if (isEmpty(v)) {
+                String period = Maps.getValue(map, "period");
+                String isuCd = Maps.getValue(map, "isu_cd");
+                log.error(isuCd+" "+period+" "+key+"에 해당하는 값이 없음. ");
+                return -1;
+            }
             sum += findMoney(v);
-            log.debug(key+" sum="+sum+" << "+v);
+            log.debug(key + " sum=" + sum + " << " + v);
         }
         return sum;
     }
@@ -505,10 +548,10 @@ public class PerformanceCommand extends BasicCommand {
         setupValue(map2Q, map1Q, map1SA, "net_income");
     }
 
-    private Map<String, Object> findBungi(List<Map<String, Object>> mapList, String type,String year) {
+    private Map<String, Object> findBungi(List<Map<String, Object>> mapList, String type, String year) {
         for (Map<String, Object> map : mapList) {
             String period = Maps.getValue(map, "period");
-            if (StringUtils.equalsIgnoreCase(period,year+"/"+type)) {
+            if (StringUtils.equalsIgnoreCase(period, year + "/" + type)) {
                 return map;
             }
         }
@@ -616,7 +659,37 @@ public class PerformanceCommand extends BasicCommand {
             log.error("연결재무제표, 재무제표 모두 없음. " + docUrl + " " + key);
         }
 
-        Map<String, Object> params = findParams(map, map2, acptNo, docNm, key);
+        // 단위가 원화가 아닌 경우 요약재무정보에서 가져오게 처리해야 함.
+        String unit = "";
+        if (map != null) {
+            unit = Maps.getValue(map, "UNIT");
+        }
+        String unit2 = "";
+        if (map2 != null) {
+            unit2 = Maps.getValue(map2, "UNIT");
+        }
+
+        boolean isSummary = false;
+        if (BizUtils.isNotWon(unit) || BizUtils.isNotWon(unit2)) {
+            isSummary = true;
+            // 연결이나 개별 중에 하나라도 다른 통화를 사용하면 연결요약과 개별요약 모두 분석한다.
+            selector.setKeywords(new String[]{"요약", "재무"});
+            selector.setNoKeywords(new String[]{});
+
+            myParser.setSummrayCase(true);
+            myParser.setIndividual(false);
+            log.info("연결원화재분석 이전 " + map);
+            map = (Map<String, Object>) tableParser.simpleParse(c, docUrl, myParser);
+            log.info("연결원화재분석 이후 " + map);
+
+            myParser.setSummrayCase(true);
+            myParser.setIndividual(true);
+            log.info("개별원화재분석 이전 " + map2);
+            map2 = (Map<String, Object>) tableParser.simpleParse(c, docUrl, myParser);
+            log.info("개별원화재분석 이후 " + map2);
+        }
+
+        Map<String, Object> params = findParams(map, map2, acptNo, docNm, key,isSummary);
         params.put("doc_no", docNo);
         params.put("isu_cd", code);
         params.put("acpt_no", acptNo);
@@ -645,7 +718,7 @@ public class PerformanceCommand extends BasicCommand {
             if (updateCorrect) {
                 params.put("seq", seq);
                 templateMapper.updateBizPerf(params);
-                log.info("UPDATE 실적 "+params);
+                log.info("UPDATE 실적 " + params);
             } else {
                 log.info("이미 존재.. SKIP.. " + params);
             }
@@ -653,7 +726,7 @@ public class PerformanceCommand extends BasicCommand {
 
         // 반기나 년기인 경우 보정처리를 시도해 본다.
         String periodType = Maps.getValue(params, "period_type");
-        if (StringUtils.equalsAny(periodType, "YUNG", "BANG","QANG")) {
+        if (StringUtils.equalsAny(periodType, "YUNG", "BANG", "QANG")) {
             sendToCorrectQueue(rabbitTemplate, seq + "", periodType);
         }
     }
@@ -713,9 +786,9 @@ public class PerformanceCommand extends BasicCommand {
                 params.put("period", "ERROR_PARSING_" + key);
                 params.put("period_type", "ERRR");
             } else {
-                if (period.contains("QA")){
+                if (period.contains("QA")) {
                     params.put("period_type", "QANG");
-                }else if(period.contains("Q")) {
+                } else if (period.contains("Q")) {
                     params.put("period_type", "BUNG");
                 } else if (period.contains("Y")) {
                     params.put("period_type", "YUNG");
@@ -734,14 +807,16 @@ public class PerformanceCommand extends BasicCommand {
         return null;
     }
 
-    private Map<String, Object> findParams(Map<String, Object> map, Map<String, Object> map2, String acptNo, String docNm, String key) {
+    private Map<String, Object> findParams(Map<String, Object> map, Map<String, Object> map2, String acptNo, String docNm, String key,boolean isSummary) {
         Map<String, Object> params = new HashMap<>();
         // 두개의 재무제표를 모두 분석하지 못함..
         if (map == null && map2 == null) {
             return params;
         }
+
         if (map != null) {
-            Performance performance = BizUtils.findPerformance(map);
+            Performance performance = BizUtils.findPerformance(map,isSummary);
+            log.info("연결재무제표실적 " + performance);
             performance.setFromData("연결재무제표");
             performance.setDocNm(docNm);
             performance.setKey(key);
@@ -751,18 +826,19 @@ public class PerformanceCommand extends BasicCommand {
             if (hasThreeMonthInKey(performance)) {
                 String period = performance.getPeriod();
                 String _docNm = findDocNm(docNm);
-                log.info("3개월 PERIOD분석 "+performance.getPeriod()+" "+_docNm);
-                performance.setParsedPeriod(BizUtils.findPeriod(period, _docNm,true));
+                log.info("3개월 PERIOD분석 " + performance.getPeriod() + " " + _docNm);
+                performance.setParsedPeriod(BizUtils.findPeriod(period, _docNm, true));
             } else {
-                log.info("PERIOD분석 "+performance.getPeriod()+" "+docNm);
+                log.info("PERIOD분석 " + performance.getPeriod() + " " + docNm);
                 performance.setParsedPeriod(BizUtils.findPeriod(performance.getPeriod(), docNm));
             }
             performance.param(params);
-            log.info("연결재무제표실적 " + performance);
+
         }
 
         if (map2 != null) {
-            Performance performance = BizUtils.findPerformance(map2);
+            Performance performance = BizUtils.findPerformance(map2,isSummary);
+            log.info("재무제표실적 " + performance);
             performance.setFromData("재무제표");
             performance.setDocNm(docNm);
             performance.setKey(key);
@@ -770,15 +846,15 @@ public class PerformanceCommand extends BasicCommand {
             if (hasThreeMonthInKey(performance)) {
                 String period = performance.getPeriod();
                 String _docNm = findDocNm(docNm);
-                log.info("3개월 PERIOD분석 "+performance.getPeriod()+" "+_docNm);
-                performance.setParsedPeriod(BizUtils.findPeriod(period, _docNm,true));
+                log.info("3개월 PERIOD분석 " + performance.getPeriod() + " " + _docNm);
+                performance.setParsedPeriod(BizUtils.findPeriod(period, _docNm, true));
             } else {
-                log.info("PERIOD분석 "+performance.getPeriod()+" "+docNm);
+                log.info("PERIOD분석 " + performance.getPeriod() + " " + docNm);
                 performance.setParsedPeriod(BizUtils.findPeriod(performance.getPeriod(), docNm));
             }
 
             performance.param(params);
-            log.info("재무제표실적 " + performance);
+
 
         }
 
