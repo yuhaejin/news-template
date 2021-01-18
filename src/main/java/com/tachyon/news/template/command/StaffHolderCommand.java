@@ -114,6 +114,11 @@ public class StaffHolderCommand extends BasicCommand {
         }
     }
 
+    @Override
+    public String findArticleType() {
+        return "";
+    }
+
     private void deleteStaff(String docNo, String code, String acptNo) {
         templateMapper.deleteBeforeStaffHolder(code, docNo);
     }

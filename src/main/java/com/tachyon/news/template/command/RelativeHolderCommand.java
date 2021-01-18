@@ -84,7 +84,7 @@ public class RelativeHolderCommand extends BasicCommand {
                 return;
             }
 
-            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
+            String docRaw = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, retryTemplate, loadBalancerCommandHelper);
 
             List<Relative> relatives = new ArrayList<>();
             if (isMajorStockChangeKongis(docNm)) {
@@ -128,15 +128,12 @@ public class RelativeHolderCommand extends BasicCommand {
                 log.info("친인척갯수 " + relativeList.size());
                 if (relativeList.size() > 0) {
                     if (isChangeKongsi(acptNm)) {
-                        String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-                        log.info("이전RelativeHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
-                        if (StringUtils.isEmpty(_docNo) == false) {
-                            if (docNo.equalsIgnoreCase(_docNo) == false) {
+                        List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+                        for (String _docNo : _docNos) {
 
-                                deleteBeforeRelativeHolder(templateMapper, code, _docNo);
-                                log.info("이전RelativeHolder 삭제 code=" + code + " docNo=" + _docNo);
-                                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
-                            }
+                            log.info("이전RelativeHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+                            deleteBeforeRelativeHolder(templateMapper, _docNo, code);
+                            log.info("이전RelativeHolder 삭제 code=" + code + " docNo=" + _docNo);
                         }
                     }
 
@@ -188,6 +185,11 @@ public class RelativeHolderCommand extends BasicCommand {
 
     }
 
+    @Override
+    public String findArticleType() {
+        return "";
+    }
+
     private boolean isNewHolder(TemplateMapper templateMapper, Map<String, Object> param) {
         int size = templateMapper.findRelativeHodlerSize(param);
         if (size > 0) {
@@ -212,7 +214,7 @@ public class RelativeHolderCommand extends BasicCommand {
         return templateMapper.findRelativeHolderCount(param);
     }
 
-    private void deleteBeforeRelativeHolder(TemplateMapper templateMapper, String code, String docNo) {
+    private void deleteBeforeRelativeHolder(TemplateMapper templateMapper, String docNo, String code) {
         templateMapper.deleteBeforeRelativeHolder(code, docNo);
     }
 

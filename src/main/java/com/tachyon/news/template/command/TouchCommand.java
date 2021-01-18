@@ -40,6 +40,7 @@ public class TouchCommand extends BasicCommand {
     private RetryTemplate retryTemplate;
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
+
     @Override
     public void execute(Message message) throws Exception {
         try {
@@ -61,6 +62,11 @@ public class TouchCommand extends BasicCommand {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public String findArticleType() {
+        return "TOUCH";
     }
 
     private void handleTouch(Map<String, Object> _map, String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
@@ -87,7 +93,7 @@ public class TouchCommand extends BasicCommand {
         }
         String filePath = filePath(myContext.getHtmlTargetPath(), docNo, code);
         log.info("... " + key + " " + docUrl + " " + filePath);
-        String html = findDocRow(filePath, docUrl,retryTemplate, loadBalancerCommandHelper);
+        String html = findDocRow(filePath, docUrl, retryTemplate, loadBalancerCommandHelper);
         if (StringUtils.isEmpty(html)) {
             log.info("공시데이터가 없음. " + key + " " + docUrl);
             return;
@@ -116,11 +122,11 @@ public class TouchCommand extends BasicCommand {
         Touch touch = Touch.fromKongsi(map);
 
         if (docNm.contains("정정")) {
-            String _docNo = findBeforeKongsi(templateMapper,code, acptNo);
-            if (StringUtils.isEmpty(_docNo) == false) {
+            List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+            for (String _docNo : _docNos) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
                 templateMapper.deleteBeforeTouchHolder(_docNo, code);
-                deleteBeforeArticle(templateMapper, _docNo, acptNo, code);
+                deleteBeforeArticle(templateMapper, _docNo, code,acptNo,findArticleType());
             }
         }
 
@@ -129,7 +135,7 @@ public class TouchCommand extends BasicCommand {
         if (templateMapper.findTouchHolderCount(findParam) == 0) {
             templateMapper.insertTouchHolder(param);
             if (isGoodArticle(docNm)) {
-                sendToArticleQueue(rabbitTemplate,findPk(param),"TOUCH",findParam);
+                sendToArticleQueue(rabbitTemplate, findPk(param), findArticleType(), findParam);
             }
         } else {
             log.info("이미 존재.. SKIP.. " + touch);
@@ -167,12 +173,12 @@ public class TouchCommand extends BasicCommand {
         map.put("before_cap", touch.getBeforeCap());
         map.put("now_asscap_ratio", touch.getNowAsscapRatio());
         map.put("before_asscap_ratio", touch.getBeforeAsscapRatio());
-        map.put("sales_variation_cause", StringUtils.abbreviate(touch.getSalesVariationCause(),500));
-        map.put("etc", StringUtils.abbreviate(touch.getEtc(),500));
+        map.put("sales_variation_cause", StringUtils.abbreviate(touch.getSalesVariationCause(), 500));
+        map.put("etc", StringUtils.abbreviate(touch.getEtc(), 500));
         map.put("doc_no", docNo);
         map.put("isu_cd", code);
         map.put("acpt_no", acptNo);
-        map.put("acpt_dt", acptNo.substring(0,8));
+        map.put("acpt_dt", acptNo.substring(0, 8));
 
         return map;
     }

@@ -31,4 +31,9 @@ public class AccessHolderCommand extends BasicCommand {
         templateMapper.insertAccessHolder(access.toParamMap());
 
     }
+
+    @Override
+    public String findArticleType() {
+        return "";
+    }
 }

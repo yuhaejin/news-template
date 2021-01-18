@@ -177,7 +177,7 @@ public interface TemplateMapper {
 
     Map<String, Object> findNewerStockHolder(@Param("isu_cd")String isuCd, @Param("owner_name")String name, @Param("change_date")Timestamp timestamp);
 
-    void deleteBeforeTouchHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+    void deleteBeforeTouchHolder(@Param("doc_no")String docNo,@Param("isu_cd")String code);
 
     int findTouchHolderCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
     int findTouchHolderCount(Map<String, Object> param);
@@ -196,7 +196,7 @@ public interface TemplateMapper {
 
     void compressStockHolder(Long seq);
 
-    void deleteBeforeTrialHolder(@Param("isu_cd")String code, @Param("doc_no")String docNo);
+    void deleteBeforeTrialHolder(@Param("doc_no")String docNo,@Param("isu_cd")String code);
 
     int findTrialCount(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
     int findTrialCount(Map<String, Object> map);
@@ -280,7 +280,7 @@ public interface TemplateMapper {
      * @param docNo
      * @param code
      */
-    void deleteArticle(@Param("doc_no")String docNo, @Param("isu_cd")String code);
+    void deleteArticle(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("type")String type);
 
     void deleteBeforeBizPerfHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code);
 

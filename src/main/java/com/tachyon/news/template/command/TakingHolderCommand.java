@@ -87,7 +87,7 @@ public class TakingHolderCommand extends BasicCommand {
             return;
         }
 
-        String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
+        String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, retryTemplate, loadBalancerCommandHelper);
         if (isEmpty(html)) {
             log.error("공시Html을 수집할 수 없음. " + key + " " + docUrl);
             return;
@@ -143,19 +143,24 @@ public class TakingHolderCommand extends BasicCommand {
             if (borrowings != null) {
                 for (Borrowing borrowing : borrowings) {
                     Map<String, Object> findParam = findParam(taking, borrowing, code);
-                    log.info("FIND_PARAM "+findParam);
+                    log.info("FIND_PARAM " + findParam);
                     if (fincTakingHolderCount(findParam) == 0) {
-                        Map<String, Object> insertParam = makeParam(taking,borrowing, docNo, code, acptNo);
+                        Map<String, Object> insertParam = makeParam(taking, borrowing, docNo, code, acptNo);
                         insertTakingHolder(insertParam);
                         if (isGoodArticle(docNm)) {
-                            sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TAKING",findParam);
+                            sendToArticleQueue(rabbitTemplate, findPk(insertParam), findArticleType(), findParam);
                         }
                     } else {
-                        log.info("SKIP 이미존재하는 취득 " + taking+" "+borrowing);
+                        log.info("SKIP 이미존재하는 취득 " + taking + " " + borrowing);
                     }
                 }
             }
         }
+    }
+
+    @Override
+    public String findArticleType() {
+        return "TAKING";
     }
 
     private Map<String, Object> findParam(Taking taking, Borrowing borrowing, String code) {
@@ -164,8 +169,8 @@ public class TakingHolderCommand extends BasicCommand {
         map.put("isu_cd", code);
         map.put("name", taking.getName());
         map.put("birth", taking.getBirth());
-        map.put("owner_capital", modifyWithUnit(taking.getTaking(),unit));
-        map.put("borrow_amount", modifyWithUnit(borrowing.getBorrowingAmount(),unit));
+        map.put("owner_capital", modifyWithUnit(taking.getTaking(), unit));
+        map.put("borrow_amount", modifyWithUnit(borrowing.getBorrowingAmount(), unit));
         map.put("etc", taking.getEtc());
         return map;
     }
@@ -189,23 +194,23 @@ public class TakingHolderCommand extends BasicCommand {
         return null;
     }
 
-    private void insertTakingHolder(Map<String,Object> param ) {
+    private void insertTakingHolder(Map<String, Object> param) {
         log.info("INSERT " + param);
         templateMapper.insertTakingHolder(param);
     }
 
-    private Map<String, Object> makeParam(Taking taking, Borrowing borrowing,String docNo, String code, String acptNo) {
+    private Map<String, Object> makeParam(Taking taking, Borrowing borrowing, String docNo, String code, String acptNo) {
         Map<String, Object> map = new HashMap<>();
         String unit = taking.getUnit();
         map.put("name", taking.getName());
         map.put("birth", taking.getBirth());
-        map.put("owner_capital", modifyWithUnit(taking.getTaking(),unit));
-        map.put("borrowings", modifyWithUnit(taking.getBorrowing(),unit));
-        map.put("etc", modifyWithUnit(taking.getEtc(),unit));
-        map.put("sum", modifyWithUnit(taking.getSum(),unit));
+        map.put("owner_capital", modifyWithUnit(taking.getTaking(), unit));
+        map.put("borrowings", modifyWithUnit(taking.getBorrowing(), unit));
+        map.put("etc", modifyWithUnit(taking.getEtc(), unit));
+        map.put("sum", modifyWithUnit(taking.getSum(), unit));
         map.put("resource", StringUtils.abbreviate(taking.getResource(), 200));
         map.put("borrower", borrowing.getBorrower());
-        map.put("borrow_amount", modifyWithUnit(borrowing.getBorrowingAmount(),borrowing.getUnit()));
+        map.put("borrow_amount", modifyWithUnit(borrowing.getBorrowingAmount(), borrowing.getUnit()));
         map.put("borrow_period", borrowing.getBorrowingPeriod());
         map.put("collateral", borrowing.getCollateral());
         map.put("doc_no", docNo);
@@ -218,30 +223,29 @@ public class TakingHolderCommand extends BasicCommand {
         return map;
     }
 
-    private int fincTakingHolderCount(Taking taking,Borrowing borrowing, String code) {
+    private int fincTakingHolderCount(Taking taking, Borrowing borrowing, String code) {
         int count = templateMapper.fincTakingHolderCount(code, taking.getName(), taking.getBirth(), taking.getTaking(), borrowing.getBorrowingAmount(), taking.getEtc());
         log.info("TAKINGCOUNT " + count + " " + taking.getName());
         return count;
     }
-    private int fincTakingHolderCount(Map<String,Object> param) {
+
+    private int fincTakingHolderCount(Map<String, Object> param) {
         int count = templateMapper.fincTakingHolderCount(param);
         return count;
     }
 
     private void handleBeforeTaking(String code, String acptNo, String docNo) {
-        String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-        log.info("이전TaskingHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
-
-        if (StringUtils.isEmpty(_docNo) == false) {
-            if (docNo.equalsIgnoreCase(_docNo) == false) {
-                deleteBeforeTakingHolder(templateMapper, code, _docNo);
-                log.info("이전TaskingHolder 삭제 code=" + code + " docNo=" + _docNo);
-                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
-            }
+        List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+        for (String _docNo : _docNos) {
+            log.info("이전TaskingHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+            deleteBeforeTakingHolder(templateMapper, _docNo,code );
+            log.info("이전TaskingHolder 삭제 code=" + code + " docNo=" + _docNo);
+            deleteBeforeArticle(templateMapper, _docNo,code, acptNo, findArticleType());
         }
+
     }
 
-    private void deleteBeforeTakingHolder(TemplateMapper templateMapper, String code, String docNo) {
+    private void deleteBeforeTakingHolder(TemplateMapper templateMapper, String docNo, String code) {
         templateMapper.deleteBeforeTakingHolder(code, docNo);
     }
 

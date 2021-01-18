@@ -37,6 +37,7 @@ public class ContractCommand extends BasicCommand {
     private MyContext myContext;
     @Autowired
     private RabbitTemplate rabbitTemplate;
+
     @Override
     public void execute(Message message) throws Exception {
 
@@ -59,8 +60,8 @@ public class ContractCommand extends BasicCommand {
         }
         String docUrl = Maps.getValue(kongsi, "doc_url");
         String docNm = Maps.getValue(kongsi, "doc_nm");
-        if (docNm.contains("단일판매")==false) {
-            log.warn("계약 관련 공시가 아님.  " + key+" "+docUrl);
+        if (docNm.contains("단일판매") == false) {
+            log.warn("계약 관련 공시가 아님.  " + key + " " + docUrl);
             return;
         }
 
@@ -82,33 +83,31 @@ public class ContractCommand extends BasicCommand {
         TableParser tableParser = new TableParser(selector);
         List<Table> tables = tableParser.parseSome(c, docUrl, new MyContractParser());
         if (tables.size() != 1) {
-            log.warn("계약테이블이 없음. "+key+" "+docUrl);
+            log.warn("계약테이블이 없음. " + key + " " + docUrl);
             return;
         }
         Table table = tables.get(0);
         Map<String, Object> map = Tables.wideOneLineTableToMap(table.getBodies(), true, null);
         if (map.size() == 0) {
-            log.warn("계약테이블이 없음. "+key+" "+docUrl);
+            log.warn("계약테이블이 없음. " + key + " " + docUrl);
             return;
         }
 
-        SupplyContract supplyContract = SupplyContract.from(map,docNm,company,docNo,code,acptNo);
+        SupplyContract supplyContract = SupplyContract.from(map, docNm, company, docNo, code, acptNo);
         log.info(supplyContract.toString());
         if (supplyContract.validate() == false) {
-            log.warn("계약테이블을 분석할 수 없음 "+key+" "+docUrl);
+            log.warn("계약테이블을 분석할 수 없음 " + key + " " + docUrl);
             return;
         }
 
         if (docNm.contains("정정")) {
             // 이전 공시 찾아 삭제처리..
-            String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-            log.info("이전 ContractHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
-            if (StringUtils.isEmpty(_docNo) == false) {
-                if (docNo.equalsIgnoreCase(_docNo) == false) {
-                    deleteBeforeContractHolder(templateMapper, code, _docNo);
-                    log.info("이전 ContractHolder 삭제 code=" + code + " docNo=" + _docNo);
-                    deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
-                }
+            List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+            for (String _docNo : _docNos) {
+                log.info("이전 ContractHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+                deleteBeforeContractHolder(templateMapper, _docNo,code);
+                log.info("이전 ContractHolder 삭제 code=" + code + " docNo=" + _docNo);
+                deleteBeforeArticle(templateMapper, _docNo, code,acptNo, findArticleType());
             }
         }
 
@@ -118,18 +117,23 @@ public class ContractCommand extends BasicCommand {
         if (count == 0) {
             Map<String, Object> param = param(supplyContract);
             param.put("child_com", MustacheHelper.convertCompany(table.getChildCompany()));
-            log.info("INSERT "+param);
+            log.info("INSERT " + param);
             templateMapper.insertSupplyContract(param);
             if (isGoodArticle(docNm)) {
-                sendToArticleQueue(rabbitTemplate,findPk(param),"CONTRACT",findParam);
+                sendToArticleQueue(rabbitTemplate, findPk(param), findArticleType(), findParam);
             }
         } else {
-            log.info("이미 존재하는 계약,, "+key);
+            log.info("이미 존재하는 계약,, " + key);
         }
     }
 
+    @Override
+    public String findArticleType() {
+        return "CONTRACT";
+    }
 
-    private Map<String,Object> findParam(SupplyContract supplyContract,String code) {
+
+    private Map<String, Object> findParam(SupplyContract supplyContract, String code) {
         Map<String, Object> map = new HashMap<>();
         map.put("contract_gubun", supplyContract.getGubun());
         map.put("isu_cd", code);
@@ -137,37 +141,39 @@ public class ContractCommand extends BasicCommand {
         map.put("do_date", supplyContract.getDoDate());
         return map;
     }
+
     private Map<String, Object> param(SupplyContract supplyContract) {
         Map<String, Object> map = new HashMap<>();
         map.put("action_type", supplyContract.getActionType());
-        map.put("contract_gubun",supplyContract.getGubun());
-        map.put("contract_name",supplyContract.getContractName());
-        map.put("contents1",supplyContract.getContents1());
-        map.put("contents2",supplyContract.getContents2());
-        map.put("contents3",supplyContract.getContents3());
-        map.put("contents4",supplyContract.getContents4());
-        map.put("contents5",supplyContract.getContents5());
-        map.put("contents6",supplyContract.getContents6());
-        map.put("contents7",supplyContract.getContents7());
-        map.put("target",supplyContract.getTarget());
-        map.put("relation_with_company",supplyContract.getRelationWithCompany());
-        map.put("sales_area",supplyContract.getSalesArea());
-        map.put("contract_start_date",modifyToDate(supplyContract.getContractStartDate()));
-        map.put("contract_end_date",modifyToDate(supplyContract.getContractEndDate()));
-        map.put("contract_condition",supplyContract.getContractCondition());
-        map.put("termination_reason",supplyContract.getTerminationReason());
-        map.put("do_date",modifyToDate(supplyContract.getDoDate()));
-        map.put("reservation_reason",supplyContract.getReservationReason());
-        map.put("reservation_period",supplyContract.getReservationPeriod());
-        map.put("etc",modifyEtc(supplyContract.getEtc()));
-        map.put("doc_no",supplyContract.getDocNo());
-        map.put("isu_cd",supplyContract.getIsuCd());
-        map.put("acpt_no",supplyContract.getAcptNo());
-        map.put("acpt_dt",supplyContract.getAcptNo().substring(0,8));
-        map.put("contract_date",supplyContract.getContractDate());
+        map.put("contract_gubun", supplyContract.getGubun());
+        map.put("contract_name", supplyContract.getContractName());
+        map.put("contents1", supplyContract.getContents1());
+        map.put("contents2", supplyContract.getContents2());
+        map.put("contents3", supplyContract.getContents3());
+        map.put("contents4", supplyContract.getContents4());
+        map.put("contents5", supplyContract.getContents5());
+        map.put("contents6", supplyContract.getContents6());
+        map.put("contents7", supplyContract.getContents7());
+        map.put("target", supplyContract.getTarget());
+        map.put("relation_with_company", supplyContract.getRelationWithCompany());
+        map.put("sales_area", supplyContract.getSalesArea());
+        map.put("contract_start_date", modifyToDate(supplyContract.getContractStartDate()));
+        map.put("contract_end_date", modifyToDate(supplyContract.getContractEndDate()));
+        map.put("contract_condition", supplyContract.getContractCondition());
+        map.put("termination_reason", supplyContract.getTerminationReason());
+        map.put("do_date", modifyToDate(supplyContract.getDoDate()));
+        map.put("reservation_reason", supplyContract.getReservationReason());
+        map.put("reservation_period", supplyContract.getReservationPeriod());
+        map.put("etc", modifyEtc(supplyContract.getEtc()));
+        map.put("doc_no", supplyContract.getDocNo());
+        map.put("isu_cd", supplyContract.getIsuCd());
+        map.put("acpt_no", supplyContract.getAcptNo());
+        map.put("acpt_dt", supplyContract.getAcptNo().substring(0, 8));
+        map.put("contract_date", supplyContract.getContractDate());
 
         return map;
     }
+
     private String modifyEtc(String etc) {
         return StringUtils.rightPad(etc, 400);
     }
@@ -191,7 +197,8 @@ public class ContractCommand extends BasicCommand {
         }
 
     }
-    private void deleteBeforeContractHolder(TemplateMapper templateMapper,  String docNo,String code) {
-        templateMapper.deleteBeforeContractHolder(docNo, code);
+
+    private void deleteBeforeContractHolder(TemplateMapper templateMapper, String docNo, String code) {
+        templateMapper.deleteBeforeContractHolder(code, docNo);
     }
 }

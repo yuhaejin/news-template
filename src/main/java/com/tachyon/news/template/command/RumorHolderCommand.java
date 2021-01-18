@@ -1,6 +1,5 @@
 package com.tachyon.news.template.command;
 
-import com.tachyon.crawl.kind.model.Kongsi;
 import com.tachyon.crawl.kind.model.Rumor;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.NoHeaderMyParser;
@@ -114,6 +113,11 @@ public class RumorHolderCommand extends BasicCommand {
             templateMapper.insertRumor(rumor.toParamMap());
         }
 
+    }
+
+    @Override
+    public String findArticleType() {
+        return "";
     }
 
     /**

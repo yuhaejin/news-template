@@ -155,15 +155,13 @@ public class StockHolderCommand extends BasicCommand {
                     } else {
                         if (table.getBodies().size() > 0) {
                             // 기존 투자자정보 삭제...
-                            String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-                            log.info("이전StockHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
-                            if (StringUtils.isEmpty(_docNo) == false) {
-                                if (docNo.equalsIgnoreCase(_docNo) == false) {
-                                    deleteBeforeStockHolder(templateMapper, code, _docNo);
-                                    log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
-                                    DELETE.put(_docNo, _docNo);
-                                    deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
-                                }
+                            List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+                            for (String _docNo : _docNos) {
+                                log.info("이전StockHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+                                deleteBeforeStockHolder(templateMapper, _docNo,code);
+                                log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                                DELETE.put(_docNo, _docNo);
+                                deleteBeforeArticle(templateMapper, _docNo,code, acptNo,findArticleType());
                             }
                         }
                     }
@@ -329,7 +327,7 @@ public class StockHolderCommand extends BasicCommand {
                             setupCompressed(param, isCompressedData);
                             setupYesterDayClosePrice(param, change);
                             setupParentFun(param, parentSeq, childParams);
-                            setupTotalStockCount(param,totalStockCount);
+                            setupTotalStockCount(param, totalStockCount);
                             //거래마다 처리하면 모펀드 데이터가 각 거래마다 달라질 수 있어 삭제처리.
 //                            setupParentFund(param, change);
                             log.info("INSERT ... " + param);
@@ -382,6 +380,11 @@ public class StockHolderCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    @Override
+    public String findArticleType() {
+        return "STOCK";
     }
 
     private void setupTotalStockCount(Map<String, Object> param, String totalStockCount) {
@@ -445,6 +448,7 @@ public class StockHolderCommand extends BasicCommand {
         }
 
     }
+
     private String findCount(Map<String, Object> map) {
         List<String> strings = Maps.findValuesAndKeys(map, "주식", "총수", "발행");
         if (strings == null || strings.size() == 0) {
@@ -463,6 +467,7 @@ public class StockHolderCommand extends BasicCommand {
 
         return "";
     }
+
     private boolean isDisclosureInformation(String docNm) {
         if (docNm.contains("주식") && docNm.contains("대량") && docNm.contains("보유") && docNm.contains("상황")) {
             return true;
@@ -539,6 +544,7 @@ public class StockHolderCommand extends BasicCommand {
     /**
      * 모자 펀드를 왜 구분을 했는지 알수는 없으나
      * tdr의 요구사항은 구분이 필요하지는 않다고 한다.
+     *
      * @param param
      * @param parentSeq
      */
@@ -1271,7 +1277,7 @@ public class StockHolderCommand extends BasicCommand {
             // 증여,수증 데이터이면.. 주체의 type은 항상 정할 수 있다.
             if (isEmpty(change.getBirthDay())) {
                 change.setSrcType("UNDEFINED");
-            }else {
+            } else {
                 if (isCompany(change)) {
                     log.info("company " + change.getBirthDay());
                     change.setSrcType("COMPANY");
@@ -1702,7 +1708,7 @@ public class StockHolderCommand extends BasicCommand {
         return templateMapper.insertStockHolder(map);
     }
 
-    private void deleteBeforeStockHolder(TemplateMapper templateMapper, String code, String _docNo) {
+    private void deleteBeforeStockHolder(TemplateMapper templateMapper, String _docNo, String code) {
         templateMapper.deleteBeforeStockHolder(code, _docNo);
     }
 

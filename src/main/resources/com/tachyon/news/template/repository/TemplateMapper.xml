@@ -928,6 +928,7 @@
         from api.articleholder
         where isu_cd = #{isu_cd}
           and doc_no = #{doc_no}
+          and type = #{type}
     </delete>
 
 <!--    deleteBeforeBizPerfHolder-->

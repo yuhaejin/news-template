@@ -64,6 +64,11 @@ public class TrialHolderCommand extends BasicCommand {
         }
     }
 
+    @Override
+    public String findArticleType() {
+        return "TRIAL";
+    }
+
     private void handleTrial(String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
 
         Map<String, Object> _map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
@@ -86,7 +91,7 @@ public class TrialHolderCommand extends BasicCommand {
         }
         String filePath = filePath(myContext.getHtmlTargetPath(), docNo, code);
         log.info("... " + key + " " + docUrl + " " + filePath);
-        String html = findDocRow(filePath, docUrl, retryTemplate,loadBalancerCommandHelper);
+        String html = findDocRow(filePath, docUrl, retryTemplate, loadBalancerCommandHelper);
         if (StringUtils.isEmpty(html)) {
             log.warn("공시데이터가 없음. " + key + " " + docUrl);
             return;
@@ -107,11 +112,11 @@ public class TrialHolderCommand extends BasicCommand {
         Trial trial = Trial.from(map);
         log.info(trial.toString());
         if (docNm.contains("정정")) {
-            String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-            if (StringUtils.isEmpty(_docNo) == false) {
+            List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+            for (String _docNo : _docNos) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
-                templateMapper.deleteBeforeTrialHolder(code, _docNo);
-                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
+                templateMapper.deleteBeforeTrialHolder(_docNo,code);
+                deleteBeforeArticle(templateMapper, _docNo, code,acptNo, findArticleType());
             }
         }
         Map<String, Object> findParam = findParam(docNo, code, acptNo);
@@ -119,7 +124,7 @@ public class TrialHolderCommand extends BasicCommand {
             Map<String, Object> insertParam = param(trial, docNo, code, acptNo);
             insertTrial(insertParam);
             if (isGoodArticle(docNm)) {
-                sendToArticleQueue(rabbitTemplate,findPk(insertParam),"TRIAL",findParam);
+                sendToArticleQueue(rabbitTemplate, findPk(insertParam), findArticleType(), findParam);
             }
         } else {
             log.info("SKIP 이미 존재함. " + key);
@@ -127,7 +132,7 @@ public class TrialHolderCommand extends BasicCommand {
 
     }
 
-    private void insertTrial(Map<String, Object> map ) {
+    private void insertTrial(Map<String, Object> map) {
         templateMapper.insertTrial(map);
     }
 

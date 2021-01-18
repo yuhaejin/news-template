@@ -69,6 +69,11 @@ public class OtherManagementCommand extends BasicCommand {
         }
     }
 
+    @Override
+    public String findArticleType() {
+        return "";
+    }
+
     private void handleOtherManagement(String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
 
         Map<String, Object> _map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
@@ -106,11 +111,10 @@ public class OtherManagementCommand extends BasicCommand {
         }
 
         if (docNm.contains("정정")) {
-            String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-            if (StringUtils.isEmpty(_docNo) == false) {
+            List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+            for (String _docNo : _docNos) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
                 templateMapper.deleteBeforeTouchHolder(_docNo, code);
-                deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
             }
         }
         Map<String, Object> param = null;
@@ -122,7 +126,7 @@ public class OtherManagementCommand extends BasicCommand {
 
         String title = Maps.getValue(param, "title");
         if (title == null || "".equalsIgnoreCase(title.trim())) {
-            log.info("제목이 없음. "+docUrl);
+            log.info("제목이 없음. " + docUrl);
             return;
         }
 
@@ -144,13 +148,13 @@ public class OtherManagementCommand extends BasicCommand {
         map.put("doc_no", docNo);
         map.put("isu_cd", code);
         map.put("acpt_no", acptNo);
-        map.put("title", Maps.findValueAndKeys(first, "특허","명칭"));
-        map.put("contents", Maps.findValueAndKeys(first, "특허","주요내용"));
+        map.put("title", Maps.findValueAndKeys(first, "특허", "명칭"));
+        map.put("contents", Maps.findValueAndKeys(first, "특허", "주요내용"));
         map.put("confirm_date", convertDate(Maps.findValueAndKeys(first, "확인", "일자")));
-        map.put("etc", Maps.findValueAndKeys(first, "기타","투자판단"));
+        map.put("etc", Maps.findValueAndKeys(first, "기타", "투자판단"));
 
         map.put("agent", Maps.findValueAndKeys(first, "특허권자"));
-        map.put("major_biz", Maps.findValueAndKeys(first, "특허","활용계획"));
+        map.put("major_biz", Maps.findValueAndKeys(first, "특허", "활용계획"));
 
         return map;
     }
@@ -177,13 +181,14 @@ public class OtherManagementCommand extends BasicCommand {
 
     private Map<String, Object> findSecond(List<Map<String, Object>> maps) {
         for (Map<String, Object> map : maps) {
-            if (Maps.hasAndKey(map, "지배회사","연결","자산총액")) {
+            if (Maps.hasAndKey(map, "지배회사", "연결", "자산총액")) {
                 return map;
             }
         }
         return null;
     }
-    private Map<String, Object> findMap(List<Map<String, Object>> maps,String... keys) {
+
+    private Map<String, Object> findMap(List<Map<String, Object>> maps, String... keys) {
         for (Map<String, Object> map : maps) {
             if (Maps.hasAndKey(map, keys)) {
                 return map;
@@ -195,9 +200,11 @@ public class OtherManagementCommand extends BasicCommand {
     private Map<String, Object> findFirst(List<Map<String, Object>> maps) {
         return findMap(maps, "주요내용");
     }
+
     private Map<String, Object> findPatent(List<Map<String, Object>> maps) {
-        return findMap(maps, "특허","명칭");
+        return findMap(maps, "특허", "명칭");
     }
+
     private void setupSub(Map<String, Object> map, Map<String, Object> first) {
         log.debug("기타 경영 종속회사 " + first);
         map.put("subsidiary", Maps.findValueAndKeys(first, "종속회사명"));

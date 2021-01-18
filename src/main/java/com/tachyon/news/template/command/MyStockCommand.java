@@ -36,6 +36,8 @@ public class MyStockCommand extends BasicCommand {
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
+    private static String STOCK_TYPE = "MYSTOCK";
+
     @Override
     public void execute(Message message) throws Exception {
         try {
@@ -61,6 +63,11 @@ public class MyStockCommand extends BasicCommand {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public String findArticleType() {
+        return "MYSTOCK";
     }
 
     private void handleMyStock(String docNo, String code, String acptNo, String key) {
@@ -94,13 +101,13 @@ public class MyStockCommand extends BasicCommand {
                 return;
             }
 
-            String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl,retryTemplate, loadBalancerCommandHelper);
+            String html = findDocRow(myContext.getHtmlTargetPath(), docNo, code, docUrl, retryTemplate, loadBalancerCommandHelper);
             WholeSelector selector = new WholeSelector();
             TableParser tableParser = new TableParser(selector);
             List<Table> tables = tableParser.parseSome(html, docUrl, new MyStockParser());
 
             if (tables.size() == 0) {
-                log.info("테이블데이터가 없음.. "+ docNm + " " + docUrl);
+                log.info("테이블데이터가 없음.. " + docNm + " " + docUrl);
                 return;
             }
 
@@ -111,31 +118,29 @@ public class MyStockCommand extends BasicCommand {
             if (companyIndex == -1) {
                 name = Maps.getValue(map, "submit_nm");
                 myStockMap = Tables.wideOneLineTableToMap(tables.get(0).getBodies(), true, null);
-            }else {
+            } else {
                 Map<String, Object> companyMap = Tables.widTableToMap(tables.get(companyIndex).getBodies(), true, null);
                 name = findCompany(companyMap);
-                myStockMap = Tables.wideOneLineTableToMap(tables.get(companyIndex+1).getBodies(), true, null);
+                myStockMap = Tables.wideOneLineTableToMap(tables.get(companyIndex + 1).getBodies(), true, null);
             }
 
             // 테이블 구성..
             log.debug(myStockMap.toString());
-            MyStock myStock = convertToMyStock(type, name,docNm, myStockMap);
+            MyStock myStock = convertToMyStock(type, name, docNm, myStockMap);
             if (myStock != null) {
                 if (docNm.contains("정정")) {
-                    String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-                    if (StringUtils.isEmpty(_docNo) == false) {
-                        if (docNo.equalsIgnoreCase(_docNo) == false) {
-                            deleteBeforeMyStockHolder(templateMapper, code, _docNo);
-                            log.info("이전MyStockHolder 삭제 code=" + code + " docNo=" + _docNo);
-                            deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
-                        }
+                    List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+                    for (String _docNo : _docNos) {
+                        deleteBeforeMyStockHolder(templateMapper,_docNo,code);
+                        log.info("이전MyStockHolder 삭제 code=" + code + " docNo=" + _docNo);
+                        deleteBeforeArticle(templateMapper, _docNo, code,acptNo, findArticleType());
                     }
                 }
                 myStock.setDocNo(docNo);
                 myStock.setAcptNo(acptNo);
                 myStock.setIsuCd(code);
                 myStock.setAcptDt(acptNo.substring(0, 8));
-                handleMyStockDb(myStock, type, docUrl,docNm);
+                handleMyStockDb(myStock, type, docUrl, docNm);
             }
 
         } catch (Exception e) {
@@ -145,11 +150,12 @@ public class MyStockCommand extends BasicCommand {
 
     /**
      * 정정 공시라면 이전 공시는 삭제처리하고 이후 처리...
+     *
      * @param myStock
      * @param type
      * @param docUrl
      */
-    private void handleMyStockDb(MyStock myStock, String type, String docUrl,String docNm) {
+    private void handleMyStockDb(MyStock myStock, String type, String docUrl, String docNm) {
         log.info("type=" + type + "docUrl=" + docUrl + " " + myStock.toString());
         myStock.setType(type);
 
@@ -158,16 +164,15 @@ public class MyStockCommand extends BasicCommand {
             Map<String, Object> param = insertParam(myStock);
             templateMapper.insertMyStock(param);
             if (isGoodArticle(docNm)) {
-                sendToArticleQueue(rabbitTemplate,findPk(param),"MYSTOCK",findParam);
+                sendToArticleQueue(rabbitTemplate, findPk(param), findArticleType(), findParam);
             }
         } else {
-            log.info("SkIP 중복된 데이터.. "+myStock);
+            log.info("SkIP 중복된 데이터.. " + myStock);
         }
     }
 
 
-
-    private void deleteBeforeMyStockHolder(TemplateMapper templateMapper, String code, String docNo) {
+    private void deleteBeforeMyStockHolder(TemplateMapper templateMapper, String docNo,String code ) {
         templateMapper.deleteBeforeMyStockHolder(code, docNo);
     }
 
@@ -213,10 +218,10 @@ public class MyStockCommand extends BasicCommand {
      *
      * @param type       GN DSPSL CCL
      * @param name       회사명
-     * @param docNm       공시명
+     * @param docNm      공시명
      * @param myStockMap 파싱한 데이터.
      */
-    private MyStock convertToMyStock(String type, String name, String docNm,Map<String, Object> myStockMap) {
+    private MyStock convertToMyStock(String type, String name, String docNm, Map<String, Object> myStockMap) {
         MyStock myStock = new MyStock();
         myStock.setCompany(name);
         if ("GN".equalsIgnoreCase(type)) {
@@ -233,10 +238,12 @@ public class MyStockCommand extends BasicCommand {
 
         return myStock;
     }
+
     private String findCompany(Map<String, Object> map) {
         String name = Maps.findValue(map, "회사명");
         return name.trim();
     }
+
     private String findType(String docNm) {
         if (docNm.contains("해지")) {
             return "CCL";
@@ -248,6 +255,7 @@ public class MyStockCommand extends BasicCommand {
             return "NO";
         }
     }
+
     private int findCompanyIndex(List<Table> tables) {
         for (int i = 0; i < tables.size(); i++) {
             Table table = tables.get(i);
@@ -259,6 +267,7 @@ public class MyStockCommand extends BasicCommand {
 
         return -1;
     }
+
     private boolean hasCompany(List<List<String>> lists) {
         for (List<String> list : lists) {
             String s = toString(list);
@@ -269,10 +278,11 @@ public class MyStockCommand extends BasicCommand {
         }
         return false;
     }
+
     private String toString(List<String> list) {
         StringBuilder sb = new StringBuilder();
         for (String s : list) {
-            sb.append(StringUtils.remove(s," ")).append(" ");
+            sb.append(StringUtils.remove(s, " ")).append(" ");
         }
         return sb.toString();
     }

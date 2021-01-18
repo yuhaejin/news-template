@@ -82,6 +82,11 @@ public class PurposeHolderCommand extends BasicCommand {
         log.info("done "+key);
     }
 
+    @Override
+    public String findArticleType() {
+        return "";
+    }
+
     private void handleDb(Purpose purpose) {
         Map<String, Object> param = purpose.findParam();
         int count = templateMapper.findPurposeHolder(param);

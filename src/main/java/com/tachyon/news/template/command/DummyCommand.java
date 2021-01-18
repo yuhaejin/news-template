@@ -12,4 +12,9 @@ public class DummyCommand implements Command {
 
         log.info("<<< "+message);
     }
+
+    @Override
+    public String findArticleType() {
+        return "";
+    }
 }

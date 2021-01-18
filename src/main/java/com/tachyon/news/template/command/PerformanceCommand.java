@@ -48,6 +48,7 @@ public class PerformanceCommand extends BasicCommand {
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
+
     @Autowired(required = false)
     private LoadBalancerCommandHelper loadBalancerCommandHelper;
 
@@ -63,12 +64,16 @@ public class PerformanceCommand extends BasicCommand {
                 handleBizPerf(message);
             }
 
-
         } catch (Exception e) {
             log.error(e.getMessage(), e);
             throw e;
         }
 
+    }
+
+    @Override
+    public String findArticleType() {
+        return "ESTIMATE";
     }
 
     private void correctBizPerf(Message message) {
@@ -698,11 +703,11 @@ public class PerformanceCommand extends BasicCommand {
         setupPeriod(params, key);
         // 정정공시 처리
         if (docNm.contains("정정")) {
-            String _docNo = findBeforeKongsi(templateMapper, code, acptNo);
-            if (StringUtils.isEmpty(_docNo) == false) {
+            List<String> _docNos = findBeforeKongsi(templateMapper,docNo, code, acptNo);
+            for (String _docNo : _docNos) {
                 log.info("정정공시중에 이전 공시 삭제... " + _docNo + " " + code);
                 templateMapper.deleteBeforeBizPerfHolder(_docNo, code);
-                deleteBeforeArticle(templateMapper, _docNo, acptNo, code);
+                deleteBeforeArticle(templateMapper, _docNo, code, acptNo,findArticleType());
             }
         }
 
@@ -712,7 +717,7 @@ public class PerformanceCommand extends BasicCommand {
             seq = Maps.getLongValue(params, "seq");
             log.info("INSERT 실적 " + params);
             if (isGoodArticle(docNm)) {
-//                sendToArticleQueue(rabbitTemplate,findPk(),"BIZ_PERF","");
+//                sendToArticleQueue(rabbitTemplate,findPk(),findArticleType(),"");
             }
         } else {
             if (updateCorrect) {

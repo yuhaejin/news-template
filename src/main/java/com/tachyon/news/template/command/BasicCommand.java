@@ -161,21 +161,46 @@ public abstract class BasicCommand extends BaseObject implements Command {
         }
     }
 
-    String findBeforeKongsi(TemplateMapper templateMapper, String code, String acptNo) {
+//    String findBeforeKongsi(TemplateMapper templateMapper, String code, String acptNo) {
+//
+//        List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
+//        for (Map<String, Object> map : maps) {
+//            String name = Maps.getValue(map, "doc_nm");
+//            if (name.contains("정정")) {
+//                continue;
+//            } else {
+//                return Maps.getValue(map, "doc_no");
+//            }
+//        }
+//
+//        return "";
+//    }
+
+    List<String> findBeforeKongsi(TemplateMapper templateMapper,String docNo, String code, String acptNo) {
+        List<String> list = new ArrayList<>();
         List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
+
+        Collections.sort(maps, new Comparator<Map<String, Object>>() {
+            @Override
+            public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+                String docNo1 = Maps.getValue(o1, "doc_no");
+                String docNo2 = Maps.getValue(o2, "doc_no");
+                return docNo1.compareTo(docNo2);
+            }
+        });
+
         for (Map<String, Object> map : maps) {
-            String name = Maps.getValue(map, "doc_nm");
-            if (name.contains("정정")) {
-                continue;
-            } else {
-                return Maps.getValue(map, "doc_no");
+            String _docNo = Maps.getValue(map, "doc_no");
+            if (docNo.equalsIgnoreCase(_docNo)) {
+                break;
+            }
+            if (isEmpty(_docNo) == false) {
+                list.add(_docNo);
             }
         }
 
-        return "";
+        return list;
     }
-
-
     protected boolean isEmpty(String value) {
         return StringUtils.isEmpty(value);
     }
@@ -590,17 +615,21 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
     /**
      * 정정공시와 이전 공시가 같은 날이면 기사 삭제함. (기사가 있으면 삭제처리됨)
+     * TODO 관계된 기사만 삭제해야 할 듯.. 그렇지 않으면 의도치 않은 새기사도 삭제처리할 듯 싶다.
      * @param templateMapper
      * @param _docNo 정정고시에서 이전공시 DocNo 임에 유의...
-     * @param acptNo
      * @param code
+     * @param acptNo
+     * @param type * CONTRACT * GIVETAKE* LAWSUIT* MYSTOCK* STOCK* TAKING* TOUCH* TRIAL
      */
-    void deleteBeforeArticle(TemplateMapper templateMapper, String _docNo, String acptNo, String code) {
-        String _acptDt = acptNo.substring(0, 8);
-        String _docDt = _docNo.substring(0, 8);
-        if (_acptDt.equalsIgnoreCase(_docDt)) {
-            templateMapper.deleteArticle(_docNo, code);
-            log.info("정정 이전공시 기사 삭제.. "+_docNo+" "+code);
+    void deleteBeforeArticle(TemplateMapper templateMapper, String _docNo, String code, String acptNo,String type) {
+        if (isEmpty(type)==false) {
+            String _acptDt = acptNo.substring(0, 8);
+            String _docDt = _docNo.substring(0, 8);
+            if (_acptDt.equalsIgnoreCase(_docDt)) {
+                templateMapper.deleteArticle(_docNo, code,type);
+                log.info("정정 이전공시 기사 삭제.. "+_docNo+" "+code);
+            }
         }
     }
 }

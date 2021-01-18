@@ -152,7 +152,7 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
                 templateMapper.insertTrotHolder(kongsiHodler);
                 if (keyword.equalsIgnoreCase("소송")) {
                     if (isGoodArticle(docNm)) {
-                        sendToArticleQueue(rabbitTemplate,findPk(kongsiHodler),"LAWSUIT",findParam);
+                        sendToArticleQueue(rabbitTemplate,findPk(kongsiHodler),findArticleType(),findParam);
                     }
                 }
             } else {
@@ -161,6 +161,11 @@ public class KeywordKongsiCollectorCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    @Override
+    public String findArticleType() {
+        return "LAWSUIT";
     }
 
     /**

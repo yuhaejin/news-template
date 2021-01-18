@@ -26,7 +26,6 @@ import java.util.Map;
  * 일단 영업 실적이 있고 전망은 없는 공시제목을 찾는다.
  * 마지막 테이블을 대상으로 처리한다.
  * 영업실적과 단위는 분리하여 저장한다.
- *
  */
 @Slf4j
 @Component
@@ -45,7 +44,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
     @Override
     public void execute(Message message) throws Exception {
         String key = myContext.findInputValue(message);
-        log.info("<<< "+key);
+        log.info("<<< " + key);
 
         TableParser tableParser = new TableParser(new WholeSelector());
         WholeBodyParser parser = new WholeBodyParser();
@@ -77,10 +76,15 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
             log.info("SKIP 영업실적공시가 아님.. " + docNm + " docNo=" + docNo + " code=" + code + " acptNo=" + acptNo + " " + docUrl);
         }
 
-        log.info("done . "+key);
+        log.info("done . " + key);
     }
 
-    private void execute(String key,String code,String docNo,String acptNo,Map<String, Object> map, TableParser tableParser, WholeBodyParser myParser) throws Exception {
+    @Override
+    public String findArticleType() {
+        return "BIZPERFORMANCE";
+    }
+
+    private void execute(String key, String code, String docNo, String acptNo, Map<String, Object> map, TableParser tableParser, WholeBodyParser myParser) throws Exception {
         String docUrl = Maps.getValue(map, "doc_url");
         String docNm = Maps.getValue(map, "doc_nm");
         String path = findPath(myContext.getHtmlTargetPath(), code, docNo, "htm");
@@ -103,7 +107,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
 
         int validResult = result.validate();
         if (validResult != Result.VALID) {
-            log.error("INVALID " +toString(validResult)+" "+ docUrl + " " + key);
+            log.error("INVALID " + toString(validResult) + " " + docUrl + " " + key);
             return;
         }
         if (result.isAllValueEmpty()) {
@@ -114,14 +118,12 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
 
         // 정정일 때는 이전 데이터 삭제한다.
         if (isChangeKongsi(docNm)) {
-            String _docNo = findBeforeKongsi(templateMapper,code, acptNo);
-            log.info("이전PerfHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
-            if (StringUtils.isEmpty(_docNo) == false) {
-                if (docNo.equalsIgnoreCase(_docNo) == false) {
-                    deleteBeforePerfHolder(templateMapper, code, _docNo);
-                    log.info("이전PerfHolder 삭제 code=" + code + " docNo=" + _docNo);
-                    deleteBeforeArticle(templateMapper,_docNo,acptNo,code);
-                }
+            List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
+            for (String _docNo : _docNos) {
+                log.info("이전PerfHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
+                deleteBeforePerfHolder(templateMapper, _docNo,code);
+                log.info("이전PerfHolder 삭제 code=" + code + " docNo=" + _docNo);
+                deleteBeforeArticle(templateMapper, _docNo, code, acptNo, findArticleType());
             }
         }
 
@@ -129,23 +131,24 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
 // 키로 같은 데이터가 있는지 확인 없으면 INSERT 있으면 SKIP
         String quarter = result.parseQuarter2(acptNo);
         String type = findType(docNm);
-        Map<String,Object> param = result.param(docNo,code,acptNo);
+        Map<String, Object> param = result.param(docNo, code, acptNo);
         param.put("type", type);
         param.put("child_com", table.getChildCompany());
-        modify(param,quarter,result.getQuarter());
+        modify(param, quarter, result.getQuarter());
         if (isDuplicate(templateMapper, param) == false) {
-            log.info("INSERT " + key + " " + docUrl +" "+param);
+            log.info("INSERT " + key + " " + docUrl + " " + param);
             insertPerf(templateMapper, param);
             String seq = findPk(param);
-            sendToArticleQueue(rabbitTemplate, seq, "BIZPERFORMANCE", seq);
+            sendToArticleQueue(rabbitTemplate, seq, findArticleType(), seq);
         } else {
-            log.info("SKIP 중복됨 "+ key + " " + docUrl+" "+param);
+            log.info("SKIP 중복됨 " + key + " " + docUrl + " " + param);
         }
     }
 
     /**
      * 재무제표 유형 확인
      * 연결재무제표, 별도재무제표
+     *
      * @param docNm
      * @return
      */
@@ -173,18 +176,18 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         }
     }
 
-    private void modify(Map<String, Object> param ,String quarter,String rawQuarter) {
+    private void modify(Map<String, Object> param, String quarter, String rawQuarter) {
         modifyLength(param, "provider_date");
         modifyLength(param, "provider_positon");
         modifyLength(param, "provider");
         modifyLength(param, "subject");
         modifyLength(param, "contact");
         param.put("raw_quarter", rawQuarter);
-        modifyQuarter(param,quarter);
+        modifyQuarter(param, quarter);
     }
 
     private void modifyQuarter(Map<String, Object> param, String quarter) {
-        if (quarter.startsWith("_")==false) {
+        if (quarter.startsWith("_") == false) {
             String[] strings = StringUtils.splitByWholeSeparator(quarter, "/");
             if (strings.length == 2) {
                 param.put("year", strings[0]);
@@ -204,7 +207,7 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         templateMapper.insertPerf(param);
     }
 
-    private boolean isDuplicate(TemplateMapper templateMapper,Map<String, Object> param) {
+    private boolean isDuplicate(TemplateMapper templateMapper, Map<String, Object> param) {
         if (templateMapper.findDuplicatePerf(param) > 0) {
             return true;
         } else {
@@ -212,10 +215,9 @@ public class ProvisionalSalesPerformanceCommand extends BasicCommand {
         }
     }
 
-    private void deleteBeforePerfHolder(TemplateMapper templateMapper, String code, String docNo) {
+    private void deleteBeforePerfHolder(TemplateMapper templateMapper, String docNo, String code) {
         templateMapper.deleteBeforePerfHolder(code, docNo);
     }
-
 
 
 }

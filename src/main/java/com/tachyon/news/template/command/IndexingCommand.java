@@ -89,6 +89,11 @@ public class IndexingCommand extends BasicCommand {
 
     }
 
+    @Override
+    public String findArticleType() {
+        return "";
+    }
+
     private boolean doReIndexing(Message message,String key) {
         if (message.getMessageProperties().getHeaders().containsKey(NewsConstants.REINDEXING)) {
             return true;
