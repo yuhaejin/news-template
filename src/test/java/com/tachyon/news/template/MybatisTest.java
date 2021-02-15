@@ -41,7 +41,7 @@ public class MybatisTest {
         }
     }
     private int findPercentage(long price) throws ParseException {
-        int closePrice  = templateMapper.findCloseByStringDate("A002710", convert("2000-01-06 00:00:00"));
+        int closePrice  = templateMapper.findCloseByStringDate("A002710", "20000106");
         long value = Math.abs(price - closePrice);
         int percentage = percentage(value, closePrice);
         log.info("ODD "+value + "/ " + closePrice + "  =>  " + percentage + "%");

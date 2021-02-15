@@ -203,7 +203,7 @@ public interface TemplateMapper {
 
     void insertTrial(Map<String, Object> map);
 
-    Integer findCloseByStringDate(@Param("code")String code, @Param("date")Timestamp date);
+    Integer findCloseByStringDate(@Param("code")String code, @Param("date")String date);
 
     List<Staff> findStaffHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code, @Param("acpt_no")String acptNo);
 
@@ -309,4 +309,12 @@ public interface TemplateMapper {
     Long findBizPerfHolder(Map<String, Object> params);
 
     void updateBizPerf(Map<String, Object> params);
+
+    int findStaffCount(Map<String, Object> param);
+
+    Map<String, Object> findLargests(Map<String, Object> param);
+
+    List<Long> findTouchHolderSeq(Map<String, Object> findParam);
+
+    void updateTouchHolder(Map<String, Object> param);
 }

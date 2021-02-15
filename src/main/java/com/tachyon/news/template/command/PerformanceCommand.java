@@ -2,11 +2,14 @@ package com.tachyon.news.template.command;
 
 import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.KrxCrawlerHelper;
+import com.tachyon.crawl.kind.model.Estate;
 import com.tachyon.crawl.kind.model.Performance;
+import com.tachyon.crawl.kind.parser.EstateMyParser;
 import com.tachyon.crawl.kind.parser.MyParser;
 import com.tachyon.crawl.kind.parser.PerformanceMyParser;
 import com.tachyon.crawl.kind.parser.TableParser;
 import com.tachyon.crawl.kind.parser.handler.FinancialStatementSelectorByPattern;
+import com.tachyon.crawl.kind.util.JsonUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
@@ -40,6 +43,8 @@ import java.util.*;
 @Component
 public class PerformanceCommand extends BasicCommand {
     private String[] PERIODS = {"1Q", "2Q", "1SA", "3Q", "3QA", "4Q", "2SA", "1Y"};
+    //코스피200 금융회사들.. (매출액을 다르게 분석해야 해서..)
+    private String[] KOSPI200_BANKS = {"A105560", "A055550", "A086790", "A316140", "A024110", "A071050", "A138930","A006800","A016360","A039490","A005940","A008560"};
     @Autowired
     private MyContext myContext;
 
@@ -71,11 +76,17 @@ public class PerformanceCommand extends BasicCommand {
 
     }
 
+
+
     @Override
     public String findArticleType() {
         return "ESTIMATE";
     }
 
+    /**
+     * 분기데이터 보정처리..
+     * @param message
+     */
     private void correctBizPerf(Message message) {
         //                반기나 년기 데이터를 통해 분기데이터 보정한다.
         // seq (반기,년기 데이터)
@@ -108,6 +119,8 @@ public class PerformanceCommand extends BasicCommand {
             log.info("정렬후 " + _map.toString());
         }
 
+
+        //TODO 기사 생성할 수 있도록 추후 변경.
         if (isFirstBangi(period)) {
             handleFirstBangi(mapList, code, year);
         } else if (isSecondBangi(period)) {
@@ -604,7 +617,11 @@ public class PerformanceCommand extends BasicCommand {
         });
     }
 
-
+    /**
+     * 기본적인 공시 분석처리.
+     * @param message
+     * @throws Exception
+     */
     private void handleBizPerf(Message message) throws Exception {
         String key = myContext.findInputValue(message);
         log.info("<<< " + key);
@@ -615,6 +632,7 @@ public class PerformanceCommand extends BasicCommand {
         String code = keys[1];
         String acptNo = keys[2];
 
+
         Map<String, Object> _map = findKongsiHalder(myContext, message, templateMapper, docNo, code, acptNo);
         if (_map == null) {
             log.error("기초공시가 없음 docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
@@ -624,7 +642,6 @@ public class PerformanceCommand extends BasicCommand {
         String isuNm = Maps.getValue(_map, "isu_nm");
         if (isKospi200(code) == false) {
             log.info("코스피200 종목이 아님.. " + code + " " + isuNm);
-//                    return;
         }
 
         String rptNm = Maps.getValue(_map, "rpt_nm");
@@ -655,14 +672,60 @@ public class PerformanceCommand extends BasicCommand {
         // 보고서 손익계산서 분석처리..
         FinancialStatementSelectorByPattern selector = new FinancialStatementSelectorByPattern();
         PerformanceMyParser myParser = new PerformanceMyParser();
+        EstateMyParser estateMyParser = new EstateMyParser();
         TableParser tableParser = new TableParser(selector);
 
         // 연결재무제표 분석..
         Map<String, Object> map = parseCfs(selector, tableParser, c, docUrl, myParser);
+        // 개별재무제표 분석..
         Map<String, Object> map2 = parseFs(selector, tableParser, c, docUrl, myParser);
         if (map == null && map2 == null) {
             log.error("연결재무제표, 재무제표 모두 없음. " + docUrl + " " + key);
+            // 분석한 대상이 없더라도 최종 결과는 db에 처리하므로 여기에서 멈추지 않는다.
         }
+
+        log.debug("연결재무재표 분석 결과 "+map);
+        log.debug("개별재무재표 분석 결과 "+map2);
+
+        if (isKospi200Banks(code)) {
+            // 코스피200 금융회사인 경우는 매출액을 따로 분석한다.
+            // fnguide 데이터 형식으로 처리함에 유의바람.
+            if (map != null) {
+                //연결재무재표가 있는 경우.
+                log.info("코스피200 금융회사 연결매출액 분석.. "+isuNm);
+                selector.setKeywords(new String[]{"연결", "재무", "주석"});
+                selector.setNoKeywords(new String[]{});
+                Map<String, Object> estateMap = findEstateMap(c,docUrl,tableParser,estateMyParser);
+
+                log.info("연계분석결과 "+map);
+                log.info("연계주석분석결과 "+estateMap);
+                Estate estate = Estate.fromConnect(map, estateMap);
+                log.info("연결매출액결과 "+estate);
+                if (estate.validate()) {
+                    //정상인 경우에만 정상적인 값을 부여한다.
+                    estate.setType("연결");
+                    map.put("CTAKE", estate.getTake());
+                }
+                // 분석된 json은 정상적인 분석여부와 상관없이 db처리함.
+                map.put("cbank_json", JsonUtils.toJson(estate));
+
+            }
+
+            if (map2 != null) {
+                //개별재무재표가 있는 경우.
+                selector.setKeywords(new String[]{"재무", "주석"});
+                selector.setNoKeywords(new String[]{"연결"});
+                Map<String, Object> estateMap = findEstateMap(c,docUrl,tableParser,estateMyParser);
+
+                Estate estate = Estate.from(map, estateMap);
+                map.put("TAKE", estate.findTake());
+                map.put("bank_json", JsonUtils.toJson(estate));
+
+            }
+
+        }
+
+
 
         // 단위가 원화가 아닌 경우 요약재무정보에서 가져오게 처리해야 함.
         String unit = "";
@@ -676,22 +739,25 @@ public class PerformanceCommand extends BasicCommand {
 
         boolean isSummary = false;
         if (BizUtils.isNotWon(unit) || BizUtils.isNotWon(unit2)) {
-            isSummary = true;
-            // 연결이나 개별 중에 하나라도 다른 통화를 사용하면 연결요약과 개별요약 모두 분석한다.
-            selector.setKeywords(new String[]{"요약", "재무"});
-            selector.setNoKeywords(new String[]{});
+            if (isKospi200Banks(code)==false) {
+                // 연결이나 개별 중에 하나라도 다른 통화를 사용하면 연결요약과 개별요약 모두 분석한다.
+                isSummary = true;
+                selector.setKeywords(new String[]{"요약", "재무"});
+                selector.setNoKeywords(new String[]{});
 
-            myParser.setSummrayCase(true);
-            myParser.setIndividual(false);
-            log.info("연결원화재분석 이전 " + map);
-            map = (Map<String, Object>) tableParser.simpleParse(c, docUrl, myParser);
-            log.info("연결원화재분석 이후 " + map);
+                myParser.setSummrayCase(true);
+                myParser.setIndividual(false);
+                log.debug("연결원화재분석 이전 " + map);
+                map = (Map<String, Object>) tableParser.simpleParse(c, docUrl, myParser);
+                log.debug("연결원화재분석 이후 " + map);
 
-            myParser.setSummrayCase(true);
-            myParser.setIndividual(true);
-            log.info("개별원화재분석 이전 " + map2);
-            map2 = (Map<String, Object>) tableParser.simpleParse(c, docUrl, myParser);
-            log.info("개별원화재분석 이후 " + map2);
+                myParser.setSummrayCase(true);
+                myParser.setIndividual(true);
+                log.debug("개별원화재분석 이전 " + map2);
+                map2 = (Map<String, Object>) tableParser.simpleParse(c, docUrl, myParser);
+                log.debug("개별원화재분석 이후 " + map2);
+            }
+
         }
 
         Map<String, Object> params = findParams(map, map2, acptNo, docNm, key,isSummary);
@@ -699,6 +765,20 @@ public class PerformanceCommand extends BasicCommand {
         params.put("isu_cd", code);
         params.put("acpt_no", acptNo);
         params.put("acpt_dt", acptNo.substring(0, 8));
+        if (isKospi200Banks(code)) {
+            if (map != null) {
+                //코스피200 금융조목은 매출액 처리를 하지 않는다. (헛갈릴수 있음)
+                params.put("crevenue", "");
+                // 정상적이지 않은 분석도 분석결과는 저장.
+                params.put("cbank_json", Maps.getValue(map, "cbank_json"));
+            }
+            if (map2 != null) {
+                //코스피200 금융조목은 매출액 처리를 하지 않는다. (헛갈릴수 있음)
+                params.put("revenue", "");
+                // 정상적이지 않은 분석도 분석결과는 저장.
+                params.put("bank_json", Maps.getValue(map, "bank_json"));
+            }
+        }
 
         setupPeriod(params, key);
         // 정정공시 처리
@@ -712,18 +792,21 @@ public class PerformanceCommand extends BasicCommand {
         }
 
         Long seq = templateMapper.findBizPerfHolder(params);
+        String period = Maps.getValue(params, "period");
+        String subPk = code + "_" + period;
         if (seq == null) {
             templateMapper.insertBizPerfHolder(params);
             seq = Maps.getLongValue(params, "seq");
             log.info("INSERT 실적 " + params);
             if (isGoodArticle(docNm)) {
-//                sendToArticleQueue(rabbitTemplate,findPk(),findArticleType(),"");
+                sendToArticleQueue(rabbitTemplate,seq+"",findArticleType(),subPk);
             }
         } else {
             if (updateCorrect) {
                 params.put("seq", seq);
                 templateMapper.updateBizPerf(params);
                 log.info("UPDATE 실적 " + params);
+                sendToArticleQueue(rabbitTemplate,seq+"",findArticleType(),subPk,true);
             } else {
                 log.info("이미 존재.. SKIP.. " + params);
             }
@@ -734,6 +817,19 @@ public class PerformanceCommand extends BasicCommand {
         if (StringUtils.equalsAny(periodType, "YUNG", "BANG", "QANG")) {
             sendToCorrectQueue(rabbitTemplate, seq + "", periodType);
         }
+    }
+
+    private Map<String, Object> findEstateMap(String c,String docUrl,TableParser tableParser, EstateMyParser estateMyParser) throws Exception {
+        return (Map<String, Object>) tableParser.simpleParse(c, docUrl, estateMyParser);
+    }
+
+    private boolean isKospi200Banks(String code) {
+        for (String s : KOSPI200_BANKS) {
+            if (s.equalsIgnoreCase(code)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void sendToCorrectQueue(RabbitTemplate rabbitTemplate, String seq, String periodType) {

@@ -674,7 +674,7 @@
                              from stockholder
                              where isu_cd = #{isu_cd}
                                and owner_name = #{owner_name}
-                               and change_date < #{change_date}
+                               and change_date <= #{change_date}
                              order by change_date desc
                                  limit 1) b
         where a.doc_no = b.doc_no
@@ -703,8 +703,8 @@
     </select>
 <!--    insertTouchHolder-->
     <insert id="insertTouchHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
-        INSERT INTO touchholder (financial_type,now_revenue,before_revenue,revenue_amount,revenue_ratio,now_profit,before_profit,profi_amount,profit_ratio,now_ordi_profit,before_ordi_profit,ordi_profit_amount,ordi_profit_ratio,now_income,before_income,income_amount,income_ratio,is_large_corp,now_total_assets,before_total_assets,now_total_debt,before_total_debt,now_total_cap,before_total_cap,now_cap,before_cap,now_asscap_ratio,before_asscap_ratio,sales_variation_cause,etc, doc_no, isu_cd, acpt_no, acpt_dt)
-        VALUES (#{financial_type},#{now_revenue},#{before_revenue},#{revenue_amount},#{revenue_ratio},#{now_profit},#{before_profit},#{profi_amount},#{profit_ratio},#{now_ordi_profit},#{before_ordi_profit},#{ordi_profit_amount},#{ordi_profit_ratio},#{now_income},#{before_income},#{income_amount},#{income_ratio},#{is_large_corp},#{now_total_assets},#{before_total_assets},#{now_total_debt},#{before_total_debt},#{now_total_cap},#{before_total_cap},#{now_cap},#{before_cap},#{now_asscap_ratio},#{before_asscap_ratio},#{sales_variation_cause},#{etc}, #{doc_no}, #{isu_cd}, #{acpt_no}, #{acpt_dt})
+        INSERT INTO touchholder (financial_type,now_revenue,before_revenue,revenue_amount,revenue_ratio,now_profit,before_profit,profi_amount,profit_ratio,now_ordi_profit,before_ordi_profit,ordi_profit_amount,ordi_profit_ratio,now_income,before_income,income_amount,income_ratio,is_large_corp,now_total_assets,before_total_assets,now_total_debt,before_total_debt,now_total_cap,before_total_cap,now_cap,before_cap,now_asscap_ratio,before_asscap_ratio,sales_variation_cause,etc, doc_no, isu_cd, acpt_no, acpt_dt,unit,child_com)
+        VALUES (#{financial_type},#{now_revenue},#{before_revenue},#{revenue_amount},#{revenue_ratio},#{now_profit},#{before_profit},#{profi_amount},#{profit_ratio},#{now_ordi_profit},#{before_ordi_profit},#{ordi_profit_amount},#{ordi_profit_ratio},#{now_income},#{before_income},#{income_amount},#{income_ratio},#{is_large_corp},#{now_total_assets},#{before_total_assets},#{now_total_debt},#{before_total_debt},#{now_total_cap},#{before_total_cap},#{now_cap},#{before_cap},#{now_asscap_ratio},#{before_asscap_ratio},#{sales_variation_cause},#{etc}, #{doc_no}, #{isu_cd}, #{acpt_no}, #{acpt_dt},#{unit},#{child_com})
     </insert>
 <!--    findBeforeStock-->
     <select id="findBeforeStock" resultType="int" parameterType="map">
@@ -949,11 +949,11 @@
         INSERT /* TemplateMapper.insertBizPerfHolder */
         INTO biz_perf_holder
         (
-            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,unit2,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type
+            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,unit2,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type,cbank_json,bank_json
         )
         VALUES
         (
-            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{unit2},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period},#{period_type}
+            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{unit2},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period},#{period_type},#{cbank_json},#{bank_json}
         )
     </insert>
 <!--    findBizPerf-->
@@ -996,6 +996,8 @@
              ,period_type
              ,cfs_json
              ,fs_json
+        ,cbank_json
+        ,bank_json
         from biz_perf_holder
         where isu_cd = #{isu_cd}
         and period like concat(#{year},'%')
@@ -1032,7 +1034,77 @@
         ,period=#{period}
         ,raw_period=#{raw_period}
         ,period_type=#{period_type}
+        ,cbank_json=#{cbank_json}
+        ,bank_json=#{bank_json}
         where seq = #{seq}
+    </update>
+<!--&lt;!&ndash;    findStaffCount&ndash;&gt;-->
+<!--    <select id="findStaffCount" resultType="int" parameterType="map">-->
+<!--        select count(seq)-->
+<!--        from staffholder-->
+<!--        where name = #{name}-->
+<!--          and birth_day = #{birth}-->
+<!--          and isu_cd = #{isu_cd}-->
+<!--    </select>-->
+
+    <select id="findLargests" resultType="map" parameterType="map">
+        <![CDATA[
+        select gender,homeabroad
+        from largeststockholder
+        where name = #{name}
+          and isu_cd = #{isu_cd}
+          and gender <> '' and homeabroad <>'' limit 1
+        ]]>
+    </select>
+    <select id="findTouchHolderSeq" resultType="long" parameterType="map">
+        select seq
+        from touchholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+<!--    updateTouchHolder-->
+    <update id="updateTouchHolder" parameterType="map">
+        update touchholder
+        set financial_type=#{financial_type}
+          ,now_revenue=#{now_revenue}
+          ,before_revenue=#{before_revenue}
+          ,revenue_amount=#{revenue_amount}
+          ,revenue_ratio=#{revenue_ratio}
+          ,now_profit=#{now_profit}
+          ,before_profit=#{before_profit}
+          ,profi_amount=#{profi_amount}
+          ,profit_ratio=#{profit_ratio}
+          ,now_ordi_profit=#{now_ordi_profit}
+          ,before_ordi_profit=#{before_ordi_profit}
+          ,ordi_profit_amount=#{ordi_profit_amount}
+          ,ordi_profit_ratio=#{ordi_profit_ratio}
+          ,now_income=#{now_income}
+          ,before_income=#{before_income}
+          ,income_amount=#{income_amount}
+          ,income_ratio=#{income_ratio}
+          ,is_large_corp=#{is_large_corp}
+          ,now_total_assets=#{now_total_assets}
+          ,before_total_assets=#{before_total_assets}
+          ,now_total_debt=#{now_total_debt}
+          ,before_total_debt=#{before_total_debt}
+          ,now_total_cap=#{now_total_cap}
+          ,before_total_cap=#{before_total_cap}
+          ,now_cap=#{now_cap}
+          ,before_cap=#{before_cap}
+          ,now_asscap_ratio=#{now_asscap_ratio}
+          ,before_asscap_ratio=#{before_asscap_ratio}
+          ,sales_variation_cause=#{sales_variation_cause}
+          ,etc=#{etc}
+          , doc_no=#{ doc_no}
+          , isu_cd=#{ isu_cd}
+          , acpt_no=#{ acpt_no}
+          , acpt_dt=#{ acpt_dt}
+          ,unit=#{unit}
+          ,child_com=#{child_com}
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
     </update>
 </mapper>
 

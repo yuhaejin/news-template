@@ -1,6 +1,7 @@
 package com.tachyon.news.template.command;
 
 import com.tachyon.article.Touch;
+import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.MyTouchParser;
 import com.tachyon.crawl.kind.parser.TableParser;
@@ -8,6 +9,7 @@ import com.tachyon.crawl.kind.parser.handler.WholeSelector;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.crawl.kind.util.Tables;
+import com.tachyon.helper.MustacheHelper;
 import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.model.DocNoIsuCd;
 import com.tachyon.news.template.repository.TemplateMapper;
@@ -55,7 +57,8 @@ public class TouchCommand extends BasicCommand {
             String docNo = docNoIsuCd.getDocNo();
             String code = docNoIsuCd.getIsuCd();
             String acptNo = docNoIsuCd.getAcptNo();
-            handleTouch(null, docNo, code, acptNo, key, tableParser);
+            boolean reprocessing = hasProperty(message, "RE");
+            handleTouch(null, docNo, code, acptNo, key, tableParser,reprocessing);
 
             log.info("done " + key);
 
@@ -69,7 +72,7 @@ public class TouchCommand extends BasicCommand {
         return "TOUCH";
     }
 
-    private void handleTouch(Map<String, Object> _map, String docNo, String code, String acptNo, String key, TableParser tableParser) throws Exception {
+    private void handleTouch(Map<String, Object> _map, String docNo, String code, String acptNo, String key, TableParser tableParser,boolean reprocessing) throws Exception {
 
         if (_map == null) {
             _map = templateMapper.findKongsiHolder2(docNo, code, acptNo);
@@ -109,9 +112,13 @@ public class TouchCommand extends BasicCommand {
 
         Map<String, Object> map = null;
         if (tables.size() == 1) {
-            map = Tables.wideTitleValueTable(tables.get(0).getBodies());
+            Table table = tables.get(0);
+            map = Tables.wideTitleValueTable(table.getBodies());
+            map.put("child_com", table.getChildCompany());
         } else {
-            map = Tables.wideTitleValueTable(tables.get(0), tables.subList(1, tables.size()).toArray(new Table[0]));
+            Table table = tables.get(0);
+            map = Tables.wideTitleValueTable(table, tables.subList(1, tables.size()).toArray(new Table[0]));
+            map.put("child_com", table.getChildCompany());
         }
 
         log.info(map.size() + " " + map);
@@ -120,7 +127,9 @@ public class TouchCommand extends BasicCommand {
             return;
         }
         Touch touch = Touch.fromKongsi(map);
-
+        String unit = findUnit(map);
+        String childCom = findChildCom(map);
+        log.info("단위 "+unit);
         if (docNm.contains("정정")) {
             List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
             for (String _docNo : _docNos) {
@@ -131,15 +140,56 @@ public class TouchCommand extends BasicCommand {
         }
 
         Map<String, Object> param = param(touch, docNo, code, acptNo);
+        param.put("unit", unit);
+        param.put("child_com", MustacheHelper.convertCompany(childCom));
         Map<String, Object> findParam = findParam(docNo, code, acptNo);
-        if (templateMapper.findTouchHolderCount(findParam) == 0) {
+        List<Long> list = templateMapper.findTouchHolderSeq(findParam);
+
+        if (list.size() == 0) {
+            log.info("INSERT "+param);
             templateMapper.insertTouchHolder(param);
             if (isGoodArticle(docNm)) {
                 sendToArticleQueue(rabbitTemplate, findPk(param), findArticleType(), findParam);
             }
+
         } else {
-            log.info("이미 존재.. SKIP.. " + touch);
+            if (reprocessing) {
+                log.info("UPDATE "+param);
+                templateMapper.updateTouchHolder(param);
+                if (isGoodArticle(docNm)) {
+                    for (Long seq : list) {
+                        param.put("seq", seq+"");
+                        sendToReArticleQueue(rabbitTemplate, findPk(param), findArticleType(), findParam);
+                    }
+                }
+            } else {
+                log.info("이미 존재.. SKIP.. " + touch);
+            }
         }
+    }
+
+    private String findChildCom(Map<String, Object> map) {
+        return Maps.getValue(map, "child_com");
+    }
+
+    private String findUnit(Map<String, Object> map) {
+        for (String key : map.keySet()) {
+            if (key.contains("(단위:")) {
+                key = StringUtils.deleteWhitespace(key);
+                String[] strings = StringUtils.substringsBetween(key, "(", ")");
+                for (String s : strings) {
+                    if (s.contains("단위")) {
+                        return StringUtils.remove(s, "단위:");
+                    }
+                }
+            } else if(key.contains("단위")){
+                key = StringUtils.deleteWhitespace(key);
+                key = StringUtils.remove(key, "단위:");
+                key = StringUtils.remove(key, ",%");
+                return key;
+            }
+        }
+        return null;
     }
 
 

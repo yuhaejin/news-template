@@ -29,9 +29,12 @@ import java.util.*;
 
 @Slf4j
 public abstract class BasicCommand extends BaseObject implements Command {
-//    Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo) {
+    //    Map<String, Object> findKongsiHalder(TemplateMapper templateMapper, String docNo) {
 //        return templateMapper.findKongsiHalder(docNo);
 //    }
+    boolean hasProperty(Message message, String type) {
+        return message.getMessageProperties().getHeaders().containsKey(type);
+    }
 
     Map<String, Object> findKongsiHalder(MyContext myContext, Message message, TemplateMapper templateMapper, String docNo, String code, String acptNo) {
 
@@ -67,7 +70,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
      * @return
      * @throws IOException
      */
-    String findDocRow(String htmlTargetPath, String docNo, String code, String docUrl,RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
+    String findDocRow(String htmlTargetPath, String docNo, String code, String docUrl, RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
         // 파일시스템에 있는지 확인
         String filePath = filePath(htmlTargetPath, docNo, code);
         log.info("filePath " + filePath);
@@ -76,7 +79,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
             return FileUtils.readFileToString(file, "UTF-8");
         }
 
-        return findDocRow(docUrl,retryTemplate, loadBalancerCommandHelper);
+        return findDocRow(docUrl, retryTemplate, loadBalancerCommandHelper);
     }
 
     public String convertText(String docRaw) {
@@ -87,17 +90,17 @@ public abstract class BasicCommand extends BaseObject implements Command {
         return findPath(htmlTargetPath, code, docNo, "txt");
     }
 
-    String findDocRow(String docUrl,RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
+    String findDocRow(String docUrl, RetryTemplate retryTemplate, LoadBalancerCommandHelper loadBalancerCommandHelper) throws IOException {
 
         // 파일시스템에 있는지 확인
-        return findBody(loadBalancerCommandHelper,retryTemplate, docUrl);
+        return findBody(loadBalancerCommandHelper, retryTemplate, docUrl);
     }
 
-    protected String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, RetryTemplate retryTemplate,String docUrl) throws IOException {
+    protected String findBody(LoadBalancerCommandHelper loadBalancerCommandHelper, RetryTemplate retryTemplate, String docUrl) throws IOException {
         if (loadBalancerCommandHelper == null) {
-            return JSoupHelper.findBody(docUrl,retryTemplate);
+            return JSoupHelper.findBody(docUrl, retryTemplate);
         } else {
-            return loadBalancerCommandHelper.findBody(docUrl,retryTemplate);
+            return loadBalancerCommandHelper.findBody(docUrl, retryTemplate);
         }
     }
 
@@ -176,7 +179,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 //        return "";
 //    }
 
-    List<String> findBeforeKongsi(TemplateMapper templateMapper,String docNo, String code, String acptNo) {
+    List<String> findBeforeKongsi(TemplateMapper templateMapper, String docNo, String code, String acptNo) {
         List<String> list = new ArrayList<>();
         List<Map<String, Object>> maps = templateMapper.findBeforeKongsi(code, acptNo);
 
@@ -201,6 +204,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
         return list;
     }
+
     protected boolean isEmpty(String value) {
         return StringUtils.isEmpty(value);
     }
@@ -397,6 +401,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
 
     /**
      * 이름이 - 인 것중에 이전 Change 성명과 동일하게 처리하는 로직..
+     *
      * @param changes
      * @param myContext
      */
@@ -526,7 +531,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
             return FileUtils.readFileToString(file, "UTF-8");
         }
 
-        return findDocRow(docUrl,retryTemplate, loadBalancerCommandHelper);
+        return findDocRow(docUrl, retryTemplate, loadBalancerCommandHelper);
     }
 
     /**
@@ -539,9 +544,17 @@ public abstract class BasicCommand extends BaseObject implements Command {
     void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, Map<String, Object> findParam) {
         // 기사 처리를 위해 기사Queue로 데이터 전송..
         String subpk = sortKeyDelegateValue(findParam);
-        sendToArticleQueue(rabbitTemplate, pk, type, subpk);
+        sendToArticleQueue(rabbitTemplate, pk, type, subpk,false);
     }
-    void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, String subpk) {
+    void sendToReArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, Map<String, Object> findParam) {
+        // 기사 처리를 위해 기사Queue로 데이터 전송..
+        String subpk = sortKeyDelegateValue(findParam);
+        sendToArticleQueue(rabbitTemplate, pk, type, subpk,true);
+    }
+    void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, String subpk){
+        sendToArticleQueue(rabbitTemplate, pk, type, subpk, false);
+    }
+    void sendToArticleQueue(RabbitTemplate rabbitTemplate, String pk, String type, String subpk,boolean reprocessing) {
         // 기사 처리를 위해 기사Queue로 데이터 전송..
         log.info("ARTICLE <<< PK=" + pk + " TYPE=" + type + " SUB_PK=" + subpk);
         rabbitTemplate.convertAndSend("ARTICLE", (Object) pk, new MessagePostProcessor() {
@@ -550,12 +563,17 @@ public abstract class BasicCommand extends BaseObject implements Command {
                 message.getMessageProperties().setPriority(9);
                 message.getMessageProperties().getHeaders().put("ARTICLE_TYPE", type);
                 message.getMessageProperties().getHeaders().put("SUB_PK", subpk);
+                if (reprocessing) {
+                    message.getMessageProperties().getHeaders().put("RE", "RE");
+                }
                 return message;
             }
         });
     }
+
     /**
      * 감사보고서, 검토보고서 제외....
+     *
      * @param docNm
      * @return
      */
@@ -566,6 +584,7 @@ public abstract class BasicCommand extends BaseObject implements Command {
             return true;
         }
     }
+
     /**
      * subpk의 길이를 줄임
      * key를 소팅하면서 그 값을 가져와 _로 구분하여 문자열 생성...
@@ -616,19 +635,20 @@ public abstract class BasicCommand extends BaseObject implements Command {
     /**
      * 정정공시와 이전 공시가 같은 날이면 기사 삭제함. (기사가 있으면 삭제처리됨)
      * TODO 관계된 기사만 삭제해야 할 듯.. 그렇지 않으면 의도치 않은 새기사도 삭제처리할 듯 싶다.
+     *
      * @param templateMapper
-     * @param _docNo 정정고시에서 이전공시 DocNo 임에 유의...
+     * @param _docNo         정정고시에서 이전공시 DocNo 임에 유의...
      * @param code
      * @param acptNo
-     * @param type * CONTRACT * GIVETAKE* LAWSUIT* MYSTOCK* STOCK* TAKING* TOUCH* TRIAL
+     * @param type           * CONTRACT * GIVETAKE* LAWSUIT* MYSTOCK* STOCK* TAKING* TOUCH* TRIAL
      */
-    void deleteBeforeArticle(TemplateMapper templateMapper, String _docNo, String code, String acptNo,String type) {
-        if (isEmpty(type)==false) {
+    void deleteBeforeArticle(TemplateMapper templateMapper, String _docNo, String code, String acptNo, String type) {
+        if (isEmpty(type) == false) {
             String _acptDt = acptNo.substring(0, 8);
             String _docDt = _docNo.substring(0, 8);
             if (_acptDt.equalsIgnoreCase(_docDt)) {
-                templateMapper.deleteArticle(_docNo, code,type);
-                log.info("정정 이전공시 기사 삭제.. "+_docNo+" "+code);
+                templateMapper.deleteArticle(_docNo, code, type);
+                log.info("정정 이전공시 기사 삭제.. " + _docNo + " " + code);
             }
         }
     }

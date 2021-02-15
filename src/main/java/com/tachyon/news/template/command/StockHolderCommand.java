@@ -342,7 +342,6 @@ public class StockHolderCommand extends BasicCommand {
                                     if (ownerNameMap.containsKey(_key) == false) {
                                         ownerNameMap.put(_key, _key);
                                     }
-
 //                                    sendToArticleQueue(rabbitTemplate,findPk(param),"STOCK",findParam);
                                 }
                             }
@@ -875,7 +874,7 @@ public class StockHolderCommand extends BasicCommand {
         Timestamp _yesterDay = new Timestamp(yesterDay.getTime());
 
         String code = BizUtils.findCode(_code, stockMethod);
-        Integer closePrice = templateMapper.findCloseByStringDate(code, _yesterDay);
+        Integer closePrice = templateMapper.findCloseByStringDate(code, DateUtils.toString(_yesterDay,"yyyyMMdd"));
         if (closePrice == null) {
             log.warn("종가를 찾을 수 없음. " + code + " " + _yesterDay);
             return;
@@ -1252,6 +1251,7 @@ public class StockHolderCommand extends BasicCommand {
                     c = findMinusChange(changes, changeAmount, "증여");
                 }
 
+
                 if (c != null) {
                     log.debug(etc + " " + c.getName());
                     change.setEtc2(c.getName());
@@ -1275,25 +1275,101 @@ public class StockHolderCommand extends BasicCommand {
     private void setupSrcType(Change change) {
         if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
             // 증여,수증 데이터이면.. 주체의 type은 항상 정할 수 있다.
-            if (isEmpty(change.getBirthDay())) {
-                change.setSrcType("UNDEFINED");
+            String srcType = findSrcType(change.getBirthDay(), change.getName(), change.getIsuCd(), change.getAcptNo());
+            change.setSrcType(srcType);
+
+        }
+    }
+
+    private String findSrcType(String birth,String name,String code,String acptNo) {
+        if (isEmpty(birth) || birth.contains("*") || "-".equals(birth)) {
+            birth = "";
+        }
+
+        if (isRelative(name, birth, code)) {
+            return "RELATIVE";
+        } else {
+            String _birth = BizUtils.convertBirth(birth, acptNo.substring(0, 8));
+            if (isStaff(name, _birth, code)) {
+                return "STAFF";
             } else {
-                if (isCompany(change)) {
-                    log.info("company " + change.getBirthDay());
-                    change.setSrcType("COMPANY");
-                } else {
-                    if (isRelative(change)) {
-                        log.info("RELATIVE " + change.getBirthDay());
-                        change.setSrcType("RELATIVE");
+                if (isCompany(code, name)) {
+                    return "COMPANY";
+                }else {
+                    if (name.length() <= 3) {
+                        if (findDashCount(birth) >= 2) {
+                            return "COMPANY";
+                        } else {
+                            return "UNDEFINED";
+                        }
                     } else {
-                        log.info("STAFF " + change.getBirthDay());
-                        change.setSrcType("STAFF");
+                        if (isHuman(birth)) {
+                            return "UNDEFINED";
+                        } else {
+
+                            return "COMPANY";
+                        }
                     }
                 }
             }
         }
     }
 
+    private boolean isHuman(String s) {
+        if (s.length() == 6) {
+            // 생년월일
+            return true;
+        } else {
+            if (findDashCount(s) == 1) {
+                String[] strings = BizUtils.findNumeric(s);
+                if (strings.length == 2) {
+                    if (strings[0].length() == 6 && strings[1].length() == 7) {
+                        // 주민번호인경우.
+                        return true;
+                    }
+                }
+            }
+        }
+
+        return false;
+    }
+    private int findDashCount(String s) {
+        int count = 0;
+        for (char c : s.toCharArray()) {
+            if (c == '-') {
+                count++;
+            }
+        }
+        return count;
+    }
+    private boolean isCompany(String code, String name) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("name", name);
+        param.put("isu_cd", code);
+        Map<String,Object> map = templateMapper.findLargests(param);
+        if (map == null) {
+            return false;
+        }
+
+        String gender = Maps.getValue(map, "gender");
+        if (StringUtils.containsAny(gender, "남", "여", "남자", "여자")) {
+            return false;
+        } else {
+            return true;
+        }
+
+    }
+    private boolean isStaff(String name, String birth, String isuCd) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("name", name);
+        param.put("birth", birth);
+        param.put("isu_cd", isuCd);
+        if (templateMapper.findStaffCount(param) > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
     private void setupOneTaker(List<Change> list, Change oneGiver) {
         for (Change change : list) {
             String type = change.getStockType();
@@ -1385,10 +1461,7 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private boolean isRelative(Change target) {
-        String isuCd = target.getIsuCd();
-        String name = target.getName();
-        String birth = target.getBirthDay();
+    private boolean isRelative(String isuCd,String name,String birth) {
         Map<String, Object> param = new HashMap<>();
         param.put("name", name);
         param.put("birth", birth);
@@ -1398,6 +1471,10 @@ public class StockHolderCommand extends BasicCommand {
         } else {
             return false;
         }
+    }
+
+    private boolean isRelative(Change target) {
+        return isRelative(target.getIsuCd(), target.getName(), target.getBirthDay());
     }
 
     private boolean isCompany(Change change) {
