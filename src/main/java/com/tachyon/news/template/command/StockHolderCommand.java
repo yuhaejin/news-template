@@ -8,6 +8,7 @@ import com.tachyon.crawl.kind.parser.handler.SimpleSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern;
 import com.tachyon.crawl.kind.parser.handler.StockChangeSelectorByPattern2;
 import com.tachyon.crawl.kind.util.DateUtils;
+import com.tachyon.crawl.kind.util.JsonUtils;
 import com.tachyon.crawl.kind.util.LoadBalancerCommandHelper;
 import com.tachyon.crawl.kind.util.Maps;
 import com.tachyon.news.template.config.MyContext;
@@ -25,6 +26,8 @@ import java.io.File;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.*;
+
+import static com.tachyon.crawl.BizUtils.findIndex;
 
 /**
  *
@@ -193,6 +196,10 @@ public class StockHolderCommand extends BasicCommand {
             setupRepresentativeName(changes);
             setupBistowal(changes);
             setupBirthYm(changes);
+            setupSpecialRelationship(changes,codeNm,docUrl,docRaw);
+//            if (changes.size() > 0) {
+//                return;
+//            }
             String totalStockCount = findTotalStockCount(changes, docRaw, docNm, docUrl);
 
             List<Map<String, Object>> childParams = new ArrayList<>(); // 자펀드 정보를 담는 객체.
@@ -328,6 +335,7 @@ public class StockHolderCommand extends BasicCommand {
                             setupYesterDayClosePrice(param, change);
                             setupParentFun(param, parentSeq, childParams);
                             setupTotalStockCount(param, totalStockCount);
+                            setupSpecialRelationship(param, change.getJson());
                             //거래마다 처리하면 모펀드 데이터가 각 거래마다 달라질 수 있어 삭제처리.
 //                            setupParentFund(param, change);
                             log.info("INSERT ... " + param);
@@ -379,6 +387,126 @@ public class StockHolderCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    private void setupSpecialRelationship(Map<String, Object> param, String json) {
+        param.put("spare_data", json);
+    }
+
+    /**
+     * 특별관계 해소 거래가 있으면 추가 분석을 함.
+     * 발행회사,보고자 : 이 부분은 공시정보로 확인이 가능함.
+     * 직전보고서 보유비율
+     * 이번보고서 보유비율
+     * 변동사유 : 공동 보유 관계 해소와 대표 보고자 변경
+     * 보유목적 : 단순투자인지 또는 주주 권리를 행사 (이부분은 추가 가이드 필요)
+     * @param changes
+     */
+    private void setupSpecialRelationship(List<Change> changes,String codeNm,String docUrl,String c) throws Exception {
+        boolean hasSpecialRelationship = hasSpecialRelationship(changes);
+        if (hasSpecialRelationship) {
+            // 분석처리
+            log.info("특별관계해소 거래를 가지고 있음. "+docUrl);
+            String company = codeNm;
+            StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
+            selector.setKeywords(new String[]{"주식등의", "대량보유상황보고서"});
+
+            TableParser stockChangeTableParser = new TableParser(selector);
+            List<List<String>> lists = (List<List<String>>)stockChangeTableParser.simpleParse(c, docUrl, new RawTablesrMyParser());
+            String reportReason = findReportReason(lists);
+            String beforeRatio = findBeforeRatio(lists);
+            String afterRatio = findAfterRatio(lists);
+            String purpose = findPurpose(lists);
+
+            for (Change change : changes) {
+                if (isSpecialRelationship(change)) {
+                    String json = convertToJson(company, change.getName(), reportReason, beforeRatio, afterRatio, purpose);
+                    change.setJson(json);
+                    log.info("특별관계해소 데이터 "+json);
+                }
+            }
+            // 분석후 해당 거래에 값(json형태로) 설정
+            // DB에 저장하게 함.
+        }
+
+    }
+
+    private String convertToJson(String company, String name, String reportReason, String beforeRatio, String afterRatio, String purpose) {
+
+        Map<String, String> jsonMap = new HashMap<>();
+        jsonMap.put("company", company);
+        jsonMap.put("ownerName", name);
+        jsonMap.put("reportReason", reportReason);
+        jsonMap.put("beforeRatio", beforeRatio);
+        jsonMap.put("afterRatio", afterRatio);
+        jsonMap.put("purpose", purpose);
+
+        return JsonUtils.toJson(jsonMap);
+
+    }
+    private String findPurpose(List<List<String>> lists) {
+        for (List<String> list : lists) {
+            int index = findIndex(list, "보유목적");
+            if (index >= 0) {
+                if (index != list.size() - 1) {
+                    return list.get(index + 1);
+                } else {
+                    return "";
+                }
+            }
+        }
+        return "";
+    }
+    private String findRatio(List<List<String>> lists,String keyword1,String keyword2) {
+        for (List<String> list : lists) {
+            int _index = findIndex(list, keyword1);
+            if (_index < 0) {
+                continue;
+            }
+            int index = findIndex(list, keyword2);
+            if (index >= 0) {
+                if (index != list.size() - 2) {
+                    return list.get(index + 1)+"_"+list.get(index+2);
+                } else {
+                    return "";
+                }
+            }
+        }
+        return "";
+    }
+
+
+    private String findAfterRatio(List<List<String>> lists) {
+        return findRatio(lists, "보유주식", "이번보고서");
+    }
+
+    private String findBeforeRatio(List<List<String>> lists) {
+        return findRatio(lists, "보유주식", "직전보고서");
+    }
+
+    private String findReportReason(List<List<String>> lists) {
+        return "공동 보유 관계 해소와 대표 보고자 변경";
+    }
+    private boolean hasSpecialRelationship(List<Change> changes) {
+        for (Change change : changes) {
+            if (isSpecialRelationship(change)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private boolean isSpecialRelationship(Change change) {
+        String etc = change.getEtc();
+        if (StringUtils.containsAny(etc, "공동보유", "대표보고자")) {
+            return true;
+        } else {
+            return false;
+        }
+
+
+
     }
 
     @Override
