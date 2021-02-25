@@ -375,13 +375,14 @@ public class StockHolderCommand extends BasicCommand {
                 }
             }
 
-            if (stockCount > 0) {
-                int count = templateMapper.findTelegramHolder(docNo, acptNo, "NOT_KEYWORD");
-                if (count == 0) {
-                    templateMapper.insertTelegramHolder(docNo, code, acptNo, "NOT_KEYWORD");
-                } else {
-                }
-            }
+//            if (stockCount > 0) {
+                // 기사는 articleProject에서 처리함.
+//                int count = templateMapper.findTelegramHolder(docNo, acptNo, "NOT_KEYWORD");
+//                if (count == 0) {
+//                    templateMapper.insertTelegramHolder(docNo, code, acptNo, "NOT_KEYWORD");
+//                } else {
+//                }
+//            }
         } else {
             log.error("기초공시가 없음  docNo=" + docNo + " code=" + code + " acptNo=" + acptNo);
         }
