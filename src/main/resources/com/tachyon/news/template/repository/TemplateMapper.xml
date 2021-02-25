@@ -1106,5 +1106,15 @@
           and isu_cd = #{isu_cd}
           and acpt_no = #{acpt_no}
     </update>
+
+    <select id="existStaff" parameterType="map" resultType="int">
+        select count(*)
+        from staffholder
+        where name = #{name}
+          and birth_day = #{birth_day}
+          and isu_cd = #{isu_cd}
+    </select>
+
+
 </mapper>
 

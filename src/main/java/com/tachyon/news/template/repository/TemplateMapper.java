@@ -317,4 +317,11 @@ public interface TemplateMapper {
     List<Long> findTouchHolderSeq(Map<String, Object> findParam);
 
     void updateTouchHolder(Map<String, Object> param);
+
+    /**
+     * 퇴직임원 처리시 해당회사의 임원인지 확인.
+     * @param param
+     * @return
+     */
+    int existStaff(Map<String, Object> param);
 }

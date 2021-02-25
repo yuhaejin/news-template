@@ -118,8 +118,8 @@ public class NewsJobs {
             }
         };
 
-//        testTelegram();
-        handleTelegram(noGroupTelegramHandler);
+        //그룹외에는 처리하지 않는다.
+//        handleTelegram(noGroupTelegramHandler);
 
 
     }

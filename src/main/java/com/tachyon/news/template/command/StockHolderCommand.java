@@ -1809,14 +1809,27 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
+    /**
+     * 임원퇴임 거래 처리..
+     * @param templateMapper
+     * @param param
+     */
     private void handleExpiration2(TemplateMapper templateMapper, Map<String, Object> param) {
-        int count = templateMapper.findStaff(param);
-        if (count == 0) {
-            log.info("staffholder <<< " + param);
-            templateMapper.insertStaff(param);
+
+        int _count = templateMapper.existStaff(param);
+        if (_count > 0) {
+            // 임원인지 여부 먼저 확인.
+            int count = templateMapper.findStaff(param);
+            if (count == 0) {
+                log.info("staffholder <<< " + param);
+                templateMapper.insertStaff(param);
+            } else {
+                log.info("SKIP 중복된 임원 " + param);
+            }
         } else {
-            log.info("SKIP 중복된 임원 " + param);
+            log.info("SKIP 임원이 아님. "+param);
         }
+
     }
 
     private boolean hasExpiration(Change change) {
