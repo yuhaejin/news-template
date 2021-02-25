@@ -154,20 +154,20 @@ public class RelativeHolderCommand extends BasicCommand {
                         }
                     }
 
-
-                    for (Relative relative : relativeList) {
-                        if (hasNewHolder) {
-//                        if (isNewRelative(templateMapper, relative)) {
-                            // 실시간공지..
-                            int count = templateMapper.findTelegramHolder(docNo, acptNo, keyword);
-                            if (count == 0) {
-                                templateMapper.insertTelegramHolder(docNo, relative.getCode(), acptNo, keyword);
-                                break;
-                                // 하나만 집어넣어도 됨. 이후 TelegramHelper에서 친인척 데이터를 가져와 처리함.
-                            }
-                        }
-
-                    }
+// 텔레그램 처리하지 않음.
+//                    for (Relative relative : relativeList) {
+//                        if (hasNewHolder) {
+////                        if (isNewRelative(templateMapper, relative)) {
+//                            // 실시간공지..
+////                            int count = templateMapper.findTelegramHolder(docNo, acptNo, keyword);
+////                            if (count == 0) {
+////                                templateMapper.insertTelegramHolder(docNo, relative.getCode(), acptNo, keyword);
+////                                break;
+////                                // 하나만 집어넣어도 됨. 이후 TelegramHelper에서 친인척 데이터를 가져와 처리함.
+////                            }
+//                        }
+//
+//                    }
 
                 }
 
