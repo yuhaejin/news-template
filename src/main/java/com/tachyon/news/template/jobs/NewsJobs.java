@@ -124,33 +124,33 @@ public class NewsJobs {
 
     }
 
-    private void testTelegram() {
-        try {
-            List<Map<String, Object>> maps = templateMapper.findNoGroupTelegramHolder();
-            if (maps == null || maps.size() == 0) {
-                return;
-            }
-            log.info("... "+maps.size());
-            Collections.sort(maps, new Comparator<Map<String, Object>>() {
-                @Override
-                public int compare(Map<String, Object> o1, Map<String, Object> o2) {
-                    Timestamp timestamp1 = (Timestamp) o1.get("created_at");
-                    Timestamp timestamp2 = (Timestamp) o2.get("created_at");
-                    return timestamp1.compareTo(timestamp2);
-                }
-            });
-            List<TelegramHolder> holders = toTelegramHolder(maps);
-            TelegramHelper telegramHelper = (TelegramHelper) commandFactory.findBean(TelegramHelper.class);
-            for (TelegramHolder holder : holders) {
-                log.info(".. "+holder.getKeyword());
-                telegramHelper.sendToTelegram(new User(),holder);
-            }
-
-        } catch (Exception e) {
-            log.error(e.getMessage(),e);
-        }
-
-    }
+//    private void testTelegram() {
+//        try {
+//            List<Map<String, Object>> maps = templateMapper.findNoGroupTelegramHolder();
+//            if (maps == null || maps.size() == 0) {
+//                return;
+//            }
+//            log.info("... "+maps.size());
+//            Collections.sort(maps, new Comparator<Map<String, Object>>() {
+//                @Override
+//                public int compare(Map<String, Object> o1, Map<String, Object> o2) {
+//                    Timestamp timestamp1 = (Timestamp) o1.get("created_at");
+//                    Timestamp timestamp2 = (Timestamp) o2.get("created_at");
+//                    return timestamp1.compareTo(timestamp2);
+//                }
+//            });
+//            List<TelegramHolder> holders = toTelegramHolder(maps);
+//            TelegramHelper telegramHelper = (TelegramHelper) commandFactory.findBean(TelegramHelper.class);
+//            for (TelegramHolder holder : holders) {
+//                log.info(".. "+holder.getKeyword());
+//                telegramHelper.sendToTelegram(new User(),holder);
+//            }
+//
+//        } catch (Exception e) {
+//            log.error(e.getMessage(),e);
+//        }
+//
+//    }
 
     /**
      * chat_id가 0보다 작은 것을 대상으로 한다.

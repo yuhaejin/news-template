@@ -13,6 +13,7 @@ import com.tachyon.news.template.config.MyContext;
 import com.tachyon.news.template.repository.TemplateMapper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.amqp.core.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.retry.support.RetryTemplate;
@@ -128,13 +129,17 @@ public class StaffReportCommand extends BasicCommand {
 
             String _birth = BizUtils.convertBirth(birth, acptNo.substring(0, 8));
             log.debug(birth + " ==> " + _birth);
+
+            String birthYm = findBirthYm(_birth);
             if (hasStaff(templateMapper, code, name, _birth) == false) {
                 Map<String, Object> param = params(startDate, name, _birth, relationHim, registeredStaff, code, docNo, docUrl, acptNo, relationCom);
+                param.put("birth_ym", birthYm);
                 insertNewStaff(templateMapper, param);
             }
             if (isEmpty(endDate) == false) {
                 if (hasStaffLastDay(templateMapper, code, name, _birth, endDate) == false) {
                     Map<String, Object> param = params(endDate, name, _birth, "임원퇴임", "", code, docNo, docUrl, acptNo, "");
+                    param.put("birth_ym", birthYm);
                     insertRetiredStaff(templateMapper, param);
                 }
             }
@@ -143,6 +148,19 @@ public class StaffReportCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    @NotNull
+    private String findBirthYm(String _birth) {
+        if (isEmpty(_birth)) {
+            return "";
+        } else {
+            if (_birth.length() >= 6) {
+                return _birth.substring(2);
+            } else {
+                return "";
+            }
+        }
     }
 
     @Override
