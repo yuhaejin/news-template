@@ -81,7 +81,7 @@ public class StaffReportCommand extends BasicCommand {
             Table table = tables.get(0);
             Map<String, Object> map = Tables.widTableToMap(table);
             log.debug(map.toString());
-            String name = Maps.findValueAndKeys(map, "성명", "한글");
+            String _name = Maps.findValueAndKeys(map, "성명", "한글");
             String homeabroad = Maps.findValueAndKeys(map, "보고자", "구분");
             String address = Maps.findValueAndKeys(map, "주소");
             String birth = Maps.findValueOrKeys(map, "생년월일", "주민등록번호");
@@ -90,8 +90,9 @@ public class StaffReportCommand extends BasicCommand {
             String registeredStaff = modify(Maps.findValueAndKeys(map, "회사", "등기여부"));
             String startDate = modify(BizUtils.parseSimpleDay(Maps.findValueAndKeys(map, "회사", "선임일")));
             String endDate = modify(BizUtils.parseSimpleDay(Maps.findValueAndKeys(map, "회사", "퇴임일")));
+            String name = BizUtils.modifyName(_name);
 
-            log.debug("name " + name);
+            log.info("name " + _name+" => "+name);
             log.debug("homeabroad " + homeabroad);
             log.debug("address " + address);
             log.debug("birth " + birth);
@@ -131,6 +132,7 @@ public class StaffReportCommand extends BasicCommand {
             log.debug(birth + " ==> " + _birth);
 
             String birthYm = findBirthYm(_birth);
+
             if (hasStaff(templateMapper, code, name, _birth) == false) {
                 Map<String, Object> param = params(startDate, name, _birth, relationHim, registeredStaff, code, docNo, docUrl, acptNo, relationCom);
                 param.put("birth_ym", birthYm);

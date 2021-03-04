@@ -22,6 +22,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * 정기공시에서 임원 정보 추출
+ */
 @Slf4j
 @Component
 public class StaffHolderCommand extends BasicCommand {
@@ -338,6 +341,14 @@ public class StaffHolderCommand extends BasicCommand {
         for (String key : FILTER.keySet()) {
             Staff staff = FILTER.get(key);
             // name,birth_day,kongsi_day,isu_cd
+            String _name = staff.getName();
+            String name = BizUtils.modifyName(_name);
+            if (_name.equalsIgnoreCase(name)) {
+
+            } else {
+                staff.setName(name);
+                log.info("이름변경 "+_name+" => "+name);
+            }
             List<Map<String, Object>> maps = templateMapper.findSimpleStaffHolder(staff.toKeyParamMap());
             if (maps == null || maps.size() == 0) {
                 //insert...
