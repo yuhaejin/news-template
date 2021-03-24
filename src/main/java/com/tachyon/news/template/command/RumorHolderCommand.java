@@ -69,6 +69,8 @@ public class RumorHolderCommand extends BasicCommand {
         String tnsDt = Maps.getValue(map, "tns_dt");
         String acptNm = Maps.getValue(map, "rpt_nm");
 
+        // 정정인 경우 지난
+
         // DB 확인...
         int count = templateMapper.findRumorCount(docNo, code, acptNo);
         if (count > 0) {
@@ -102,6 +104,13 @@ public class RumorHolderCommand extends BasicCommand {
 
         handleSrcCorrectKongsi(code,acptNo);
         for (Rumor rumor : rumors) {
+            if (acptNm.startsWith("[정정]")) {
+                String title = rumor.getRumorTitle();
+                if (title.startsWith("[정정]")==false) {
+                    title = "[정정]" + title;
+                    rumor.setRumorTitle(title);
+                }
+            }
             log.info(rumor.toString() +" "+ key + " " + docUrl);
             if (rumor.getSkips().size() > 0) {
                 for (String skip : rumor.getSkips()) {

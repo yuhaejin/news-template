@@ -151,8 +151,8 @@
     </update>
 
     <insert id="insertRumor" parameterType="map">
-        INSERT INTO rumorholder (isu_cd, doc_no, acpt_no, type, kongsi_dt, contents, title, kongsi_due_dt, media, skip_count, kongsi_res_dt)
-        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{type}, #{kongsi_dt}, #{contents}, #{title}, #{kongsi_due_dt}, #{media}, #{skip_count}, #{kongsi_res_dt})
+        INSERT INTO rumorholder (isu_cd, doc_no, acpt_no, type, kongsi_dt, contents, title, kongsi_due_dt, media, skip_count, kongsi_res_dt,acpt_dt)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{type}, #{kongsi_dt}, #{contents}, #{title}, #{kongsi_due_dt}, #{media}, #{skip_count}, #{kongsi_res_dt},#{acpt_dt})
     </insert>
     <select id="findRumorCount" resultType="int" parameterType="map">
         select count(doc_no)
