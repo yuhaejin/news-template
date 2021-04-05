@@ -324,4 +324,6 @@ public interface TemplateMapper {
      * @return
      */
     int existStaff(Map<String, Object> param);
+
+    void updateSpareData(@Param("seq")Long seq, @Param("spare_data")String json);
 }

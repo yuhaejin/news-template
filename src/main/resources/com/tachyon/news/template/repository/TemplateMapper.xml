@@ -1115,6 +1115,9 @@
           and isu_cd = #{isu_cd}
     </select>
 
+    <update id="updateSpareData" parameterType="map">
+        update stockholder set spare_data = #{spare_data} where seq = #{seq}
+    </update>
 
 </mapper>
 

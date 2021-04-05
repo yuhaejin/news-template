@@ -315,7 +315,15 @@ public class StockHolderCommand extends BasicCommand {
                                 log.info("SKIP 거래자명동일 " + seq + " " + ownerName);
                             }
                         }
-
+                    } else if (isSpecialRelationUpdate(message)) {
+                        String json = change.getJson();
+                        Map<String, Object> findParam = param(change, code, tempRptNm, docUrl, docNo, acptNo);
+                        Long seq = hasDuplicateStockHolder(templateMapper, findParam);
+                        if (isEmpty(json)) {
+                            continue;
+                        } else {
+                            updateSpareData(templateMapper,seq, json);
+                        }
                     } else {
                         // 유일한 값이라고 할만한 조회...
                         //mybatis 처리시 paramMap을 다른 클래스에서 처리한 것은 나중에 수정..
@@ -390,6 +398,10 @@ public class StockHolderCommand extends BasicCommand {
         log.info("done " + key);
     }
 
+    private void updateSpareData(TemplateMapper templateMapper,Long seq, String json) {
+        templateMapper.updateSpareData(seq, json);
+    }
+
     private void setupSpecialRelationship(Map<String, Object> param, String json) {
         param.put("spare_data", json);
     }
@@ -446,8 +458,12 @@ public class StockHolderCommand extends BasicCommand {
 
     }
     private String findPurpose(List<List<String>> lists) {
+        return findValue(lists,"보유목적");
+    }
+
+    private String findValue(List<List<String>> lists, String keyword) {
         for (List<String> list : lists) {
-            int index = findIndex(list, "보유목적");
+            int index = findIndex(list, keyword);
             if (index >= 0) {
                 if (index != list.size() - 1) {
                     return list.get(index + 1);
@@ -486,7 +502,7 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private String findReportReason(List<List<String>> lists) {
-        return "공동 보유 관계 해소와 대표 보고자 변경";
+        return findValue(lists,"보고사유");
     }
     private boolean hasSpecialRelationship(List<Change> changes) {
         for (Change change : changes) {
@@ -494,7 +510,6 @@ public class StockHolderCommand extends BasicCommand {
                 return true;
             }
         }
-
         return false;
     }
 
@@ -613,6 +628,16 @@ public class StockHolderCommand extends BasicCommand {
         }
         return false;
     }
+
+    private boolean isSpecialRelationUpdate(Message message) {
+        if (message.getMessageProperties().getHeaders().containsKey("__UPDATE")) {
+            if ("SPCLRLTN".equalsIgnoreCase((String) message.getMessageProperties().getHeaders().get("__UPDATE"))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void updateParentFund(TemplateMapper templateMapper, Long seq, Long parentSeq) {
         if (parentSeq == null) {
