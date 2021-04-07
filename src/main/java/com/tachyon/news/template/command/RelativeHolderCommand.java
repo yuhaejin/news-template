@@ -1,5 +1,6 @@
 package com.tachyon.news.template.command;
 
+import com.tachyon.crawl.BizUtils;
 import com.tachyon.crawl.kind.model.Relative;
 import com.tachyon.crawl.kind.model.Table;
 import com.tachyon.crawl.kind.parser.LargestStockHolderParser;
@@ -19,6 +20,7 @@ import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -117,12 +119,18 @@ public class RelativeHolderCommand extends BasicCommand {
             }
 
             List<Relative> relativeList = new ArrayList<>();
+            List<Relative> staffList = new ArrayList<>();
             if (relatives.size() > 0) {
                 for (Relative relative : relatives) {
                     if (isRelative(relative)) {
                         relativeList.add(relative);
                     } else {
-                        log.info("친인척이 아님.. " + relative);
+                        String relation = relative.getRelationWithHim();
+                        if ("공동보유자".equalsIgnoreCase(relation)) {
+                            staffList.add(relative);
+                        } else {
+                            log.info("친인척이 아님.. " + relative);
+                        }
                     }
                 }
                 log.info("친인척갯수 " + relativeList.size());
@@ -153,23 +161,24 @@ public class RelativeHolderCommand extends BasicCommand {
                             log.info("SKIP 중복된 데이터 " + param);
                         }
                     }
-
-// 텔레그램 처리하지 않음.
-//                    for (Relative relative : relativeList) {
-//                        if (hasNewHolder) {
-////                        if (isNewRelative(templateMapper, relative)) {
-//                            // 실시간공지..
-////                            int count = templateMapper.findTelegramHolder(docNo, acptNo, keyword);
-////                            if (count == 0) {
-////                                templateMapper.insertTelegramHolder(docNo, relative.getCode(), acptNo, keyword);
-////                                break;
-////                                // 하나만 집어넣어도 됨. 이후 TelegramHelper에서 친인척 데이터를 가져와 처리함.
-////                            }
-//                        }
-//
-//                    }
-
                 }
+
+                if (staffList.size() > 0) {
+                    for (Relative relative : staffList) {
+                        // 정정시 처리X
+                        // 임원에 처리. 중복여부 확인후 INSERT 해보자.
+                        log.info(".. "+relative);
+                        Map<String, Object> staffParam = staffParam(relative);
+                        List<Map<String, Object>> maps = templateMapper.findSimpleStaffHolder(staffParam);
+                        if (maps == null || maps.size() == 0) {
+                            templateMapper.insertStaffHolder(staffParam);
+                            log.info("INSERT 임원 "+staffParam);
+                        } else {
+                            log.info("SKIP 임원 중복됨 "+staffParam);
+                        }
+                    }
+                }
+
 
             } else {
                 log.warn("친인척 데이터가 없음. " + key);
@@ -184,6 +193,48 @@ public class RelativeHolderCommand extends BasicCommand {
         }
 
     }
+
+    private Map<String, Object> staffParam(Relative relative) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("kongsi_day", relative.getAcptNo().substring(0,8));
+        map.put("name", relative.getName());
+        map.put("gender", "");
+        map.put("birth_day", BizUtils.convertBirth(relative.getBirth(),relative.getAcptNo().substring(0,8)));   //생년월일 => 년월 로 변경
+        map.put("spot", "공동보유자");
+        map.put("regi_officer_yn", "N");
+        map.put("full_time_yn", "N");
+        map.put("responsibilities", relative.getRelationWithCom());
+        map.put("major_career", "-");
+        map.put("birth_ym", toBirthYm(relative.getBirth()));
+        map.put("voting_stock", 0);
+        map.put("no_voting_stock", 0);
+        map.put("service_duration", "");
+        map.put("expiration_date", "");
+        map.put("isu_cd", relative.getCode());
+        map.put("doc_no", relative.getDocNo());
+        map.put("doc_url", relative.getDocUrl());
+        map.put("acpt_no", relative.getAcptNo());
+
+        return map;
+    }
+
+    /**
+     *
+     * @param birth
+     * @return
+     */
+    private String toBirthYm(String birth) {
+        if (isEmpty(birth)) {
+            return "";
+        } else {
+            if (birth.length() >= 4) {
+                return birth.substring(0, 4);
+            } else {
+                return birth;
+            }
+        }
+    }
+
 
     @Override
     public String findArticleType() {
@@ -221,6 +272,7 @@ public class RelativeHolderCommand extends BasicCommand {
     private boolean isRelative(Relative relative) {
         String relation = relative.getRelationWithHim();
         return StringUtils.containsAny(relation, "친척", "인척", "본인");
+//        return StringUtils.containsAny(relation, "친척", "인척", "본인","공동보유자");
     }
 
     private boolean isStockChangeKongsi(String docNm) {

@@ -949,11 +949,13 @@
         INSERT /* TemplateMapper.insertBizPerfHolder */
         INTO biz_perf_holder
         (
-            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,unit2,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type,cbank_json,bank_json
+            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,unit2,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type
+            ,cbank_json,bank_json,cum_revenue,cum_operating_profit,cum_net_income,cum_crevenue,cum_coperating_profit,cum_cnet_income
         )
         VALUES
         (
-            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{unit2},#{period},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{raw_period},#{period_type},#{cbank_json},#{bank_json}
+            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{unit2},#{period},#{doc_no},#{isu_cd}
+            ,#{acpt_no},#{acpt_dt},#{raw_period},#{period_type},#{cbank_json},#{bank_json},#{cum_revenue},#{cum_operating_profit},#{cum_net_income},#{cum_crevenue},#{cum_coperating_profit},#{cum_cnet_income}
         )
     </insert>
 <!--    findBizPerf-->
@@ -996,8 +998,14 @@
              ,period_type
              ,cfs_json
              ,fs_json
-        ,cbank_json
-        ,bank_json
+            ,cbank_json
+            ,bank_json
+             ,cum_revenue
+             ,cum_operating_profit
+             ,cum_net_income
+             ,cum_crevenue
+             ,cum_coperating_profit
+             ,cum_cnet_income
         from biz_perf_holder
         where isu_cd = #{isu_cd}
         and period like concat(#{year},'%')
@@ -1036,6 +1044,12 @@
         ,period_type=#{period_type}
         ,cbank_json=#{cbank_json}
         ,bank_json=#{bank_json}
+        ,cum_revenue=#{cum_revenue}
+        ,cum_operating_profit=#{cum_operating_profit}
+        ,cum_net_income=#{cum_net_income}
+        ,cum_crevenue=#{cum_crevenue}
+        ,cum_coperating_profit=#{cum_coperating_profit}
+        ,cum_cnet_income=#{cum_cnet_income}
         where seq = #{seq}
     </update>
 <!--&lt;!&ndash;    findStaffCount&ndash;&gt;-->
