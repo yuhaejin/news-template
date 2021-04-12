@@ -1132,6 +1132,20 @@
     <update id="updateSpareData" parameterType="map">
         update stockholder set spare_data = #{spare_data} where seq = #{seq}
     </update>
+    <select id="findPreviousBizPerf" parameterType="map" resultType="map">
+        select
+             unit
+             ,unit2
+             ,cum_revenue
+             ,cum_operating_profit
+             ,cum_net_income
+             ,cum_crevenue
+             ,cum_coperating_profit
+             ,cum_cnet_income
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
 
 </mapper>
 

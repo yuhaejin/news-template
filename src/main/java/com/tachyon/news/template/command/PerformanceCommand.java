@@ -27,6 +27,8 @@ import org.springframework.stereotype.Component;
 import java.io.File;
 import java.util.*;
 
+import static com.tachyon.crawl.BizUtils.*;
+
 /**
  * 실적 처리
  * 분기,반기,사업보고서에서 손익계산서 부분을 분석하여
@@ -394,7 +396,7 @@ public class PerformanceCommand extends BasicCommand {
     }
 
     /**
-     * TODO 4분기 누적 - 3분기누적처리
+     * 4분기 누적 - 3분기누적처리
      * @param map3Q 3Q 누적데이터를 가짐.
      * @param yearMap
      * @return
@@ -444,7 +446,6 @@ public class PerformanceCommand extends BasicCommand {
     private void setupValue(Map<String, Object> target, List<Map<String, Object>> srcs, Map<String, Object> src2, String key) {
         String value = findValue(srcs, src2, key);
         if (value == null) {
-
         } else {
             target.put(key, value);
         }
@@ -470,7 +471,7 @@ public class PerformanceCommand extends BasicCommand {
     }
 
     private String findValue(List<Map<String, Object>> srcs, Map<String, Object> src2, String key) {
-        boolean isSameUnit = isSameUnit(srcs, src2);
+        boolean isSameUnit = isSameUnit(srcs, src2,key);
         String value2 = Maps.getValue(src2, key);
         if (isEmpty(value2)) {
             //년기나 3개월누적 데이터가 없으면 데이터보정이 의미가 없으므로.
@@ -492,14 +493,50 @@ public class PerformanceCommand extends BasicCommand {
                 return BizUtils.toMoney(v);
             }
         } else {
-            //TODO
-            return null;
+            // 모든 값들을 원단위로 변환한후 src2의 단위로 변환하여 반환.
+            String unitKey = findUnitKey(key);
+            String unit2 = Maps.getValue(src2, unitKey);
+            String v2 = convertPrice(value2, unit2);
+
+            long sum =findWonValue(srcs,key);
+            if (sum == -1) {
+                return "";
+            }
+
+            long v = toLong(v2) - sum;
+            if (v == 0) {
+                return "";
+            } else {
+                return convertMoney(v+"",unit2)+"";
+            }
         }
     }
-    private boolean isSameUnit(List<Map<String, Object>> srcs, Map<String, Object> src2) {
-        String _unit = Maps.getValue(src2, "unit");
+
+    private long findWonValue(List<Map<String, Object>> srcs, String key) {
+        String unitKey = findUnitKey(key);
+        long sum =0;
         for (Map<String, Object> map : srcs) {
-            String unit = Maps.getValue(map, "unit");
+            String v = Maps.getValue(map, key);
+            String u = Maps.getValue(map, unitKey);
+            if (isEmpty(v)) {
+                String period = Maps.getValue(map, "period");
+                String isuCd = Maps.getValue(map, "isu_cd");
+                log.error(isuCd+" "+period+" "+key+"에 해당하는 값이 없음. ");
+                return -1;
+            }
+
+            String vv = convertPrice( v, u);
+            sum += toLong(vv);
+            log.debug(key + " sum=" + sum + " << " + v);
+        }
+
+        return sum;
+    }
+    private boolean isSameUnit(List<Map<String, Object>> srcs, Map<String, Object> src2,String key) {
+        String unitKey = findUnitKey(key);
+        String _unit = Maps.getValue(src2, unitKey);
+        for (Map<String, Object> map : srcs) {
+            String unit = Maps.getValue(map, unitKey);
             if (StringUtils.equalsIgnoreCase(_unit, unit) == false) {
                 return false;
             }
@@ -635,7 +672,13 @@ public class PerformanceCommand extends BasicCommand {
                 target.put(key, BizUtils.toMoney(v));
             }
         } else {
-            // 이거는 나중에 해보자...
+
+            long s = BizUtils.calculateWithDiffUnit(value1, unit1, value2, unit2, unit2);
+            if (s == 0) {
+                target.put(key, "");
+            } else {
+                target.put(key, BizUtils.toMoney(s));
+            }
         }
     }
 
@@ -722,7 +765,7 @@ public class PerformanceCommand extends BasicCommand {
             }
         }
 
-        return 100;
+        return PERIODS.length +1;
     }
 
     private void sortBizPerf(List<Map<String, Object>> mapList) {
@@ -907,6 +950,9 @@ public class PerformanceCommand extends BasicCommand {
             }
         }
 
+        correctEmptyValue(params);
+
+
         setupPeriod(params, key);
         // 정정공시 처리
         if (docNm.contains("정정")) {
@@ -939,11 +985,139 @@ public class PerformanceCommand extends BasicCommand {
             }
         }
 
-        // 반기나 년기인 경우 보정처리를 시도해 본다.
+        // 반기나 년기인 경우 분기데이터 생성처리를 시도해 본다.
         String periodType = Maps.getValue(params, "period_type");
         if (StringUtils.equalsAny(periodType, "YUNG", "BANG", "QANG")) {
             sendToCorrectQueue(rabbitTemplate, seq + "", periodType);
         }
+    }
+
+    /**
+     * 잘못된 공시로 인해
+     * 매출액이 누락되었을 때 현재 누적매출에서 이전분기 누적매출을 빼어서 데이터를 보정처리함.
+     * 매출액이나 영업어익 순이익 모두 대상이 될 수 있음.
+     * @param params
+     */
+    private void correctEmptyValue(Map<String, Object> params) {
+        String period = Maps.getValue(params, "period");
+        if (StringUtils.containsAny(period, "1Q", "2Q", "3Q", "4Q")==false) {
+            // 누적분기가 아닌 공시를 대상으로 처리하므로
+            return;
+        }
+
+        String code = Maps.getValue(params, "isu_cd");
+        String previousPeriod = findPeriviousPeriod(period);
+        if (isEmpty(previousPeriod)) {
+            return;
+        }
+        Map<String, Object> previous = templateMapper.findPreviousBizPerf(code, previousPeriod);
+        if (previous == null) {
+            return;
+        }
+
+        correctConnectEmptyValue(params,previous);
+        correctIndividualEmptyValue(params,previous);
+    }
+
+    /**
+     * 개별재무재표 값 보정.
+     * @param params
+     */
+    private void correctIndividualEmptyValue(Map<String, Object> params,Map<String, Object> previous) {
+        String revenue = Maps.getValue(params, "revenue");
+        String operatingProfit = Maps.getValue(params, "operating_profit");
+        String netIncome = Maps.getValue(params, "net_income");
+
+        if (StringUtils.isAnyEmpty(revenue,operatingProfit,netIncome)==false) {
+            return;
+        }
+
+        if (isEmpty(revenue)) {
+            correctEmptyValue(params,previous,"cum_revenue","revenue","unit");
+        }
+        if (isEmpty(operatingProfit)) {
+            correctEmptyValue(params,previous,"cum_operating_profit","operating_profit","unit");
+        }
+
+        if (isEmpty(netIncome)) {
+            correctEmptyValue(params,previous,"cum_net_income","net_income","unit");
+        }
+
+    }
+
+    /**
+     *
+     * @param params 현분기 정보
+     * @param previous 이전분기 정보
+     * @param key 누적빼기 대상
+     * @param key2 누적빼기 결과 설정대상.
+     * @param unitKey 단위키 연결과 개별 단위가 달라서 단위키가 필요
+     */
+    private void correctEmptyValue(Map<String, Object> params, Map<String, Object> previous, String key, String key2,String unitKey) {
+        String nowUnit = Maps.getValue(params,unitKey );
+        String previousUnit = Maps.getValue(previous,unitKey );
+
+        String value2 = Maps.getValue(params, key);
+        String value1 = Maps.getValue(previous, key);
+
+        if (StringUtils.equalsIgnoreCase(nowUnit, previousUnit)) {
+            long l2 = findMoney(value2);
+            long l1 = findMoney(value1);
+            long v = l2 - l1;
+            if (v == 0) {
+                params.put(key2, "");
+            } else {
+                params.put(key2, BizUtils.toMoney(v));
+            }
+        } else {
+            long s = BizUtils.calculateWithDiffUnit(value1, previousUnit, value2, nowUnit, nowUnit);
+            if (s == 0) {
+                params.put(key, "");
+            } else {
+                params.put(key, BizUtils.toMoney(s));
+            }
+        }
+    }
+
+    private String findPeriviousPeriod(String period) {
+        String q = period.substring(5, 6);
+
+        String y = period.substring(0, 4);
+
+        if ("1".equalsIgnoreCase(q)) {
+            int _y = Integer.valueOf(y) - 1;
+            return _y + "/4Q";
+        } else {
+            return y + "/" + (Integer.valueOf(q) - 1)+"Q";
+        }
+    }
+
+    /**
+     * 연결재무제표 값 보정.
+     * @param params
+     */
+    private void correctConnectEmptyValue(Map<String, Object> params,Map<String, Object> previous) {
+        String crevenue = Maps.getValue(params, "crevenue");
+        String coperatingProfit = Maps.getValue(params, "coperating_profit");
+        String cnetIncome = Maps.getValue(params, "cnet_income");
+
+        // 연결재무제표가 없는 경우는 SKIP
+        if (StringUtils.isAllEmpty(crevenue, coperatingProfit, cnetIncome)) {
+            return;
+        }
+
+        if (isEmpty(crevenue)) {
+            correctEmptyValue(params,previous,"cum_crevenue","crevenue","unit2");
+        }
+        if (isEmpty(coperatingProfit)) {
+            correctEmptyValue(params,previous,"cum_coperating_profit","coperating_profit","unit2");
+        }
+
+        if (isEmpty(cnetIncome)) {
+            correctEmptyValue(params,previous,"cum_cnet_income","cnet_income","unit2");
+        }
+
+
     }
 
     private Map<String, Object> findEstateMap(String c,String docUrl,TableParser tableParser, EstateMyParser estateMyParser) throws Exception {
@@ -985,6 +1159,7 @@ public class PerformanceCommand extends BasicCommand {
             return false;
         }
     }
+
 
     private boolean isBizPerfCorrect(Message message) {
         if (message.getMessageProperties().getHeaders().containsKey("__RECORRECT")) {

@@ -326,4 +326,6 @@ public interface TemplateMapper {
     int existStaff(Map<String, Object> param);
 
     void updateSpareData(@Param("seq")Long seq, @Param("spare_data")String json);
+
+    Map<String, Object> findPreviousBizPerf(@Param("isu_cd")String code, @Param("period")String previousPeriod);
 }
