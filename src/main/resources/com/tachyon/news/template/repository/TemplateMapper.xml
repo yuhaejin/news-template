@@ -1147,5 +1147,13 @@
           and period = #{period}
     </select>
 
+<!--    deleteBeforGiveTakeHolder-->
+    <delete id="deleteBeforGiveTakeHolder" parameterType="map">
+        delete
+        from givetakeholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
 </mapper>
 

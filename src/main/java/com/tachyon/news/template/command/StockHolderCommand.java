@@ -165,6 +165,7 @@ public class StockHolderCommand extends BasicCommand {
                                 log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
                                 DELETE.put(_docNo, _docNo);
                                 deleteBeforeArticle(templateMapper, _docNo,code, acptNo,findArticleType());
+                                deleteBeforeGiveTakeHolder(templateMapper, _docNo, code);
                             }
                         }
                     }
@@ -396,6 +397,10 @@ public class StockHolderCommand extends BasicCommand {
         }
 
         log.info("done " + key);
+    }
+
+    private void deleteBeforeGiveTakeHolder(TemplateMapper templateMapper, String docNo, String code) {
+        templateMapper.deleteBeforGiveTakeHolder(docNo, code);
     }
 
     private void updateSpareData(TemplateMapper templateMapper,Long seq, String json) {
@@ -1276,11 +1281,12 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 증여, 수증 데이터 처리.
-     *
+     * 정정인 경우 이전 데이터 삭제 단계가 필요. at 20210608
      * @param change
      */
     private void handleGiveNTake(Change change, String docNm) {
         if (StringUtils.containsAny(change.getStockType(), "증여", "수증")) {
+            // 정정인 경우 이전 증여수증 데이터 삭제 필요함.
             Map<String, Object> _param = findParam(change);
             if (findGiveNtake(_param) == 0) {
                 Map<String, Object> param = new HashMap<>();
