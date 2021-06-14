@@ -776,6 +776,8 @@ public class StockHolderCommand extends BasicCommand {
         convertChildFunds(childFunds, childParams);
         if (childParams.size() == 0) {
             // 자펀드 데이터가 없을 때 모펀드 정보를 삽입함..
+            parentParam.put("relation", "동일펀드");
+            parentParam.put("etc", "동일펀드");
             childParams.add(parentParam);
         }
         for (Map<String, Object> child : childParams) {
@@ -785,10 +787,12 @@ public class StockHolderCommand extends BasicCommand {
         Long seq = templateMapper.findParentFund(parentParam);
 
         if (seq == null) {
+            // 모펀드가 없으면 모펀드 정보 추가
             templateMapper.insertParentFund(parentParam);
             Long _seq = (Long) parentParam.get("seq");
             for (Map<String, Object> param : childParams) {
                 param.put("prnt_seq", _seq);
+                // 자펀드 처리.
                 if (templateMapper.countChildFund(param) == 0) {
                     templateMapper.insertChildFund(param);
                 }
@@ -903,7 +907,7 @@ public class StockHolderCommand extends BasicCommand {
         param.put("bc_spot", Maps.findValueAndKeys(map, "업무상", "직위"));
         param.put("type", "외국법인");
         param.put("modi_name", modifyName(ename));
-
+        param.put("nationality", Maps.findValueAndKeys(map, "국적"));
         return param;
     }
 
