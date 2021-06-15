@@ -1154,6 +1154,10 @@
         where isu_cd = #{isu_cd}
           and doc_no = #{doc_no}
     </delete>
+<!--    findParentFundRefers-->
+    <select id="findParentFundRefers" resultType="map">
+        select condi,parent_seq,condi_type from parent_fund_refer where use_yn = 'Y' order by ord
+    </select>
 
 </mapper>
 

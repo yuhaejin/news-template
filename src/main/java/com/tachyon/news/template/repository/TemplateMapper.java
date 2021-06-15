@@ -330,4 +330,6 @@ public interface TemplateMapper {
     Map<String, Object> findPreviousBizPerf(@Param("isu_cd")String code, @Param("period")String previousPeriod);
 
     void deleteBeforGiveTakeHolder(@Param("doc_no")String docNo, @Param("isu_cd")String code);
+
+    List<Map<String, Object>> findParentFundRefers();
 }

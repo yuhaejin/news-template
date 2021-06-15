@@ -161,10 +161,10 @@ public class StockHolderCommand extends BasicCommand {
                             List<String> _docNos = findBeforeKongsi(templateMapper, docNo, code, acptNo);
                             for (String _docNo : _docNos) {
                                 log.info("이전StockHolder 확인 code=" + code + " acpt_no=" + acptNo + " docNo=" + _docNo);
-                                deleteBeforeStockHolder(templateMapper, _docNo,code);
+                                deleteBeforeStockHolder(templateMapper, _docNo, code);
                                 log.info("이전StockHolder 삭제 code=" + code + " docNo=" + _docNo);
                                 DELETE.put(_docNo, _docNo);
-                                deleteBeforeArticle(templateMapper, _docNo,code, acptNo,findArticleType());
+                                deleteBeforeArticle(templateMapper, _docNo, code, acptNo, findArticleType());
                                 deleteBeforeGiveTakeHolder(templateMapper, _docNo, code);
                             }
                         }
@@ -197,7 +197,7 @@ public class StockHolderCommand extends BasicCommand {
             setupRepresentativeName(changes);
             setupBistowal(changes);
             setupBirthYm(changes);
-            setupSpecialRelationship(changes,codeNm,docUrl,docRaw);
+            setupSpecialRelationship(changes, codeNm, docUrl, docRaw);
 //            if (changes.size() > 0) {
 //                return;
 //            }
@@ -323,7 +323,7 @@ public class StockHolderCommand extends BasicCommand {
                         if (isEmpty(json)) {
                             continue;
                         } else {
-                            updateSpareData(templateMapper,seq, json);
+                            updateSpareData(templateMapper, seq, json);
                         }
                     } else {
                         // 유일한 값이라고 할만한 조회...
@@ -385,7 +385,7 @@ public class StockHolderCommand extends BasicCommand {
             }
 
 //            if (stockCount > 0) {
-                // 기사는 articleProject에서 처리함.
+            // 기사는 articleProject에서 처리함.
 //                int count = templateMapper.findTelegramHolder(docNo, acptNo, "NOT_KEYWORD");
 //                if (count == 0) {
 //                    templateMapper.insertTelegramHolder(docNo, code, acptNo, "NOT_KEYWORD");
@@ -403,7 +403,7 @@ public class StockHolderCommand extends BasicCommand {
         templateMapper.deleteBeforGiveTakeHolder(docNo, code);
     }
 
-    private void updateSpareData(TemplateMapper templateMapper,Long seq, String json) {
+    private void updateSpareData(TemplateMapper templateMapper, Long seq, String json) {
         templateMapper.updateSpareData(seq, json);
     }
 
@@ -418,19 +418,20 @@ public class StockHolderCommand extends BasicCommand {
      * 이번보고서 보유비율
      * 변동사유 : 공동 보유 관계 해소와 대표 보고자 변경
      * 보유목적 : 단순투자인지 또는 주주 권리를 행사 (이부분은 추가 가이드 필요)
+     *
      * @param changes
      */
-    private void setupSpecialRelationship(List<Change> changes,String codeNm,String docUrl,String c) throws Exception {
+    private void setupSpecialRelationship(List<Change> changes, String codeNm, String docUrl, String c) throws Exception {
         boolean hasSpecialRelationship = hasSpecialRelationship(changes);
         if (hasSpecialRelationship) {
             // 분석처리
-            log.info("특별관계해소 거래를 가지고 있음. "+docUrl);
+            log.info("특별관계해소 거래를 가지고 있음. " + docUrl);
             String company = codeNm;
             StockChangeSelectorByPattern selector = new StockChangeSelectorByPattern();
             selector.setKeywords(new String[]{"주식등의", "대량보유상황보고서"});
 
             TableParser stockChangeTableParser = new TableParser(selector);
-            List<List<String>> lists = (List<List<String>>)stockChangeTableParser.simpleParse(c, docUrl, new RawTablesrMyParser());
+            List<List<String>> lists = (List<List<String>>) stockChangeTableParser.simpleParse(c, docUrl, new RawTablesrMyParser());
             String reportReason = findReportReason(lists);
             String beforeRatio = findBeforeRatio(lists);
             String afterRatio = findAfterRatio(lists);
@@ -440,7 +441,7 @@ public class StockHolderCommand extends BasicCommand {
                 if (isSpecialRelationship(change)) {
                     String json = convertToJson(company, change.getName(), reportReason, beforeRatio, afterRatio, purpose);
                     change.setJson(json);
-                    log.info("특별관계해소 데이터 "+json);
+                    log.info("특별관계해소 데이터 " + json);
                 }
             }
             // 분석후 해당 거래에 값(json형태로) 설정
@@ -462,8 +463,9 @@ public class StockHolderCommand extends BasicCommand {
         return JsonUtils.toJson(jsonMap);
 
     }
+
     private String findPurpose(List<List<String>> lists) {
-        return findValue(lists,"보유목적");
+        return findValue(lists, "보유목적");
     }
 
     private String findValue(List<List<String>> lists, String keyword) {
@@ -479,7 +481,8 @@ public class StockHolderCommand extends BasicCommand {
         }
         return "";
     }
-    private String findRatio(List<List<String>> lists,String keyword1,String keyword2) {
+
+    private String findRatio(List<List<String>> lists, String keyword1, String keyword2) {
         for (List<String> list : lists) {
             int _index = findIndex(list, keyword1);
             if (_index < 0) {
@@ -488,7 +491,7 @@ public class StockHolderCommand extends BasicCommand {
             int index = findIndex(list, keyword2);
             if (index >= 0) {
                 if (index != list.size() - 2) {
-                    return list.get(index + 1)+"_"+list.get(index+2);
+                    return list.get(index + 1) + "_" + list.get(index + 2);
                 } else {
                     return "";
                 }
@@ -507,8 +510,9 @@ public class StockHolderCommand extends BasicCommand {
     }
 
     private String findReportReason(List<List<String>> lists) {
-        return findValue(lists,"보고사유");
+        return findValue(lists, "보고사유");
     }
+
     private boolean hasSpecialRelationship(List<Change> changes) {
         for (Change change : changes) {
             if (isSpecialRelationship(change)) {
@@ -525,7 +529,6 @@ public class StockHolderCommand extends BasicCommand {
         } else {
             return false;
         }
-
 
 
     }
@@ -751,7 +754,7 @@ public class StockHolderCommand extends BasicCommand {
 
         List<Map<String, Object>> tables = (List<Map<String, Object>>) tableParser.simpleParse(c, docUrl, myParser);
         if (tables == null || tables.size() <= 1) {
-            log.info("분석해보니 관련테이블 정보가 없음. " + key);
+            log.info("분석해보니 모자펀드 정보가 없음. " + key);
             return null;
         }
         Map<String, Object> parentFund = findParentFund(tables);
@@ -770,7 +773,20 @@ public class StockHolderCommand extends BasicCommand {
             log.info("자펀드 " + child);
         }
 
+        /*
+         * ##### 진짜 모펀드 찾기
+         * 특별한 펀드인 경우 공시된대로 처리하지 않고 타키온에서 정한 펀드를 모펀드로 정한다.
+         * 모펀드가 변경이 되면 분석된 모펀드는 자펀드로 이동한다.
+         */
+        String ename = Maps.findValueAndKeys(parentFund, "성명", "영문");
+        List<Map<String, Object>> fundRefers = findRefers();
+        Long realParentSeq = findParentSeq(ename, fundRefers);
+        log.info("realParentSeq "+realParentSeq);
+        // ##### 진짜 모펀드 찾기
+
+        // 아래 로직은 공시에 있는대로 모자펀드 데이터 처리하기. (변경없음. 다만 진모펀드를 찾았으면 해당값을 반환)
         Map<String, Object> parentParam = convertParentFund(parentFund);
+
         log.info("분석모펀드 " + parentParam);
         setupKongsi(parentParam, docNo, isuCd, acptNo);
         convertChildFunds(childFunds, childParams);
@@ -797,7 +813,13 @@ public class StockHolderCommand extends BasicCommand {
                     templateMapper.insertChildFund(param);
                 }
             }
-            return _seq;
+            // 진모펀드가 값이 없으면
+            if (realParentSeq == -1) {
+                return _seq;
+            } else {
+                // 진모펀드 값이 있으면
+                return realParentSeq;
+            }
             // childparam 도 insert
         } else {
             for (Map<String, Object> param : childParams) {
@@ -806,11 +828,55 @@ public class StockHolderCommand extends BasicCommand {
                     templateMapper.insertChildFund(param);
                 }
             }
-
-            return seq;
+            // 진모펀드가 값이 없으면
+            if (realParentSeq == -1) {
+                return seq;
+            } else {
+                // 진모펀드 값이 있으면
+                return realParentSeq;
+            }
         }
 
 
+    }
+
+    private Long findParentSeq(String ename, List<Map<String, Object>> fundRefers) {
+        for (Map<String, Object> map : fundRefers) {
+            long seq = findParentSeq(ename,map);
+            if (seq == -1) {
+                continue;
+            }
+            return seq;
+        }
+        return Long.valueOf(-1);
+    }
+
+    private long findParentSeq(String ename, Map<String, Object> map) {
+        String type = Maps.getValue(map, "condi_type");
+        String condi = Maps.getValue(map, "condi");
+        if ("KEYWORD".equalsIgnoreCase(type)) {
+            if (ename.toLowerCase().contains(condi.toLowerCase())) {
+                return Maps.getLongValue(map, "parent_seq");
+            } else {
+                return -1;
+            }
+        } else {
+
+        }
+        return -1;
+    }
+
+    private List<Map<String, Object>> findRefers() {
+//        List<Map<String, Object>> maps = new ArrayList<>();
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("condi", "BlackRock");
+//        map.put("parent_seq", Long.valueOf(1090));
+//        map.put("condi_type", "KEYWORD");
+//
+//        maps.add(map);
+//
+//        return maps;
+        return templateMapper.findParentFundRefers();
     }
 
     private int findChildRows(List<Map<String, Object>> maps) {
@@ -1037,7 +1103,7 @@ public class StockHolderCommand extends BasicCommand {
         Timestamp _yesterDay = new Timestamp(yesterDay.getTime());
 
         String code = BizUtils.findCode(_code, stockMethod);
-        Integer closePrice = templateMapper.findCloseByStringDate(code, DateUtils.toString(_yesterDay,"yyyyMMdd"));
+        Integer closePrice = templateMapper.findCloseByStringDate(code, DateUtils.toString(_yesterDay, "yyyyMMdd"));
         if (closePrice == null) {
             log.warn("종가를 찾을 수 없음. " + code + " " + _yesterDay);
             return;
@@ -1286,6 +1352,7 @@ public class StockHolderCommand extends BasicCommand {
     /**
      * 증여, 수증 데이터 처리.
      * 정정인 경우 이전 데이터 삭제 단계가 필요. at 20210608
+     *
      * @param change
      */
     private void handleGiveNTake(Change change, String docNm) {
@@ -1445,7 +1512,7 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private String findSrcType(String birth,String name,String code,String acptNo) {
+    private String findSrcType(String birth, String name, String code, String acptNo) {
         if (isEmpty(birth) || birth.contains("*") || "-".equals(birth)) {
             birth = "";
         }
@@ -1459,7 +1526,7 @@ public class StockHolderCommand extends BasicCommand {
             } else {
                 if (isCompany(code, name)) {
                     return "COMPANY";
-                }else {
+                } else {
                     if (name.length() <= 3) {
                         if (findDashCount(birth) >= 2) {
                             return "COMPANY";
@@ -1497,6 +1564,7 @@ public class StockHolderCommand extends BasicCommand {
 
         return false;
     }
+
     private int findDashCount(String s) {
         int count = 0;
         for (char c : s.toCharArray()) {
@@ -1506,11 +1574,12 @@ public class StockHolderCommand extends BasicCommand {
         }
         return count;
     }
+
     private boolean isCompany(String code, String name) {
         Map<String, Object> param = new HashMap<>();
         param.put("name", name);
         param.put("isu_cd", code);
-        Map<String,Object> map = templateMapper.findLargests(param);
+        Map<String, Object> map = templateMapper.findLargests(param);
         if (map == null) {
             return false;
         }
@@ -1523,6 +1592,7 @@ public class StockHolderCommand extends BasicCommand {
         }
 
     }
+
     private boolean isStaff(String name, String birth, String isuCd) {
         Map<String, Object> param = new HashMap<>();
         param.put("name", name);
@@ -1534,6 +1604,7 @@ public class StockHolderCommand extends BasicCommand {
             return false;
         }
     }
+
     private void setupOneTaker(List<Change> list, Change oneGiver) {
         for (Change change : list) {
             String type = change.getStockType();
@@ -1625,7 +1696,7 @@ public class StockHolderCommand extends BasicCommand {
         }
     }
 
-    private boolean isRelative(String isuCd,String name,String birth) {
+    private boolean isRelative(String isuCd, String name, String birth) {
         Map<String, Object> param = new HashMap<>();
         param.put("name", name);
         param.put("birth", birth);
@@ -1847,6 +1918,7 @@ public class StockHolderCommand extends BasicCommand {
 
     /**
      * 임원퇴임 거래 처리..
+     *
      * @param templateMapper
      * @param param
      */
@@ -1863,7 +1935,7 @@ public class StockHolderCommand extends BasicCommand {
                 log.info("SKIP 중복된 임원 " + param);
             }
         } else {
-            log.info("SKIP 임원이 아님. "+param);
+            log.info("SKIP 임원이 아님. " + param);
         }
 
     }
