@@ -776,11 +776,11 @@ public class StockHolderCommand extends BasicCommand {
         /*
          * ##### 진짜 모펀드 찾기
          * 특별한 펀드인 경우 공시된대로 처리하지 않고 타키온에서 정한 펀드를 모펀드로 정한다.
-         * 모펀드가 변경이 되면 분석된 모펀드는 자펀드로 이동한다.
          */
         String ename = Maps.findValueAndKeys(parentFund, "성명", "영문");
+        String hname = Maps.findValueAndKeys(parentFund, "성명", "한글");
         List<Map<String, Object>> fundRefers = findRefers();
-        Long realParentSeq = findParentSeq(ename, fundRefers);
+        Long realParentSeq = findParentSeq(ename,hname, fundRefers);
         log.info("realParentSeq "+realParentSeq);
         // ##### 진짜 모펀드 찾기
 
@@ -840,9 +840,9 @@ public class StockHolderCommand extends BasicCommand {
 
     }
 
-    private Long findParentSeq(String ename, List<Map<String, Object>> fundRefers) {
+    private Long findParentSeq(String ename, String hname, List<Map<String, Object>> fundRefers) {
         for (Map<String, Object> map : fundRefers) {
-            long seq = findParentSeq(ename,map);
+            long seq = findParentSeq(ename, hname, map);
             if (seq == -1) {
                 continue;
             }
@@ -851,21 +851,38 @@ public class StockHolderCommand extends BasicCommand {
         return Long.valueOf(-1);
     }
 
-    private long findParentSeq(String ename, Map<String, Object> map) {
+    private long findParentSeq(String ename, String hname, Map<String, Object> map) {
         String type = Maps.getValue(map, "condi_type");
         String condi = Maps.getValue(map, "condi");
-        if ("KEYWORD".equalsIgnoreCase(type)) {
-            if (ename.toLowerCase().contains(condi.toLowerCase())) {
-                return Maps.getLongValue(map, "parent_seq");
-            } else {
+        Long seq = Maps.getLongValue(map, "parent_seq");
+        if ("E".equalsIgnoreCase(type)) {
+            if (contains(ename, condi)) {
+                return seq;
+            }else {
                 return -1;
             }
-        } else {
-
+        } else if("H".equalsIgnoreCase(type)) {
+            if (contains(hname, condi)) {
+                return seq;
+            }else {
+                return -1;
+            }
         }
         return -1;
     }
 
+    private boolean contains(String src, String condition) {
+        src = src.toLowerCase();
+        condition = condition.toLowerCase().trim();
+        String[] strings = StringUtils.splitByWholeSeparator(condition, " ");
+        for (String s : strings) {
+            if (src.contains(s)==false) {
+                return false;
+            }
+        }
+
+        return true;
+    }
     private List<Map<String, Object>> findRefers() {
 //        List<Map<String, Object>> maps = new ArrayList<>();
 //        Map<String, Object> map = new HashMap<>();
