@@ -1,0 +1,1163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.tachyon.news.template.repository.TemplateMapper">
+    <!--    <resultMap id="userResultMap" type="com.tachyon.news.template.model.User">-->
+    <!--        <result property="userid" column="userid"/>-->
+    <!--        <result property="userid" column="userid"/>-->
+    <!--        <collection property="keywords" ofType="String">-->
+    <!--            <result property="keyword" column="keyword"/>-->
+    <!--        </collection>-->
+    <!--    </resultMap>-->
+
+    <select id="findKongsiHolder2" resultType="map" parameterType="map">
+        select a.doc_nm,
+               a.doc_url,
+               a.isu_cd,
+               a.acpt_no,
+               a.rpt_nm,
+               a.tns_dt,
+               a.submit_nm,
+               a.temp_rpt_nm,
+               (select isu_nm from isu where isu_cd = a.isu_cd) as isu_nm,
+               a.code_type
+        from kongsiholder a
+        where a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+
+    </select>
+    <insert id="insertStockHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO stockholder (isu_cd, doc_no, owner_name, change_date, before_amt, after_amt, change_amt, unit_price, birth_day, acpt_no, unit_price2, stock_method, stock_type, acpt_dt,etc,etc2,birth_ym,is_compressed,odd_value_yn,before_price,prnt_seq,no_of_share,spare_data)
+        VALUES (#{isu_cd}, #{doc_no}, #{owner_name}, #{change_date}, #{before_amt}, #{after_amt}, #{change_amt}, #{unit_price}, #{birth_day}, #{acpt_no}, #{unit_price2}, #{stock_method}, #{stock_type}, #{acpt_dt},#{etc},#{etc2},#{birth_ym},#{is_compressed},#{odd_value_yn},#{before_price},#{prnt_seq},#{no_of_share},#{spare_data})
+    </insert>
+
+    <select id="findStockHolderCount" resultType="int" parameterType="map">
+        select count(doc_no)
+        from stockholder
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </select>
+
+    <select id="findBeforeKongsi" resultType="map" parameterType="string">
+        select a.doc_nm, a.doc_no
+        from kongsiholder a
+        where a.acpt_no = #{acptNo}
+          and a.isu_cd = #{isuCd}
+    </select>
+
+    <delete id="deleteBeforeStockHolder" parameterType="map">
+        delete
+        from stockholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
+    <select id="findName" parameterType="string" resultType="string">
+        select isu_nm
+        from isu
+        where isu_cd = #{isu_cd}
+    </select>
+
+    <insert id="insertStaffHolder" parameterType="map">
+        INSERT INTO staffholder (kongsi_day, name, gender, birth_day, spot, regi_officer_yn, full_time_yn, responsibilities, major_career, voting_stock, no_voting_stock, service_duration, expiration_date, isu_cd, doc_no, doc_url, acpt_no,birth_ym)
+        VALUES (#{kongsi_day}, #{name}, #{gender}, #{birth_day}, #{spot}, #{regi_officer_yn}, #{full_time_yn}, #{responsibilities}, #{major_career}, #{voting_stock}, #{no_voting_stock}, #{service_duration}, #{expiration_date}, #{isu_cd}, #{doc_no},
+                #{doc_url}, #{acpt_no},#{birth_ym})
+    </insert>
+
+
+    <select id="findSimpleStaffHolder" parameterType="map" resultType="map">
+        select doc_no, doc_url, acpt_no,seq
+        from staffholder
+        where kongsi_day = #{kongsi_day}
+          and name = #{name}
+          and birth_day = #{birth_day}
+          and isu_cd = #{isu_cd}
+    </select>
+    <delete id="deleteBeforeStaffHolder" parameterType="map">
+        delete
+        from staffholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
+    <insert id="insertAccessHolder" parameterType="map">
+        INSERT INTO accessholder (id, type, regdate, param1, param2,ip)
+        VALUES (#{id}, #{type}, #{regdate}, #{param1}, #{param2},#{ip})
+    </insert>
+
+
+    <select id="findPurposeHolder" parameterType="string" resultType="int">
+        select count(*) count
+        from purposeholder
+        where isu_cd = #{isu_cd}
+          and open_date = #{open_date}
+          and type = #{type}
+    </select>
+    <insert id="insertPurposeHolder1" parameterType="map">
+        INSERT INTO purposeholder (isu_cd, open_date, type, purpose, reason, doc_url)
+        VALUES (#{isu_cd}, #{open_date}, #{type}, #{purpose}, #{reason}, #{doc_url})
+    </insert>
+    <insert id="insertPurposeHolder2" parameterType="map">
+        INSERT INTO purposeholder (isu_cd, open_date, type, reason, doc_url, before_purp, after_purp)
+        VALUES (#{isu_cd}, #{open_date}, #{type}, #{reason}, #{doc_url}, #{before_purp}, #{after_purp})
+    </insert>
+
+    <insert id="saveError" parameterType="map">
+        INSERT INTO errorholder (from_queue, body, error)
+        VALUES (#{from_queue}, #{body}, #{error})
+    </insert>
+
+
+    <select id="findUsers" resultType="map">
+        select a.userid,
+               ifnull(b.keyword, '') as keyword,
+               ifnull(a.grade, 10)   as grade,
+               ifnull(c.chat_id, 0)  as chat_id,
+               ifnull(c.bot_seq, -1) as bot_seq
+        from member a
+                 left join keywordholder b on a.userid = b.userid and b.useYn = 'Y'
+                 left join telegram c on a.userid = c.userid and c.userYn = 'Y'
+        where chat_id not in (0)
+    </select>
+
+    <select id="findKeywords" resultType="map">
+        select a.userid,
+               ifnull(b.keyword, '') as keyword,
+               ifnull(b.order, 10)   as _order
+        from member a
+                 left join keywordholder b on a.userid = b.userid and b.useYn = 'Y'
+        where b.keyword is not null
+        order by _order
+    </select>
+
+
+    <select id="findUser" resultType="int">
+        select count(*)
+        from member
+        where userid = #{userid}
+    </select>
+    <update id="updateChatId" parameterType="map">
+        update telegram
+        set chat_id   = #{chat_id}
+          , updatedAt = now()
+        where userid = #{userid}
+    </update>
+
+    <insert id="insertRumor" parameterType="map">
+        INSERT INTO rumorholder (isu_cd, doc_no, acpt_no, type, kongsi_dt, contents, title, kongsi_due_dt, media, skip_count, kongsi_res_dt,acpt_dt)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{type}, #{kongsi_dt}, #{contents}, #{title}, #{kongsi_due_dt}, #{media}, #{skip_count}, #{kongsi_res_dt},#{acpt_dt})
+    </insert>
+    <select id="findRumorCount" resultType="int" parameterType="map">
+        select count(doc_no)
+        from rumorholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+          and acpt_no = #{acpt_no}
+    </select>
+    <insert id="insertTelegramHolder" parameterType="map">
+        INSERT INTO telegramholder (doc_no, keyword, isu_cd, acpt_no, created_at, processed_yn)
+        VALUES (#{doc_no}, #{keyword}, #{isu_cd}, #{acpt_no}, now(), 'N')
+    </insert>
+
+
+    <select id="findNoGroupTelegramHolder" resultType="map">
+        select a.doc_no,
+               a.keyword,
+               a.isu_cd,
+               a.acpt_no,
+               a.created_at,
+               b.doc_nm,
+               b.doc_url,
+               b.rpt_nm,
+               b.tns_dt
+        from telegramholder a,
+             kongsiholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.processed_yn = 'N'
+        order by b.tns_dt limit 30
+
+    </select>
+
+    <update id="completeNoGroupTelegramHolder" parameterType="map">
+        update telegramholder
+        set processed_yn = 'Y',
+            updated_at   = now()
+        where doc_no = #{doc_no}
+          and acpt_no = #{acpt_no}
+          and keyword = #{keyword}
+    </update>
+
+
+    <select id="findMemberCode" resultType="map">
+        select a.userid,
+               ifnull(b.isu_cd, '') as isu_cd
+        from member a
+                 left join member_code b on a.userid = b.userid and b.use_yn = 'Y'
+    </select>
+
+    <select id="findGroupTelegramHolder" resultType="map">
+        select a.doc_no,
+               a.keyword,
+               a.isu_cd,
+               a.acpt_no,
+               a.created_at,
+               b.doc_nm,
+               b.doc_url,
+               b.rpt_nm,
+               b.tns_dt
+        from telegramholder a,
+             kongsiholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.group_processed_yn = 'N'
+        order by b.tns_dt limit 9
+    </select>
+
+    <update id="completeGroupTelegramHolder" parameterType="map">
+        update telegramholder
+        set group_processed_yn = 'Y',
+            group_updated_at   = now()
+        where doc_no = #{doc_no}
+          and acpt_no = #{acpt_no}
+          and keyword = #{keyword}
+    </update>
+
+    <select id="findBots" resultType="map">
+        select a.seq,
+               a.name,
+               a.token
+        from telegrambot a
+        where use_yn = 'Y'
+    </select>
+
+    <select id="findClose" resultType="int" parameterType="map">
+        select close
+        from stock_data
+        where code = #{code}
+          and date = #{date}
+    </select>
+
+    <insert id="insertExpiration" parameterType="map">
+        INSERT INTO expirationholder (name, birthday, isu_cd, changeday, doc_no, acpt_no, doc_url)
+        VALUES (#{name}, #{birthday}, #{isu_cd}, #{changeday}, #{doc_no}, #{acpt_no}, #{doc_url})
+    </insert>
+    <select id="findExpirationCount" resultType="int" parameterType="map">
+        select count(*)
+        from expirationholder
+        where name = #{name}
+          and birthday = #{birthday}
+          and isu_cd = #{isu_cd}
+          and changeday = #{changeday}
+    </select>
+
+    <select id="findTelegramHolder" resultType="int" parameterType="map">
+        select count(*)
+        from telegramholder
+        where doc_no = #{doc_no}
+          and keyword = #{keyword}
+          and acpt_no = #{acpt_no}
+    </select>
+    <delete id="deleteOverlapRumor" parameterType="map">
+        delete
+        from rumorholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+          and acpt_no = #{acpt_no}
+    </delete>
+
+    <select id="findChangeWithTelegram" resultType="map" parameterType="map">
+        select a.owner_name, a.before_amt, a.after_amt, a.unit_price,a.birth_day,a.stock_type
+        from stockholder a,
+             telegramholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+    </select>
+
+    <select id="findRssPubDateCount" resultType="int" parameterType="string">
+        select count(*)
+        from rsspubholder
+        where pub_date = #{pub_date}
+    </select>
+
+    <insert id="insertRssPubDate" parameterType="string">
+        INSERT INTO rsspubholder (pub_date)
+        VALUES (#{pub_date})
+    </insert>
+    <delete id="deleteBeforeLargestStockHolder" parameterType="map">
+        delete
+        from largeststockholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+    <insert id="insertLargestStockHolder" parameterType="map">
+        INSERT INTO largeststockholder (name, birthday, isu_cd, changedate, gender, homeabroad, relation, doubleup1, doubleup2, generalstockcnt, generalratio, kindstockcnt, kindratio, stockdepositorycnt, stockdepositoryratio, firststockratio, doc_no,
+                                        acpt_no, firststockcnt, nationality)
+        VALUES (#{name}, #{birthday}, #{isu_cd}, #{changedate}, #{gender}, #{homeabroad}, #{relation}, #{doubleup1}, #{doubleup2}, #{generalstockcnt}, #{generalratio}, #{kindstockcnt}, #{kindratio}, #{stockdepositorycnt}, #{stockdepositoryratio},
+                #{firststockratio}, #{doc_no}, #{acpt_no}, #{firststockcnt}, #{nationality})
+    </insert>
+
+    <select id="findLargestStockHolderCount" resultType="int" parameterType="map">
+        select count(*)
+        from largeststockholder
+        where name = #{name}
+          and birthday = #{birthday}
+          and isu_cd = #{isu_cd}
+          and changedate = #{changedate}
+    </select>
+
+
+    <delete id="deleteBeforeRelativeHolder" parameterType="map">
+        delete
+        from relativeholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
+    <select id="findRelativeHolderCount" resultType="int" parameterType="map">
+        select count(*)
+        from relativeholder
+        where name = #{name}
+          and birth = #{birth}
+          and isu_cd = #{isu_cd}
+          and change_date = #{change_date}
+    </select>
+    <insert id="insertRelativeHolder" parameterType="map">
+        INSERT INTO relativeholder (name, birth, isu_cd, gender, homeabroad, nationality, relation_him, address, job, relation_com, doc_no, acpt_no, change_date, new_yn)
+        VALUES (#{name}, #{birth}, #{isu_cd}, #{gender}, #{homeabroad}, #{nationality}, #{relation_him}, #{address}, #{job}, #{relation_com}, #{doc_no}, #{acpt_no}, #{change_date}, #{new_yn})
+    </insert>
+
+    <select id="findRelativeWithTelegram" resultType="map" parameterType="map">
+        select a.name,
+               a.birth,
+               a.gender,
+               a.homeabroad,
+               a.nationality,
+               a.relation_him,
+               a.address,
+               a.job,
+               a.relation_com
+        from relativeholder a,
+             telegramholder b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+          and b.keyword = 'RELATIVE'
+    </select>
+    <select id="findRelativeCount" resultType="map" parameterType="map">
+        <![CDATA[
+        select doc_no, acpt_no
+        from relativeholder
+        where name = #{name}
+          and birth = #{birth}
+          and isu_cd = #{isu_cd}
+          and doc_no <> #{doc_no}
+          and acpt_no <> #{acpt_no} limit 1
+        ]]>
+    </select>
+    <select id="findKrRssPubDateCount" resultType="int" parameterType="string">
+        select count(*)
+        from krrsspubholder
+        where pub_date = #{pub_date}
+    </select>
+
+    <insert id="insertKrRssPubDate" parameterType="string">
+        INSERT INTO krrsspubholder (pub_date)
+        VALUES (#{pub_date})
+    </insert>
+
+    <select id="findStaff" parameterType="map" resultType="int">
+        select count(*)
+        from staffholder
+        where kongsi_day = #{kongsi_day}
+          and name = #{name}
+          and birth_day = #{birth_day}
+          and isu_cd = #{isu_cd}
+    </select>
+    <insert id="insertStaff" parameterType="map">
+        INSERT INTO staffholder (kongsi_day, name, birth_day, spot, isu_cd, doc_no, acpt_no, doc_url)
+        VALUES (#{kongsi_day}, #{name}, #{birth_day}, #{spot}, #{isu_cd}, #{doc_no}, #{acpt_no}, #{doc_url})
+    </insert>
+    <update id="updateStockHolderBirthDay" parameterType="map">
+        update stockholder
+        set birth_day = #{birth_day2}
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </update>
+
+    <!--findRelativeHodlerSize-->
+    <select id="findRelativeHodlerSize" resultType="int" parameterType="map">
+        select count(seq)
+        from relativeholder
+        where name = #{name}
+          and birth = #{birth}
+          and isu_cd = #{isu_cd}
+    </select>
+    <!--    findDupStockCountOnSameKind-->
+    <select id="findDupStockCountOnSameKind" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(b.seq)
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+                   and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm = #{temp_rpt_nm}
+        ]]>
+    </select>
+    <select id="findDupStockSeqOnSameKind" resultType="long" parameterType="map">
+        <![CDATA[
+        select b.seq
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+                   and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm = #{temp_rpt_nm}
+        ]]>
+    </select>
+
+
+<!--    findDupStockCountOnOtherKind-->
+    <select id="findDupStockCountOnOtherKind" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(b.seq)
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm <> #{temp_rpt_nm}
+        ]]>
+    </select>
+    <select id="findDupStockSeqOnOtherKind" resultType="long" parameterType="map">
+        <![CDATA[
+        select b.seq
+        from kongsiholder a,
+             (
+                 select seq, isu_cd, doc_no, acpt_no
+                 from stockholder
+                 where isu_cd = #{code}
+                   and owner_name = #{owner_name}
+                   and birth_day = #{birth_day}
+                   and before_amt = #{before_amt}
+                   and after_amt = #{after_amt}
+             ) b
+        where a.acpt_no = b.acpt_no
+          and a.isu_cd = b.isu_cd
+          and a.doc_no = b.doc_no
+          and a.temp_rpt_nm <> #{temp_rpt_nm}
+        ]]>
+    </select>
+<!--    findStaffCount-->
+    <select id="findStaffCount" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(a.seq)
+        from staffholder a
+        where a.isu_cd = #{isuCd}
+          and a.name = #{name}
+          and a.birth_day = #{birth}
+        ]]>
+    </select>
+
+<!--    findLastDayStaffCount-->
+    <select id="findLastDayStaffCount" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(a.seq)
+        from staffholder a
+        where a.isu_cd = #{isuCd}
+          and a.name = #{name}
+          and a.birth_day = #{birth_day}
+          and a.kongsi_day = #{kongsi_day}
+        ]]>
+    </select>
+
+    <select id="findCode" parameterType="string" resultType="string">
+        select isu_cd
+        from isu
+        where isu_nm = #{isu_nm}
+    </select>
+    <delete id="deleteBeforePerfHolder" parameterType="map">
+        delete
+        from perfholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+    <!--    findDuplicatePerf-->
+    <select id="findDuplicatePerf" resultType="int" parameterType="map">
+        select count(seq)
+        from perfholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+    <!--    insertPerf-->
+
+    <insert id="insertPerf" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO perfholder (seq, dang_mae_dang, dang_mae_nu, dang_yeong_dang, dang_yeong_nu, dang_beob_dang, dang_beob_nu, dang_dang_dang, dang_dang_nu, dang_ji_dang, dang_ji_nu, sil_mae_dang, sil_mae_nu, sil_yeong_dang, sil_yeong_nu, sil_beob_dang, sil_beob_nu, sil_dang_dang, sil_dang_nu, sil_ji_dang, sil_ji_nu, yul_mae_dang, yul_mae_nu, yul_yeong_dang, yul_yeong_nu, yul_beob_dang, yul_beob_nu, yul_dang_dang, yul_dang_nu, yul_ji_dang, yul_ji_nu, jeon_sil_mae_dang, jeon_sil_mae_nu, jeon_sil_yeong_dang, jeon_sil_yeong_nu, jeon_sil_beob_dang, jeon_sil_beob_nu, jeon_sil_dang_dang, jeon_sil_dang_nu, jeon_sil_ji_dang, jeon_sil_ji_nu, jeon_jeung_mae_dang, jeon_jeung_mae_nu, jeon_jeung_yeong_dang, jeon_jeung_yeong_nu, jeon_jeung_beob_dang, jeon_jeung_beob_nu, jeon_jeung_dang_dang, jeon_jeung_dang_nu, jeon_jeung_ji_dang, jeon_jeung_ji_nu, unit1, unit2, provider, subject, provider_date, provider_positon, contact, isu_cd, doc_no, acpt_no, acpt_dt,quarter,quarter_tp,year,type,raw_quarter,child_com)
+        VALUES (#{seq},#{dang_mae_dang},#{dang_mae_nu},#{dang_yeong_dang},#{dang_yeong_nu},#{dang_beob_dang},#{dang_beob_nu},#{dang_dang_dang},#{dang_dang_nu},#{dang_ji_dang},#{dang_ji_nu},#{sil_mae_dang},#{sil_mae_nu},#{sil_yeong_dang},#{sil_yeong_nu},#{sil_beob_dang},#{sil_beob_nu},#{sil_dang_dang},#{sil_dang_nu},#{sil_ji_dang},#{sil_ji_nu},#{yul_mae_dang},#{yul_mae_nu},#{yul_yeong_dang},#{yul_yeong_nu},#{yul_beob_dang},#{yul_beob_nu},#{yul_dang_dang},#{yul_dang_nu},#{yul_ji_dang},#{yul_ji_nu},#{jeon_sil_mae_dang},#{jeon_sil_mae_nu},#{jeon_sil_yeong_dang},#{jeon_sil_yeong_nu},#{jeon_sil_beob_dang},#{jeon_sil_beob_nu},#{jeon_sil_dang_dang},#{jeon_sil_dang_nu},#{jeon_sil_ji_dang},#{jeon_sil_ji_nu},#{jeon_jeung_mae_dang},#{jeon_jeung_mae_nu},#{jeon_jeung_yeong_dang},#{jeon_jeung_yeong_nu},#{jeon_jeung_beob_dang},#{jeon_jeung_beob_nu},#{jeon_jeung_dang_dang},#{jeon_jeung_dang_nu},#{jeon_jeung_ji_dang},#{jeon_jeung_ji_nu},#{unit1},#{unit2},#{provider},#{subject},#{provider_date},#{provider_poston},#{contact},#{isu_cd},#{doc_no},#{acpt_no},#{acpt_dt},#{quarter},#{quarter_tp},#{year},#{type},#{raw_quarter},#{child_com})
+    </insert>
+<!--    insertDupStock-->
+    <insert id="insertDupStock" parameterType="map">
+        INSERT INTO stockdupholder (isu_cd, doc_no, acpt_no, doc_url, stock_seq)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{doc_url}, #{stock_seq})
+    </insert>
+<!--    findDupStockCount-->
+    <select id="findDupStockCount" resultType="int" parameterType="map">
+        select count(seq)
+        from stockdupholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+
+    <insert id="insertTrotHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO trotholder (isu_cd, doc_no, acpt_no, isu_nm, keyword,sigan,date_sigan)
+        VALUES (#{isu_cd}, #{doc_no}, #{acpt_no}, #{isu_nm}, #{keyword},#{sigan},#{date_sigan})
+    </insert>
+
+    <insert id="insertKongsiHolder" parameterType="map">
+        INSERT INTO kongsiholder (isu_cd,doc_no, doc_nm, doc_url, doc_type, tns_dt, acpt_no, rpt_nm,acpt_dt,submit_nm,temp_rpt_nm,code_type)
+        VALUES ( #{isu_cd},#{doc_no}, #{doc_nm}, #{doc_url}, #{doc_type}, #{tns_dt}, #{acpt_no}, #{rpt_nm},#{acpt_dt},#{submit_nm},#{temp_rpt_nm},#{code_type});
+    </insert>
+
+    <select id="findKongsiCount" parameterType="map" resultType="int">
+        select count(*) from kongsiholder where isu_cd = #{isu_cd} and doc_no = #{doc_no} and acpt_no=#{acpt_no}
+    </select>
+
+    <delete id="deleteBeforeTakingHolder" parameterType="map">
+        delete
+        from takingholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
+    <select id="fincTakingHolderCount" parameterType="map" resultType="int">
+        select count(seq)
+        from takingholder
+        where isu_cd = #{isu_cd}
+          and name = #{name}
+          and birth=#{birth}
+          and owner_capital=#{owner_capital}
+          and borrow_amount=#{borrow_amount}
+          and etc=#{etc}
+    </select>
+
+    <insert id="insertTakingHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO takingholder (acpt_dt,name, birth, owner_capital, borrowings, etc, sum,resource,borrower,borrow_amount,borrow_period,collateral,doc_no,isu_cd,acpt_no,type,err_msg,spot)
+        VALUES ( #{acpt_dt},#{name}, #{birth}, #{owner_capital}, #{borrowings}, #{etc}, #{sum}, #{resource},#{borrower},#{borrow_amount},#{borrow_period},#{collateral},#{doc_no},#{isu_cd},#{acpt_no},#{type},#{err_msg},#{spot})
+    </insert>
+
+<!--    findGiveNtake-->
+    <select id="findGiveNtake" resultType="int" parameterType="map">
+        select count(a.seq)
+        from givetakeholder a
+        where 1 = 1
+          and a.isu_cd = #{isu_cd}
+          and a.change_date = #{change_date}
+          and a.name = #{name}
+          and a.change_amount = #{change_amount}
+          and a.before_amount = #{before_amount}
+          and a.give_take_type = #{give_take_type}
+
+    </select>
+
+    <insert id="insertGiveNTake" parameterType="map">
+        INSERT INTO givetakeholder (isu_cd, change_date, name, change_amount, give_take_type, birth, price, price2, before_amount, after_amount, stock_type, etc, target, target_type,doc_no,acpt_no,stock_method,acpt_dt,gender,nationality,relation,src_type)
+        VALUES (#{isu_cd}, #{change_date}, #{name}, #{change_amount}, #{give_take_type}, #{birth}, #{price}, #{price2}, #{before_amount}, #{after_amount}, #{stock_type}, #{etc}, #{target}, #{target_type},#{doc_no},#{acpt_no},#{stock_method},#{acpt_dt},#{gender},#{nationality},#{relation},#{src_type})
+    </insert>
+    <select id="findMyStockCount" parameterType="map" resultType="int">
+        select count(a.seq)
+        from mystockholder a
+        where 1 = 1
+          and a.doc_no = #{doc_no}
+          and a.isu_cd = #{isu_cd}
+          and a.acpt_no = #{acpt_no}
+    </select>
+
+    <insert id="insertMyStock" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO mystockholder (doc_no,isu_cd,acpt_no,acpt_dt,company,stock_count_gen,stock_count_etc,stock_amount_gen,stock_amount_etc,start_period,end_period,start_period2,end_period2,purpose,method,dispose_method1,dispose_method2,dispose_method3,dispose_method4,before_my_gen_count,before_my_gen_ratio,before_my_etc_count,before_my_etc_ratio,before_etc_gen_count,before_etc_gen_ratio,before_etc_etc_count,before_etc_etc_ratio,decision_date,agency,target_stock_gen_price,target_stock_etc_price,type,amount_unit,stock_unit)
+        VALUES (#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{company},#{stock_count_gen},#{stock_count_etc},#{stock_amount_gen},#{stock_amount_etc},#{start_period},#{end_period},#{start_period2},#{end_period2},#{purpose},#{method},#{dispose_method1},#{dispose_method2},#{dispose_method3},#{dispose_method4},#{before_my_gen_count},#{before_my_gen_ratio},#{before_my_etc_count},#{before_my_etc_ratio},#{before_etc_gen_count},#{before_etc_gen_ratio},#{before_etc_etc_count},#{before_etc_etc_ratio},#{decision_date},#{agency},#{target_stock_gen_price},#{target_stock_etc_price},#{type},#{amount_unit},#{stock_unit})
+    </insert>
+
+<!--    deleteBeforeMyStockHolder-->
+    <delete id="deleteBeforeMyStockHolder" parameterType="map">
+        delete
+        from mystockholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+
+<!--    deleteBeforeContractHolder-->
+    <delete id="deleteBeforeContractHolder" parameterType="map">
+        delete
+        from contractholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findSupplyContractCount-->
+    <select id="findSupplyContractCount" parameterType="map" resultType="int">
+        select count(a.seq)
+        from contractholder a
+        where 1 = 1
+          and a.contract_gubun = #{contract_gubun}
+          and a.action_type = #{action_type}
+          and a.do_date = #{do_date}
+          and a.isu_cd = #{isu_cd}
+    </select>
+<!--    insertSupplyContract-->
+    <insert id="insertSupplyContract" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO contractholder (action_type,contract_gubun,contract_name,contents1,contents2,contents3,contents4,contents5,contents6,contents7,target,relation_with_company,sales_area,contract_start_date,contract_end_date,contract_condition,termination_reason,do_date,reservation_reason,reservation_period,etc,doc_no,isu_cd,acpt_no,acpt_dt,contract_date,child_com)
+        VALUES (#{action_type},#{contract_gubun},#{contract_name},#{contents1},#{contents2},#{contents3},#{contents4},#{contents5},#{contents6},#{contents7},#{target},#{relation_with_company},#{sales_area},#{contract_start_date},#{contract_end_date},#{contract_condition},#{termination_reason},#{do_date},#{reservation_reason},#{reservation_period},#{etc},#{doc_no},#{isu_cd},#{acpt_no},#{acpt_dt},#{contract_date},#{child_com})
+    </insert>
+
+<!--    findNewerStockHolder-->
+    <select id="findNewerStockHolder" resultType="map" parameterType="map">
+        <![CDATA[
+        select
+            a.before_amt,
+            a.after_amt,
+            a.seq,
+            a.change_date
+        from stockholder a, (select
+                                 doc_no,
+                                 isu_cd,
+                                 acpt_no,
+                                 owner_name,
+                                 change_date
+                             from stockholder
+                             where isu_cd = #{isu_cd}
+                               and owner_name = #{owner_name}
+                               and change_date <= #{change_date}
+                             order by change_date desc
+                                 limit 1) b
+        where a.doc_no = b.doc_no
+          and a.isu_cd = b.isu_cd
+          and a.acpt_no = b.acpt_no
+          and a.owner_name = b.owner_name
+          and a.change_date = b.change_date
+        order by a.after_amt
+            limit 1
+        ]]>
+    </select>
+<!--    deleteBeforeTouchHolder-->
+    <delete id="deleteBeforeTouchHolder" parameterType="map">
+        delete
+        from touchholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findTouchHolderCount-->
+    <select id="findTouchHolderCount" resultType="int" parameterType="map">
+        select count(seq)
+        from touchholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+<!--    insertTouchHolder-->
+    <insert id="insertTouchHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO touchholder (financial_type,now_revenue,before_revenue,revenue_amount,revenue_ratio,now_profit,before_profit,profi_amount,profit_ratio,now_ordi_profit,before_ordi_profit,ordi_profit_amount,ordi_profit_ratio,now_income,before_income,income_amount,income_ratio,is_large_corp,now_total_assets,before_total_assets,now_total_debt,before_total_debt,now_total_cap,before_total_cap,now_cap,before_cap,now_asscap_ratio,before_asscap_ratio,sales_variation_cause,etc, doc_no, isu_cd, acpt_no, acpt_dt,unit,child_com)
+        VALUES (#{financial_type},#{now_revenue},#{before_revenue},#{revenue_amount},#{revenue_ratio},#{now_profit},#{before_profit},#{profi_amount},#{profit_ratio},#{now_ordi_profit},#{before_ordi_profit},#{ordi_profit_amount},#{ordi_profit_ratio},#{now_income},#{before_income},#{income_amount},#{income_ratio},#{is_large_corp},#{now_total_assets},#{before_total_assets},#{now_total_debt},#{before_total_debt},#{now_total_cap},#{before_total_cap},#{now_cap},#{before_cap},#{now_asscap_ratio},#{before_asscap_ratio},#{sales_variation_cause},#{etc}, #{doc_no}, #{isu_cd}, #{acpt_no}, #{acpt_dt},#{unit},#{child_com})
+    </insert>
+<!--    findBeforeStock-->
+    <select id="findBeforeStock" resultType="int" parameterType="map">
+        <![CDATA[
+        select count(seq)
+        from stockholder
+        where isu_cd = #{isu_cd}
+          and owner_name =#{owner_name}
+        and change_date > #{before_date}
+          and change_date < #{now_date}
+        ]]>
+    </select>
+
+<!--    compressStockHolder-->
+    <update id="compressStockHolder">
+        update stockholder
+        set is_compressed   = 'Y'
+        where seq = #{seq}
+    </update>
+<!--    deleteBeforeTrialHolder-->
+    <delete id="deleteBeforeTrialHolder" parameterType="map">
+        delete
+        from trialsholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findTrialCount-->
+    <select id="findTrialCount" resultType="int" parameterType="map">
+        select count(seq)
+        from trialsholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+    <!--    insertTrial-->
+    <insert id="insertTrial" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT INTO trialsholder (doc_no,isu_cd,acpt_no,type,title,purpose,approval_agency,approval_date,approval_history,future_plan,confirm_date,etc,acpt_dt)
+        VALUES (#{doc_no},#{isu_cd},#{acpt_no},#{type},#{title},#{purpose},#{approval_agency},#{approval_date},#{approval_history},#{future_plan},#{confirm_date},#{etc},#{acpt_dt})
+    </insert>
+<!--    findCloseByStringDate-->
+    <select id="findCloseByStringDate" resultType="Integer" parameterType="map">
+        select close
+        from stock_data
+        where code = #{code}
+          and date = #{date}
+    </select>
+
+    <select id="findStaffHolder" resultType="com.tachyon.crawl.kind.model.Staff" parameterType="map">
+        select seq,name,birth_day,spot,responsibilities as task from staffholder where doc_no = #{doc_no} and isu_cd = #{isu_cd} and acpt_no = #{acpt_no}
+    </select>
+    <!--    updateSimpleStockHolderBirthDay-->
+    <update id="updateSimpleStockHolderBirthDay">
+        update staffholder
+        set birth_day = #{birth_day},
+        birth_ym = #{birth_ym}
+        where seq = #{seq}
+    </update>
+<!--    countBirth-->
+    <select id="countBirth" resultType="int" parameterType="map">
+        select count(seq)
+        from birth
+        where kongsi_birth = #{kongsi_birth}
+          and acpt_year = #{acpt_year}
+    </select>
+
+    <insert id="insertBirth" parameterType="map">
+        INSERT INTO birth (kongsi_birth,parsed_birth,open_birth,nm,doc_no,isu_cd,acpt_no,doc_url,acpt_year)
+        VALUES (#{kongsi_birth},#{parsed_birth},#{open_birth},#{nm},#{doc_no},#{isu_cd},#{acpt_no},#{doc_url},#{acpt_year})
+    </insert>
+
+    <!--    대표명 수집..-->
+    <select id="findRepresentativeName" resultType="map">
+		select /* SharedRepository.findRepresentativeName */
+			name,rep_nm
+		from repnmholder
+
+    </select>
+
+    <update id="updateStockHolderUnitPrice" parameterType="map">
+        update stockholder
+        set unit_price = #{unit_price},
+        unit_price2 = #{unit_price2}
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and DATE_FORMAT(change_date, '%Y%m%d') = #{change_date}
+    </update>
+
+    <select id="findParentFundSeq" resultType="long">
+        select prnt_seq
+        from tachyon.child_fund
+        where birth = #{birth}
+        order by seq limit 1
+    </select>
+    <select id="findParentFund" resultType="long" parameterType="map">
+        select seq from parent_fund where birth = #{birth}
+    </select>
+    <insert id="insertParentFund" useGeneratedKeys="true" keyProperty="seq" parameterType="map">
+		INSERT /* GoogleMapper.insertParentFund */
+		INTO parent_fund
+		(
+			hname,
+			ename,
+			address,
+			birth,
+			job,
+			bc_company,
+			bc_name,
+			bc_spot,
+			doc_no,
+			isu_cd,
+			acpt_no
+
+		)
+		VALUES
+		(
+			#{hname},
+			#{ename},
+			#{address},
+			#{birth},
+			#{job},
+			#{bc_company},
+			#{bc_name},
+			#{bc_spot},
+			#{doc_no},
+			#{isu_cd},
+			#{acpt_no}
+		)
+	</insert>
+    <insert id="insertChildFund" parameterType="map">
+		INSERT /* TemplateMapper.insertChildFund */
+		INTO child_fund
+		(
+			prnt_seq,
+			ename,
+			type,
+			relation,
+			birth,
+			nationality,
+			address,
+			job,
+			etc,
+			modi_name
+		)
+		VALUES
+		(
+			#{prnt_seq},
+			#{ename},
+			#{type},
+			#{relation},
+			#{birth},
+			#{nationality},
+			#{address},
+			#{job},
+			#{etc},
+			#{modi_name}
+		)
+	</insert>
+    <!--    countChildFund-->
+    <select id="countChildFund" parameterType="map" resultType="int">
+        select count(seq) from child_fund where prnt_seq = #{prnt_seq} and birth = #{birth} and modi_name = #{modi_name}
+    </select>
+
+    <select id="findStockHolderSeq" resultType="map" parameterType="map">
+        select seq,acpt_no,doc_no
+        from stockholder
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and change_date = #{change_date}
+    </select>
+
+    <update id="updateParentFund" parameterType="map">
+        update stockholder
+        set prnt_seq = #{prnt_seq}
+        where seq = #{seq}
+    </update>
+    <select id="findEtcManagementCount" resultType="int" parameterType="map">
+        select count(seq)
+        from etc_mng
+        where isu_cd = #{isu_cd}
+          and title = #{title}
+          and acpt_dt = #{acpt_dt}
+    </select>
+<!--    insertEtcManagement-->
+    <insert id="insertEtcManagement" parameterType="map">
+		INSERT /* TemplateMapper.insertEtcManagement */
+		INTO etc_mng
+		(
+			title,acpt_dt,doc_no,isu_cd,acpt_no,contents,confirm_date,etc,subsidiary,ename,agent,major_biz,major_sub_com_yn,total_assets,ctrl_total_assets,ctrl_total_assets_ratio
+		)
+		VALUES
+		(
+			#{title},#{acpt_dt},#{doc_no},#{isu_cd},#{acpt_no},#{contents},#{confirm_date},#{etc},#{subsidiary},#{ename},#{agent},#{major_biz},#{major_sub_com_yn},#{total_assets},#{ctrl_total_assets},#{ctrl_total_assets_ratio}
+		)
+	</insert>
+
+
+    <select id="findStockName" resultType="map" parameterType="map">
+        select seq,owner_name
+        from stockholder
+        where isu_cd = #{code}
+          and owner_name = #{owner_name}
+          and birth_day = #{birth_day}
+          and before_amt = #{before_amt}
+          and after_amt = #{after_amt}
+          and change_date = #{change_date}
+    </select>
+    <update id="updateStockHolderName" parameterType="map">
+        update stockholder
+        set owner_name = #{owner_name}
+        where seq = #{seq}
+    </update>
+
+    <delete id="deleteArticle" parameterType="map">
+        delete
+        from api.articleholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+          and type = #{type}
+    </delete>
+
+<!--    deleteBeforeBizPerfHolder-->
+    <delete id="deleteBeforeBizPerfHolder" parameterType="map">
+        delete
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findBizPerfHolderCount-->
+    <select id="findBizPerfHolderCount" resultType="int" parameterType="map">
+        select count(seq)
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
+    <insert id="insertBizPerfHolder" parameterType="map" useGeneratedKeys="true" keyProperty="seq">
+        INSERT /* TemplateMapper.insertBizPerfHolder */
+        INTO biz_perf_holder
+        (
+            revenue,operating_profit,net_income,crevenue,coperating_profit,cnet_income,cfs_json,fs_json,unit,unit2,period,doc_no,isu_cd,acpt_no,acpt_dt,raw_period,period_type
+            ,cbank_json,bank_json,cum_revenue,cum_operating_profit,cum_net_income,cum_crevenue,cum_coperating_profit,cum_cnet_income
+        )
+        VALUES
+        (
+            #{revenue},#{operating_profit},#{net_income},#{crevenue},#{coperating_profit},#{cnet_income},#{cfs_json},#{fs_json},#{unit},#{unit2},#{period},#{doc_no},#{isu_cd}
+            ,#{acpt_no},#{acpt_dt},#{raw_period},#{period_type},#{cbank_json},#{bank_json},#{cum_revenue},#{cum_operating_profit},#{cum_net_income},#{cum_crevenue},#{cum_coperating_profit},#{cum_cnet_income}
+        )
+    </insert>
+<!--    findBizPerf-->
+    <select id="findBizPerf" resultType="map">
+        select revenue
+             ,operating_profit
+             ,net_income
+             ,crevenue
+             ,coperating_profit
+             ,cnet_income
+             ,unit
+             ,unit2
+             ,period
+             ,doc_no
+             ,isu_cd
+             ,acpt_no
+             ,acpt_dt
+             ,raw_period
+             ,period_type
+        from biz_perf_holder
+        where seq = #{seq}
+    </select>
+
+    <select id="findBizPerfs" parameterType="map" resultType="map">
+        select seq
+             ,revenue
+             ,operating_profit
+             ,net_income
+             ,crevenue
+             ,coperating_profit
+             ,cnet_income
+             ,unit
+             ,unit2
+             ,period
+             ,doc_no
+             ,isu_cd
+             ,acpt_no
+             ,acpt_dt
+             ,raw_period
+             ,period_type
+             ,cfs_json
+             ,fs_json
+            ,cbank_json
+            ,bank_json
+             ,cum_revenue
+             ,cum_operating_profit
+             ,cum_net_income
+             ,cum_crevenue
+             ,cum_coperating_profit
+             ,cum_cnet_income
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+        and period like concat(#{year},'%')
+    </select>
+
+<!--    findPeriodCount-->
+    <select id="findPeriodCount" resultType="int" parameterType="map">
+        select count(seq)
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
+
+<!--    findBizPerfHolder-->
+    <select id="findBizPerfHolder" resultType="long" parameterType="map">
+        select seq
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
+<!--    updateBizPerf-->
+    <update id="updateBizPerf" parameterType="map">
+        update biz_perf_holder
+        set revenue = #{revenue}
+        ,operating_profit=#{operating_profit}
+        ,net_income=#{net_income}
+        ,crevenue=#{crevenue}
+        ,coperating_profit=#{coperating_profit}
+        ,cnet_income=#{cnet_income}
+        ,cfs_json=#{cfs_json}
+        ,fs_json=#{fs_json}
+        ,unit=#{unit}
+        ,unit2=#{unit2}
+        ,period=#{period}
+        ,raw_period=#{raw_period}
+        ,period_type=#{period_type}
+        ,cbank_json=#{cbank_json}
+        ,bank_json=#{bank_json}
+        ,cum_revenue=#{cum_revenue}
+        ,cum_operating_profit=#{cum_operating_profit}
+        ,cum_net_income=#{cum_net_income}
+        ,cum_crevenue=#{cum_crevenue}
+        ,cum_coperating_profit=#{cum_coperating_profit}
+        ,cum_cnet_income=#{cum_cnet_income}
+        where seq = #{seq}
+    </update>
+<!--&lt;!&ndash;    findStaffCount&ndash;&gt;-->
+<!--    <select id="findStaffCount" resultType="int" parameterType="map">-->
+<!--        select count(seq)-->
+<!--        from staffholder-->
+<!--        where name = #{name}-->
+<!--          and birth_day = #{birth}-->
+<!--          and isu_cd = #{isu_cd}-->
+<!--    </select>-->
+
+    <select id="findLargests" resultType="map" parameterType="map">
+        <![CDATA[
+        select gender,homeabroad
+        from largeststockholder
+        where name = #{name}
+          and isu_cd = #{isu_cd}
+          and gender <> '' and homeabroad <>'' limit 1
+        ]]>
+    </select>
+    <select id="findTouchHolderSeq" resultType="long" parameterType="map">
+        select seq
+        from touchholder
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </select>
+<!--    updateTouchHolder-->
+    <update id="updateTouchHolder" parameterType="map">
+        update touchholder
+        set financial_type=#{financial_type}
+          ,now_revenue=#{now_revenue}
+          ,before_revenue=#{before_revenue}
+          ,revenue_amount=#{revenue_amount}
+          ,revenue_ratio=#{revenue_ratio}
+          ,now_profit=#{now_profit}
+          ,before_profit=#{before_profit}
+          ,profi_amount=#{profi_amount}
+          ,profit_ratio=#{profit_ratio}
+          ,now_ordi_profit=#{now_ordi_profit}
+          ,before_ordi_profit=#{before_ordi_profit}
+          ,ordi_profit_amount=#{ordi_profit_amount}
+          ,ordi_profit_ratio=#{ordi_profit_ratio}
+          ,now_income=#{now_income}
+          ,before_income=#{before_income}
+          ,income_amount=#{income_amount}
+          ,income_ratio=#{income_ratio}
+          ,is_large_corp=#{is_large_corp}
+          ,now_total_assets=#{now_total_assets}
+          ,before_total_assets=#{before_total_assets}
+          ,now_total_debt=#{now_total_debt}
+          ,before_total_debt=#{before_total_debt}
+          ,now_total_cap=#{now_total_cap}
+          ,before_total_cap=#{before_total_cap}
+          ,now_cap=#{now_cap}
+          ,before_cap=#{before_cap}
+          ,now_asscap_ratio=#{now_asscap_ratio}
+          ,before_asscap_ratio=#{before_asscap_ratio}
+          ,sales_variation_cause=#{sales_variation_cause}
+          ,etc=#{etc}
+          , doc_no=#{ doc_no}
+          , isu_cd=#{ isu_cd}
+          , acpt_no=#{ acpt_no}
+          , acpt_dt=#{ acpt_dt}
+          ,unit=#{unit}
+          ,child_com=#{child_com}
+        where doc_no = #{doc_no}
+          and isu_cd = #{isu_cd}
+          and acpt_no = #{acpt_no}
+    </update>
+
+    <select id="existStaff" parameterType="map" resultType="int">
+        select count(*)
+        from staffholder
+        where name = #{name}
+          and birth_day = #{birth_day}
+          and isu_cd = #{isu_cd}
+    </select>
+
+    <update id="updateSpareData" parameterType="map">
+        update stockholder set spare_data = #{spare_data} where seq = #{seq}
+    </update>
+    <select id="findPreviousBizPerf" parameterType="map" resultType="map">
+        select
+             unit
+             ,unit2
+             ,cum_revenue
+             ,cum_operating_profit
+             ,cum_net_income
+             ,cum_crevenue
+             ,cum_coperating_profit
+             ,cum_cnet_income
+        from biz_perf_holder
+        where isu_cd = #{isu_cd}
+          and period = #{period}
+    </select>
+
+<!--    deleteBeforGiveTakeHolder-->
+    <delete id="deleteBeforGiveTakeHolder" parameterType="map">
+        delete
+        from givetakeholder
+        where isu_cd = #{isu_cd}
+          and doc_no = #{doc_no}
+    </delete>
+<!--    findParentFundRefers-->
+    <select id="findParentFundRefers" resultType="map">
+        select condi,parent_seq,condi_type from parent_fund_refer where use_yn = 'Y' order by ord
+    </select>
+
+</mapper>
+

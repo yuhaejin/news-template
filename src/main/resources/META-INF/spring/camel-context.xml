@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Configures the Camel Context-->
+
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://camel.apache.org/schema/spring http://camel.apache.org/schema/spring/camel-spring.xsd">
+
+    <bean class="org.apache.camel.spring.spi.BridgePropertyPlaceholderConfigurer" id="bridgePropertyPlaceholderConfigurer">
+        <property name="location" value="classpath:application.properties"/>
+    </bean>
+
+<!--    <bean id="customConnectionFactory" class="com.rabbitmq.client.ConnectionFactory">-->
+<!--        <property name="host" value="localhost"/>-->
+<!--        <property name="port" value="5672"/>-->
+<!--        <property name="username" value="lloydkwon"/>-->
+<!--        <property name="password" value="miso2miso"/>-->
+<!--    </bean>-->
+
+
+<!--    <camelContext xmlns="http://camel.apache.org/schema/spring">-->
+<!--        <route>-->
+<!--            <from uri="rabbitmq://localhost:5672/GATEWAY?connectionFactory=#customConnectionFactory"/>-->
+<!--            <to id="utilService:onComplete" uri="bean:utilService?method=onComplete"/>-->
+<!--        </route>-->
+<!--    </camelContext>-->
+
+</beans>
